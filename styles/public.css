@@ -1,0 +1,320 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Public site design tokens + shared utilities — extracted from Figma
+   "JMT -- Home" (node 4143:9225). Imported by app/globals.css.
+   Replaces the old styles/_variables.scss + styles/_mixins.scss.
+
+   Used by the homepage (`app/(public)`, `components/homepage`,
+   `components/common`); the base shadcn tokens stay in app/globals.css
+   (mirrored from jmt-admin). Brand colours become Tailwind colours (`bg-orange`,
+   `text-slate`, `border-sand-line`, …), shadows become `shadow-panel` etc.
+
+   Parameterised utilities read CSS variables, so call sites tweak them with
+   arbitrary properties rather than competing utilities, e.g.
+     <a className="btn-primary [--btn-h:46px]">
+     <section className="section-pad [--section-top:80px]">
+     <button className="focus-ring [--focus-offset:0px]">
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* `static` = always emit these variables, so `var(--color-…)` in arbitrary
+   values and in the utilities below always resolves. */
+@theme static {
+  /* Breakpoints: Tailwind's md/lg/xl (768/1024/1280) already match the design.
+     xs = 480px (old `sm`) and wide = 1440px (old `xxl`) fill the gaps. */
+  --breakpoint-xs: 30rem;
+  --breakpoint-wide: 90rem;
+
+  /* Brand */
+  --color-orange: #f26921;
+  --color-orange-hover: #dc5a16;
+  --color-orange-nav: #f36a21;
+  --color-orange-tint: rgba(242, 105, 33, 0.16);
+  --color-brown: #642301;
+  --color-brown-ink: #51200c;
+  --color-brown-soft: rgba(121, 43, 2, 0.91);
+  --color-gold: #c9a13b;
+
+  /* Ink / neutrals */
+  --color-heading: #131313;
+  --color-ink: #0e1b2c;
+  --color-navy: #0b2540;
+  --color-navy-card: #13355a;
+  --color-slate: #5a6b80;
+  --color-slate-strong: #33445a;
+  --color-mist: #c9d3e0;
+  --color-mist-light: #e4e9f0;
+  --color-on-brown: #ececec;
+  --color-footer-ink: #202020;
+  --color-shade: #060606;
+
+  /* Warm surfaces */
+  --color-peach-50: #fffdf7;
+  --color-peach-100: #fef1e7;
+  --color-peach-200: #fcd3b0;
+  --color-peach-wash: rgba(252, 211, 176, 0.31);
+  --color-peach-line: #f3e1d3;
+  --color-hero-wash-1: #f4decd;
+  --color-hero-wash-2: #f7dcc5;
+  --color-sand: #e6e1d3;
+  --color-sand-line: #d8d2c2;
+  --color-sand-rule: #ded8c8;
+  --color-sand-gold: #e2d6b4;
+
+  /* Cool lines / inputs */
+  --color-input-bg: #f7f9fc;
+  --color-input-line: #e3e8ef;
+  --color-card-line: #e6eaf0;
+  --color-card-line-soft: #eef1f5;
+  --color-pill-line: #d3dce8;
+  --color-online: #2e8b57;
+  --color-error: #c62828;
+  --color-success: #2e7d4f;
+
+  /* Radii (pill = rounded-full; 20/16/12px use rounded-[…] to avoid the
+     admin's shadcn rounded-xl/lg/md tokens) */
+  --radius-button: 43px;
+
+  /* Shadows */
+  --shadow-panel: 0 16px 40px 0 rgba(99, 36, 0, 0.1);
+  --shadow-card: 0 24px 24px rgba(19, 53, 90, 0.15);
+  --shadow-form: 0 30px 30px rgba(19, 53, 90, 0.35);
+  --shadow-faq: 0 6px 9px rgba(19, 53, 90, 0.18);
+  --shadow-faq-open: 0 20px 20px rgba(19, 53, 90, 0.3);
+  --shadow-chip: 0 8px 10px rgba(8, 27, 48, 0.35);
+  --shadow-badge: 0 8px 12px rgba(8, 27, 48, 0.4);
+
+  /* Motion (durations: use duration-160 / duration-240) */
+  --ease-site: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Fonts come from next/font variables set on the public layout's wrapper,
+   so they must stay var() references (inline). */
+@theme inline {
+  --font-site: var(--font-manrope), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-bengali: var(--font-noto-bengali), var(--font-manrope), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-devanagari: var(--font-noto-devanagari), var(--font-manrope), system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Anchor jumps land below the sticky navbar; smooth only when motion is OK. */
+html:has(.site) {
+  scroll-padding-top: 68px;
+}
+@media (width >= 64rem) {
+  html:has(.site) {
+    scroll-padding-top: 80px;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.site) {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+
+/* Responsive gutters: 16 → 32 (md) → 48 (lg) → 80 (xl). */
+@utility gutters {
+  padding-inline: 16px;
+  @media (width >= 48rem) {
+    padding-inline: 32px;
+  }
+  @media (width >= 64rem) {
+    padding-inline: 48px;
+  }
+  @media (width >= 80rem) {
+    padding-inline: 80px;
+  }
+}
+
+/* Centered 1440 frame with responsive gutters → 1280 content at desktop. */
+@utility site-container {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: 16px;
+  @media (width >= 48rem) {
+    padding-inline: 32px;
+  }
+  @media (width >= 64rem) {
+    padding-inline: 48px;
+  }
+  @media (width >= 80rem) {
+    padding-inline: 80px;
+  }
+}
+
+/* Section block padding: 56 → 72 (md) → --section-top/--section-bottom (lg, default 100). */
+@utility section-pad {
+  padding-block: 56px;
+  @media (width >= 48rem) {
+    padding-block: 72px;
+  }
+  @media (width >= 64rem) {
+    padding-top: var(--section-top, 100px);
+    padding-bottom: var(--section-bottom, var(--section-top, 100px));
+  }
+}
+
+/* Heading left, supporting copy right (lg+). Aside width: --aside-w (460px). */
+@utility split-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  @media (width >= 64rem) {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--split-gap, 24px);
+    & > :last-child {
+      flex: 0 0 var(--aside-w, 460px);
+      max-width: var(--aside-w, 460px);
+    }
+  }
+}
+
+/* ── Typography ─────────────────────────────────────────────────────────── */
+
+/* Section heading: 52px/1.05, -1px, bold, fluid down to 32px at 375px. */
+@utility heading-xl {
+  margin: 0;
+  color: var(--color-heading);
+  font-size: clamp(32px, 24.9577464789px + 1.8779342723vw, 52px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -1px;
+}
+
+/* Large body copy: 17px/1.6, fluid down to 15.5px. */
+@utility body-lg {
+  margin: 0;
+  color: var(--color-slate);
+  font-size: clamp(15.5px, 14.9718309859px + 0.1408450704vw, 17px);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0;
+}
+
+/* Uppercase tag/eyebrow: 12px/1.6, 1.4px tracking, bold. */
+@utility eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.6;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+@utility accent-underline {
+  color: var(--color-orange);
+  text-decoration-line: underline;
+  text-decoration-skip-ink: none;
+  text-underline-position: from-font;
+  text-decoration-thickness: from-font;
+}
+
+/* ── Interaction ────────────────────────────────────────────────────────── */
+
+/* Focus outline: --focus-color (orange), --focus-offset (3px). */
+@utility focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--focus-color, var(--color-orange));
+    outline-offset: var(--focus-offset, 3px);
+  }
+}
+
+@utility hide-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ── Buttons (height: --btn-h, default 54px) ────────────────────────────── */
+
+@utility btn-base {
+  appearance: none;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: var(--btn-h, 54px);
+  padding: 12px 24px;
+  border: 0;
+  border-radius: var(--radius-button);
+  font-family: var(--font-site);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.6;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+  &:focus-visible {
+    outline: 2px solid var(--focus-color, var(--color-orange));
+    outline-offset: var(--focus-offset, 3px);
+  }
+  &:active {
+    transform: translateY(1px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility btn-primary {
+  @apply btn-base;
+  background-color: var(--color-orange);
+  color: #fff;
+  &:hover {
+    background-color: var(--color-orange-hover);
+  }
+  &:disabled,
+  &[aria-disabled="true"] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@utility btn-outline {
+  @apply btn-base;
+  border: 1px solid var(--color-brown);
+  background-color: transparent;
+  color: var(--color-brown);
+  padding-inline: 25px;
+  &:hover {
+    background-color: rgba(100, 35, 1, 0.06);
+  }
+}
+
+/* Circular glass arrow used on dark image cards. */
+@utility glass-arrow {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50px;
+  background-color: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  transition: background-color 160ms ease;
+}
+
+/* ── Media ──────────────────────────────────────────────────────────────── */
+
+/* Blurred black bar under card captions (Figma: #060606, blur 24.45).
+   Height/bottom: --shade-h (121px) / --shade-bottom (-42px). */
+@utility caption-shade {
+  position: absolute;
+  left: -63px;
+  right: -63px;
+  bottom: var(--shade-bottom, -42px);
+  height: var(--shade-h, 121px);
+  background-color: var(--color-shade);
+  filter: blur(24.45px);
+  pointer-events: none;
+}
