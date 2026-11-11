@@ -4,16 +4,16 @@ import { HOMEPAGE_REVALIDATE_SECONDS, HOMEPAGE_TAGS } from "@/lib/homepage/build
 
 // Public, tiny: lets open homepage tabs notice a new save and refresh
 // themselves (components/homepage/LiveRefresh.tsx). Forwards to
-// jmt-admin's /api/homepage/version through a fetch cached under the
-// "homepage" tag, so polling costs nothing until the admin saves (the save
-// expires the tag via app/api/revalidate).
+// jmt-admin's /api/homepage/version through a fetch cached under every
+// homepage tag, so polling costs nothing until the admin saves the homepage,
+// a menu or a homepage photo (each save expires its tag via app/api/revalidate).
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
     const res = await fetch(adminUrl("/api/homepage/version"), {
       cache: "force-cache",
-      next: { tags: [HOMEPAGE_TAGS.homePage], revalidate: HOMEPAGE_REVALIDATE_SECONDS },
+      next: { tags: Object.values(HOMEPAGE_TAGS), revalidate: HOMEPAGE_REVALIDATE_SECONDS },
       signal: AbortSignal.timeout(ADMIN_TIMEOUT_MS),
     });
     if (res.ok) {

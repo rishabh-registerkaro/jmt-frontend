@@ -14,6 +14,9 @@ export const LEAD_SOURCE = "Homepage — Request workers";
 // would make real visitors trip the honeypot and silently lose their lead.
 export const HONEYPOT_FIELD = "jmt_hp_ref";
 
+/** Hidden field with the page language ("en" | "bn" | "hi"), so the form's replies match it. */
+export const LOCALE_FIELD = "locale";
+
 export const MAX_HEADCOUNT = 5000;
 
 const LIMITS: Record<LeadField, number> = {

@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
   }
 
   for (const tag of tags as string[]) revalidateTag(tag, { expire: 0 });
-  revalidatePath("/");
+  // Every language ("/" → /en, /bn, /hi) renders under app/[lang].
+  revalidatePath("/[lang]", "layout");
 
   return NextResponse.json({ success: true, revalidated: tags });
 }

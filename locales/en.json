@@ -1,0 +1,27 @@
+{
+  "skipToContent": "Skip to content",
+  "nav": {
+    "main": "Main",
+    "mobile": "Mobile",
+    "language": "Language",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "home": "home"
+  },
+  "opensWhatsApp": "(opens WhatsApp)",
+  "sites": {
+    "previous": "Previous sites",
+    "next": "Next sites",
+    "list": "Site types we staff"
+  },
+  "faq": {
+    "tabs": "Questions by audience",
+    "questionsSuffix": "questions"
+  },
+  "founder": {
+    "assurances": "What every crew comes with"
+  },
+  "form": {
+    "honeypot": "Leave this field empty"
+  }
+}

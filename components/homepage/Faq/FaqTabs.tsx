@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import type { FaqAudience, FaqGroup } from "@/types/homepage";
 import { JOIN_CREW_ANCHOR } from "./anchors";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 interface FaqTabsProps {
   groups: FaqGroup[];
@@ -61,6 +62,7 @@ const cls = {
 };
 
 export default function FaqTabs({ groups }: FaqTabsProps) {
+  const { t } = useLanguage();
   const idPrefix = useId();
   const [activeIndex, setActiveIndex] = useState(0);
   // One open question per audience; the first starts open, as in the design.
@@ -131,7 +133,7 @@ export default function FaqTabs({ groups }: FaqTabsProps) {
 
   return (
     <div className="flex flex-col gap-[20px]">
-      <div className={cls.list} role="tablist" aria-label="Questions by audience">
+      <div className={cls.list} role="tablist" aria-label={t.faq.tabs}>
         {groups.map((group, index) => {
           const selected = index === activeIndex;
           return (
@@ -154,7 +156,7 @@ export default function FaqTabs({ groups }: FaqTabsProps) {
               <span className="text-[14.5px] leading-[23.2px] font-semibold">{group.label}</span>
               <span className="text-[12.5px] leading-[20px] font-semibold">
                 {group.items.length}
-                <span className="sr-only"> questions</span>
+                <span className="sr-only"> {t.faq.questionsSuffix}</span>
               </span>
             </button>
           );

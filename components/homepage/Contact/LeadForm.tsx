@@ -3,8 +3,9 @@
 import Image from "next/image";
 import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { submitLead } from "@/app/actions/leads";
-import { HONEYPOT_FIELD, INITIAL_LEAD_STATE, MAX_HEADCOUNT } from "@/utils/leadForm";
-import type { LeadField, LeadFormState } from "@/types/homepage";
+import { HONEYPOT_FIELD, INITIAL_LEAD_STATE, LOCALE_FIELD, MAX_HEADCOUNT } from "@/utils/leadForm";
+import type { LeadField, LeadFormCopy, LeadFormState } from "@/types/homepage";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 const cls = {
   input: [
@@ -28,24 +29,24 @@ const cls = {
 
 interface FieldConfig {
   name: LeadField;
-  label: string;
   type: "text" | "tel" | "number" | "date";
   autoComplete: string;
   required: boolean;
   inputMode?: "text" | "tel" | "numeric";
 }
 
-// Two per row, in the design's order.
+// Two per row, in the design's order. Labels come from the admin (copy.labels).
 const FIELDS: FieldConfig[] = [
-  { name: "companyName", label: "Company name", type: "text", autoComplete: "organization", required: false },
-  { name: "name", label: "Your name", type: "text", autoComplete: "name", required: true },
-  { name: "phone", label: "Phone / WhatsApp", type: "tel", autoComplete: "tel", required: true, inputMode: "tel" },
-  { name: "siteLocation", label: "Site location", type: "text", autoComplete: "address-level2", required: true },
-  { name: "headcount", label: "Headcount", type: "number", autoComplete: "off", required: true, inputMode: "numeric" },
-  { name: "startDate", label: "Start date", type: "date", autoComplete: "off", required: false },
+  { name: "companyName", type: "text", autoComplete: "organization", required: false },
+  { name: "name", type: "text", autoComplete: "name", required: true },
+  { name: "phone", type: "tel", autoComplete: "tel", required: true, inputMode: "tel" },
+  { name: "siteLocation", type: "text", autoComplete: "address-level2", required: true },
+  { name: "headcount", type: "number", autoComplete: "off", required: true, inputMode: "numeric" },
+  { name: "startDate", type: "date", autoComplete: "off", required: false },
 ];
 
-export default function LeadForm() {
+export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
+  const { locale, t } = useLanguage();
   const [state, formAction, isPending] = useActionState(submitLead, INITIAL_LEAD_STATE);
   const [dismissed, setDismissed] = useState<LeadFormState | null>(null);
   const idPrefix = useId();
@@ -69,14 +70,14 @@ export default function LeadForm() {
   if (showSuccess) {
     return (
       <div ref={successRef} className={cls.success} role="status" tabIndex={-1}>
-        <p className="m-0 text-[22px] leading-[1.25] font-bold tracking-[-0.2px] text-success">Request received</p>
+        <p className="m-0 text-[22px] leading-[1.25] font-bold tracking-[-0.2px] text-success">{copy.successTitle}</p>
         <p className="m-0 text-[15px] leading-[24px] text-ink">{state.message}</p>
         <button
           type="button"
           className="btn-outline [--btn-h:46px] mt-[8px] text-[15px]"
           onClick={() => setDismissed(state)}
         >
-          Send another request
+          {copy.resetLabel}
         </button>
       </div>
     );
@@ -90,6 +91,7 @@ export default function LeadForm() {
       noValidate
       aria-describedby={`${idPrefix}-status`}
     >
+      <input type="hidden" name={LOCALE_FIELD} value={locale} />
       <div className="grid grid-cols-1 gap-[16px] xs:grid-cols-2">
         {FIELDS.map((field) => {
           const inputId = `${idPrefix}-${field.name}`;
@@ -98,8 +100,10 @@ export default function LeadForm() {
           return (
             <div key={field.name} className="flex flex-col gap-[6px]">
               <label htmlFor={inputId} className="text-[14px] leading-[22.4px] font-semibold text-ink">
-                {field.label}
-                {!field.required && <span className="font-normal text-slate"> (optional)</span>}
+                {copy.labels[field.name]}
+                {!field.required && copy.optionalHint && (
+                  <span className="font-normal text-slate"> {copy.optionalHint}</span>
+                )}
               </label>
               <input
                 id={inputId}
@@ -127,7 +131,7 @@ export default function LeadForm() {
 
       {/* Honeypot: hidden from people and assistive tech, tempting to bots. */}
       <div className="sr-only" aria-hidden="true">
-        <label htmlFor={`${idPrefix}-${HONEYPOT_FIELD}`}>Leave this field empty</label>
+        <label htmlFor={`${idPrefix}-${HONEYPOT_FIELD}`}>{t.form.honeypot}</label>
         <input id={`${idPrefix}-${HONEYPOT_FIELD}`} name={HONEYPOT_FIELD} type="text" tabIndex={-1} autoComplete="off" />
       </div>
 
@@ -142,7 +146,7 @@ export default function LeadForm() {
       </p>
 
       <button type="submit" className="btn-primary mt-[4px] w-full" disabled={isPending} aria-busy={isPending}>
-        {isPending ? "Sending…" : "Request workers"}
+        {isPending ? copy.submitting : copy.submit}
         {!isPending && <Image src="/homepage/icon-arrow-right-white-form.svg" alt="" width={18} height={18} />}
       </button>
     </form>

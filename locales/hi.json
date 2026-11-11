@@ -1,0 +1,27 @@
+{
+  "skipToContent": "मुख्य सामग्री पर जाएँ",
+  "nav": {
+    "main": "मुख्य",
+    "mobile": "मोबाइल",
+    "language": "भाषा",
+    "openMenu": "मेनू खोलें",
+    "closeMenu": "मेनू बंद करें",
+    "home": "होम"
+  },
+  "opensWhatsApp": "(WhatsApp खुलेगा)",
+  "sites": {
+    "previous": "पिछली साइटें",
+    "next": "अगली साइटें",
+    "list": "जिन साइटों पर हम श्रमिक देते हैं"
+  },
+  "faq": {
+    "tabs": "किसके लिए सवाल",
+    "questionsSuffix": "सवाल"
+  },
+  "founder": {
+    "assurances": "हर क्रू के साथ क्या मिलता है"
+  },
+  "form": {
+    "honeypot": "यह फ़ील्ड खाली छोड़ें"
+  }
+}

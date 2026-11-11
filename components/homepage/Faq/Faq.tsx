@@ -1,13 +1,16 @@
 import Image from "next/image";
-import type { ContactInfo, FaqCopy, FaqGroup, FounderContent } from "@/types/homepage";
+import type { ChromeLabels, ContactInfo, FaqCopy, FaqGroup, FounderContent } from "@/types/homepage";
 import FaqTabs from "./FaqTabs";
 import { JOIN_CREW_ANCHOR } from "./anchors";
+import type { Dictionary } from "@/lib/i18n";
 
 interface FaqProps {
   groups: FaqGroup[];
   copy: FaqCopy;
   founder: FounderContent;
   contact: ContactInfo;
+  labels: ChromeLabels;
+  t: Dictionary;
 }
 
 const cls = {
@@ -42,7 +45,7 @@ const cls = {
   ].join(" "),
 };
 
-export default function Faq({ groups, copy, founder, contact }: FaqProps) {
+export default function Faq({ groups, copy, founder, contact, labels, t }: FaqProps) {
   const whatsappHref = contact.whatsappHref ?? "#contact";
   const whatsappIsExternal = whatsappHref.startsWith("http");
 
@@ -80,7 +83,7 @@ export default function Faq({ groups, copy, founder, contact }: FaqProps) {
             <div className="flex flex-wrap gap-[10px]">
               <a href={contact.phoneHref ?? "#contact"} className={cls.call}>
                 <Image src="/homepage/icon-phone-white-18.svg" alt="" width={18} height={18} />
-                Call
+                {labels.callButton}
               </a>
               <a
                 href={whatsappHref}
@@ -88,8 +91,8 @@ export default function Faq({ groups, copy, founder, contact }: FaqProps) {
                 {...(whatsappIsExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
               >
                 <Image src="/homepage/icon-whatsapp-outline.svg" alt="" width={18} height={18} />
-                WhatsApp
-                {whatsappIsExternal && <span className="sr-only"> (opens WhatsApp)</span>}
+                {labels.whatsappButton}
+                {whatsappIsExternal && <span className="sr-only"> {t.opensWhatsApp}</span>}
               </a>
             </div>
           </aside>

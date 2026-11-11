@@ -1,0 +1,27 @@
+{
+  "skipToContent": "মূল অংশে যান",
+  "nav": {
+    "main": "প্রধান",
+    "mobile": "মোবাইল",
+    "language": "ভাষা",
+    "openMenu": "মেনু খুলুন",
+    "closeMenu": "মেনু বন্ধ করুন",
+    "home": "হোম"
+  },
+  "opensWhatsApp": "(WhatsApp খুলবে)",
+  "sites": {
+    "previous": "আগের সাইট",
+    "next": "পরের সাইট",
+    "list": "যে ধরনের সাইটে আমরা শ্রমিক দিই"
+  },
+  "faq": {
+    "tabs": "কার জন্য প্রশ্ন",
+    "questionsSuffix": "প্রশ্ন"
+  },
+  "founder": {
+    "assurances": "প্রতিটি ক্রু-র সঙ্গে যা পাবেন"
+  },
+  "form": {
+    "honeypot": "এই ঘরটি খালি রাখুন"
+  }
+}

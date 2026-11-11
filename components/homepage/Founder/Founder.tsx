@@ -1,13 +1,16 @@
 import Image from "next/image";
-import type { ContactInfo, FounderContent } from "@/types/homepage";
+import type { ChromeLabels, ContactInfo, FounderContent } from "@/types/homepage";
 import Photo from "@/components/common/Photo";
+import type { Dictionary } from "@/lib/i18n";
 
 interface FounderProps {
   founder: FounderContent;
   contact: ContactInfo;
+  labels: ChromeLabels;
+  t: Dictionary;
 }
 
-export default function Founder({ founder, contact }: FounderProps) {
+export default function Founder({ founder, contact, labels, t }: FounderProps) {
   return (
     <section id="about" className={cls.founder} aria-labelledby="founder-title">
       <div className={cls.founder__inner}>
@@ -28,11 +31,11 @@ export default function Founder({ founder, contact }: FounderProps) {
             </div>
             <a href={contact.phoneHref ?? "#contact"} className={cls.founder__cta}>
               <Image src="/homepage/icon-phone-white-20.svg" alt="" width={20} height={20} />
-              {founder.ctaLabel || "Contact"}
+              {founder.ctaLabel || labels.callButton}
             </a>
           </div>
 
-          <ul className={cls.founder__assurances} aria-label="What every crew comes with">
+          <ul className={cls.founder__assurances} aria-label={t.founder.assurances}>
             {founder.assurances.map((item) => (
               <li key={item} className={cls.founder__assurance}>
                 <Image src="/homepage/icon-check.svg" alt="" width={16} height={16} />

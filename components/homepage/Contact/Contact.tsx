@@ -39,7 +39,7 @@ export default function Contact({ contact, image, copy }: ContactProps) {
   const channels = [
     {
       key: "call",
-      label: "Call",
+      label: copy.labels.call,
       value: contact.phoneDisplay,
       href: contact.phoneHref,
       icon: "/homepage/icon-contact-phone.svg",
@@ -48,8 +48,8 @@ export default function Contact({ contact, image, copy }: ContactProps) {
     },
     {
       key: "whatsapp",
-      label: "WhatsApp",
-      value: "Chat with us",
+      label: copy.labels.whatsapp,
+      value: copy.labels.whatsappValue,
       href: contact.whatsappHref,
       icon: "/homepage/icon-contact-chat.svg",
       iconSize: 18,
@@ -57,7 +57,7 @@ export default function Contact({ contact, image, copy }: ContactProps) {
     },
     {
       key: "reply",
-      label: "Reply time",
+      label: copy.labels.reply,
       value: contact.replyTime,
       href: null,
       icon: "/homepage/icon-contact-clock.svg",
@@ -127,7 +127,7 @@ export default function Contact({ contact, image, copy }: ContactProps) {
               </h3>
               {copy.formText && <p className="m-0 text-[14px] leading-[22.4px] text-slate">{copy.formText}</p>}
             </div>
-            <LeadForm />
+            <LeadForm copy={copy.form} />
           </div>
         </div>
       </div>

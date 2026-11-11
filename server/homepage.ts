@@ -21,7 +21,7 @@ import {
   buildHomepageData,
   buildSiteChrome,
 } from "@/lib/homepage/buildHomepage";
-import type { HomepageData, SiteChrome } from "@/types/homepage";
+import type { HomepageData, SiteChrome, SwitcherLanguage } from "@/types/homepage";
 
 export { HOMEPAGE_REVALIDATE_SECONDS, HOMEPAGE_TAGS } from "@/lib/homepage/buildHomepage";
 
@@ -41,23 +41,30 @@ function isBundle(value: unknown): value is HomepageBundle {
     isRecord(value) &&
     isRecord(value.data) &&
     isRecord(value.data.enabled) &&
+    Array.isArray(value.data.order) &&
+    isRecord(value.data.contactCopy) &&
+    isRecord(value.data.contactCopy.form) &&
     isRecord(value.chrome) &&
     isRecord(value.chrome.contact) &&
+    isRecord(value.chrome.labels) &&
+    isRecord(value.chrome.brand) &&
+    Array.isArray(value.chrome.languages) &&
     typeof value.version === "string"
   );
 }
 
-function fallbackBundle(): HomepageBundle {
+function fallbackBundle(lang: SwitcherLanguage): HomepageBundle {
   return {
-    data: buildHomepageData(null, [], []),
-    chrome: buildSiteChrome(null, null, null),
+    data: buildHomepageData(null, [], lang),
+    chrome: buildSiteChrome(null, null, null, lang),
     version: "",
   };
 }
 
-const getBundle = cache(async (): Promise<HomepageBundle> => {
+/** One cached request per language (the URL differs); all share the same tags. */
+const getBundle = cache(async (lang: SwitcherLanguage): Promise<HomepageBundle> => {
   try {
-    const res = await fetch(adminUrl("/api/homepage/client"), {
+    const res = await fetch(adminUrl(`/api/homepage/client?locale=${lang}`), {
       cache: "force-cache",
       next: { tags: Object.values(HOMEPAGE_TAGS), revalidate: HOMEPAGE_REVALIDATE_SECONDS },
       signal: AbortSignal.timeout(ADMIN_TIMEOUT_MS),
@@ -69,21 +76,21 @@ const getBundle = cache(async (): Promise<HomepageBundle> => {
   } catch (error) {
     const reason = error instanceof Error ? error.message.split("\n")[0] : String(error);
     console.error(`[homepage] jmt-admin API unavailable, using fallback content: ${reason}`);
-    return fallbackBundle();
+    return fallbackBundle(lang);
   }
 });
 
-/** Navbar, footer and contact details. */
-export async function getSiteChrome(): Promise<SiteChrome> {
-  return (await getBundle()).chrome;
+/** Navbar, footer and contact details in `lang`. */
+export async function getSiteChrome(lang: SwitcherLanguage): Promise<SiteChrome> {
+  return (await getBundle(lang)).chrome;
 }
 
 /** Version stamp of the saved homepage ("" when none). Used by LiveRefresh. */
-export async function getHomepageVersion(): Promise<string> {
-  return (await getBundle()).version;
+export async function getHomepageVersion(lang: SwitcherLanguage): Promise<string> {
+  return (await getBundle(lang)).version;
 }
 
-/** All section content for the homepage. */
-export async function getHomepageData(): Promise<HomepageData> {
-  return (await getBundle()).data;
+/** All section content for the homepage in `lang`. */
+export async function getHomepageData(lang: SwitcherLanguage): Promise<HomepageData> {
+  return (await getBundle(lang)).data;
 }

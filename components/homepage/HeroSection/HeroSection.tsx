@@ -1,10 +1,12 @@
 import Image from "next/image";
 import type { ContactInfo, HeroContent, HeroTrustIcon } from "@/types/homepage";
 import Photo from "@/components/common/Photo";
+import type { Dictionary } from "@/lib/i18n";
 
 interface HeroSectionProps {
   content: HeroContent;
   contact: ContactInfo;
+  t: Dictionary;
 }
 
 const TRUST_ICONS: Record<HeroTrustIcon, { src: string; size: number }> = {
@@ -56,7 +58,7 @@ const cls = {
   ].join(" "),
 };
 
-export default function HeroSection({ content, contact }: HeroSectionProps) {
+export default function HeroSection({ content, contact, t }: HeroSectionProps) {
   const whatsappHref = contact.whatsappHref ?? "#contact";
   const whatsappIsExternal = whatsappHref.startsWith("http");
 
@@ -92,7 +94,7 @@ export default function HeroSection({ content, contact }: HeroSectionProps) {
             >
               <Image src="/homepage/icon-whatsapp-fill.svg" alt="" width={24} height={24} />
               {content.whatsappCta}
-              {whatsappIsExternal && <span className="sr-only"> (opens WhatsApp)</span>}
+              {whatsappIsExternal && <span className="sr-only"> {t.opensWhatsApp}</span>}
             </a>
           </div>
 

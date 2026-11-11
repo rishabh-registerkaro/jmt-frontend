@@ -1,9 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { localePath, type Locale } from "@/lib/i18n";
 import type { NavChildLink, SiteChrome } from "@/types/homepage";
 
 interface FooterProps {
   chrome: SiteChrome;
+  lang: Locale;
+  /** "home" in the page language, for the logo link's screen-reader label. */
+  homeLabel: string;
 }
 
 // footer__link / footer__text share the type; links add hover + focus.
@@ -27,15 +31,15 @@ function FooterLink({ link }: { link: NavChildLink }) {
   );
 }
 
-export default function Footer({ chrome }: FooterProps) {
+export default function Footer({ chrome, lang, homeLabel }: FooterProps) {
   const { contact } = chrome;
   const contactLinks: NavChildLink[] = [
     { label: contact.phoneDisplay, href: contact.phoneHref },
     { label: contact.whatsappDisplay, href: contact.whatsappHref },
     { label: contact.emailDisplay, href: contact.emailHref },
     { label: contact.hours, href: null },
-  ];
-  const columns = [...chrome.footerColumns, { title: "Contact", links: contactLinks }];
+  ].filter((link) => link.label);
+  const columns = [...chrome.footerColumns, { title: chrome.labels.footerContactTitle, links: contactLinks }];
 
   return (
     <footer className="border-t border-brown/25 bg-white">
@@ -50,8 +54,13 @@ export default function Footer({ chrome }: FooterProps) {
         ].join(" ")}
       >
         <div className="flex max-w-[320px] flex-col gap-4 xl:flex-[0_0_278px]">
-          <Link href="/" className="inline-flex self-start rounded-[8px] focus-ring" aria-label="Joy Maa Tara Bama Kripa — home">
-            <Image src="/homepage/logo-footer.svg" alt="" width={269} height={96} className="block h-auto w-[220px] lg:w-[267px]" />
+          <Link
+            href={localePath(lang)}
+            className="notranslate inline-flex self-start rounded-[8px] focus-ring"
+            translate="no"
+            aria-label={`${chrome.brand.name || chrome.brand.footerLogo.alt} — ${homeLabel}`}
+          >
+            <Image src={chrome.brand.footerLogo.src} alt="" width={chrome.brand.footerLogo.width} height={chrome.brand.footerLogo.height} className="block h-auto w-[220px] lg:w-[267px]" />
           </Link>
           <p className="m-0 text-[14px] leading-[21.7px] text-footer-ink">{chrome.footerDescription}</p>
         </div>

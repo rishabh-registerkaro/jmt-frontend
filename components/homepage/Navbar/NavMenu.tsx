@@ -1,20 +1,26 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import type { NavLink } from "@/types/homepage";
+import type { LanguageOption, NavLink, SwitcherLanguage } from "@/types/homepage";
+import { rememberLocale, useLanguage } from "@/components/i18n/LanguageProvider";
 
 interface NavMenuProps {
   links: NavLink[];
   callHref: string;
+  /** Text on the call button (admin: Site details → Labels). */
+  callLabel: string;
+  /** Switcher entries from the admin; empty hides the switcher. */
+  languages: LanguageOption[];
 }
 
-// `className` is a literal Tailwind font-family utility for the label's script.
-const LANGUAGES = [
-  { code: "en", label: "EN", name: "English", available: true, className: "" },
-  { code: "bn", label: "বাং", name: "Bengali", available: false, className: "font-bengali" },
-  { code: "hi", label: "हिं", name: "Hindi", available: false, className: "font-devanagari" },
-] as const;
+// Literal Tailwind font-family utility for each label's script.
+const LANGUAGE_FONT: Record<SwitcherLanguage, string> = {
+  en: "",
+  bn: "font-bengali",
+  hi: "font-devanagari",
+};
 
 const DESKTOP_QUERY = "(min-width: 1024px)";
 
@@ -65,9 +71,11 @@ const cls = {
   },
 };
 
-export default function NavMenu({ links, callHref }: NavMenuProps) {
+export default function NavMenu({ links, callHref, callLabel, languages }: NavMenuProps) {
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { locale: language, t } = useLanguage();
+  const router = useRouter();
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const idPrefix = useId();
@@ -119,35 +127,53 @@ export default function NavMenu({ links, callHref }: NavMenuProps) {
     };
   }, [drawerOpen, closeDrawer]);
 
-  const languageToggle = (
+  const switchTo = useCallback((code: SwitcherLanguage) => router.push(rememberLocale(code)), [router]);
+
+  // The admin hid this language (or the whole switcher): send the visitor to
+  // English, or they'd be stuck on a page with no way back.
+  useEffect(() => {
+    if (language !== "en" && !(languages.length > 1 && languages.some((lang) => lang.code === language))) {
+      router.replace(rememberLocale("en"));
+    }
+  }, [language, languages, router]);
+
+  // A single language has nothing to switch to. Labels never change with the
+  // page language, and translate="no" keeps browser translators off them.
+  const languageToggle = languages.length > 1 && (
     <div
-      className="inline-flex h-[39.2px] items-stretch rounded-full border border-input-line bg-input-bg p-1"
+      className="notranslate inline-flex h-[39.2px] flex-none items-stretch rounded-full border border-input-line bg-input-bg p-1"
       role="group"
-      aria-label="Language"
+      aria-label={t.nav.language}
+      translate="no"
     >
-      {LANGUAGES.map((lang) => (
-        <button
-          key={lang.code}
-          type="button"
-          lang={lang.code}
-          className={[
-            cls.langOption,
-            lang.available ? "bg-orange-nav text-white" : "text-slate-strong",
-            lang.className,
-          ]
-            .filter(Boolean)
-            .join(" ")}
-          aria-pressed={lang.available}
-          aria-disabled={!lang.available}
-          title={lang.available ? lang.name : `${lang.name} — coming soon`}
-          onClick={(event) => {
-            if (!lang.available) event.preventDefault();
-          }}
-        >
-          {lang.label}
-          {!lang.available && <span className="sr-only"> ({lang.name}, coming soon)</span>}
-        </button>
-      ))}
+      {languages.map((lang) => {
+        const selected = lang.code === language;
+        return (
+          <button
+            key={lang.code}
+            type="button"
+            lang={lang.code}
+            translate="no"
+            className={[
+              cls.langOption,
+              "notranslate",
+              "flex-none whitespace-nowrap",
+              selected ? "bg-orange-nav text-white" : "text-slate-strong hover:text-orange",
+              LANGUAGE_FONT[lang.code],
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            aria-pressed={selected}
+            title={lang.name}
+            onClick={() => {
+              if (!selected) switchTo(lang.code);
+            }}
+          >
+            {lang.label}
+            <span className="sr-only"> ({lang.name})</span>
+          </button>
+        );
+      })}
     </div>
   );
 
@@ -155,13 +181,13 @@ export default function NavMenu({ links, callHref }: NavMenuProps) {
     <a
       href={callHref}
       className={[
-        "inline-flex h-[44px] items-center gap-2 rounded-full border border-pill-line bg-orange-nav px-[19px]",
-        "text-[14px] leading-[22.4px] font-semibold text-white no-underline",
+        "inline-flex h-[44px] flex-none items-center gap-2 rounded-full border border-pill-line bg-orange-nav px-[19px]",
+        "text-[14px] leading-[22.4px] font-semibold whitespace-nowrap text-white no-underline",
         "transition-[background-color] duration-160 ease-[ease] hover:bg-orange-hover focus-ring",
       ].join(" ")}
     >
       <Image src="/homepage/icon-phone-white-16.svg" alt="" width={16} height={16} />
-      Call
+      {callLabel}
     </a>
   );
 
@@ -169,14 +195,14 @@ export default function NavMenu({ links, callHref }: NavMenuProps) {
     <>
       {/* Figma "Frame 212": nav + actions share one 916px row, spread to its edges. */}
       <div className="ml-auto hidden min-w-0 flex-[0_1_916px] items-center justify-between gap-6 lg:flex">
-        <nav ref={navRef} className="hidden lg:block" aria-label="Main">
+        <nav ref={navRef} className="hidden lg:block" aria-label={t.nav.main}>
           <ul className="flex items-center gap-5 xl:gap-7">
             {links.map((link, index) => {
               const hasChildren = link.children.length > 0;
               const isOpen = openDropdown === index;
               const dropdownId = `${idPrefix}-dropdown-${index}`;
               return (
-                <li key={`${link.label}-${index}`} className="relative">
+                <li key={`${link.label}-${index}`} className="relative flex-none">
                   {hasChildren ? (
                     <>
                       <button
@@ -242,7 +268,7 @@ export default function NavMenu({ links, callHref }: NavMenuProps) {
         className="ml-auto flex size-[44px] cursor-pointer appearance-none items-center justify-center rounded-[12px] focus-ring lg:hidden"
         aria-expanded={drawerOpen}
         aria-controls={drawerId}
-        aria-label={drawerOpen ? "Close menu" : "Open menu"}
+        aria-label={drawerOpen ? t.nav.closeMenu : t.nav.openMenu}
         onClick={() => setDrawerOpen((open) => !open)}
       >
         <span
@@ -262,7 +288,7 @@ export default function NavMenu({ links, callHref }: NavMenuProps) {
         ].join(" ")}
         hidden={!drawerOpen}
       >
-        <nav aria-label="Mobile">
+        <nav aria-label={t.nav.mobile}>
           <ul>
             {links.map((link, index) => (
               <li key={`${link.label}-${index}`} className="border-b border-card-line-soft">

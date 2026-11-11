@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { SiteTypeCard } from "@/types/homepage";
 import Photo from "@/components/common/Photo";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 interface SitesCarouselProps {
   sites: SiteTypeCard[];
@@ -12,6 +13,7 @@ interface SitesCarouselProps {
 }
 
 export default function SitesCarousel({ sites, children }: SitesCarouselProps) {
+  const { t } = useLanguage();
   const trackRef = useRef<HTMLUListElement>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(true);
@@ -59,7 +61,7 @@ export default function SitesCarousel({ sites, children }: SitesCarouselProps) {
             className={cls.control}
             onClick={() => scrollByCard(-1)}
             disabled={!canPrev}
-            aria-label="Previous sites"
+            aria-label={t.sites.previous}
             aria-controls="sites-track"
           >
             <Image src="/homepage/icon-arrow-left-dark.svg" alt="" width={20} height={20} />
@@ -69,7 +71,7 @@ export default function SitesCarousel({ sites, children }: SitesCarouselProps) {
             className={cls.control}
             onClick={() => scrollByCard(1)}
             disabled={!canNext}
-            aria-label="Next sites"
+            aria-label={t.sites.next}
             aria-controls="sites-track"
           >
             <Image src="/homepage/icon-arrow-right-dark.svg" alt="" width={20} height={20} />
@@ -77,24 +79,30 @@ export default function SitesCarousel({ sites, children }: SitesCarouselProps) {
         </div>
       </div>
 
-      <ul id="sites-track" ref={trackRef} className={cls.track} aria-label="Site types we staff">
+      <ul id="sites-track" ref={trackRef} className={cls.track} aria-label={t.sites.list}>
         {sites.map((site) => (
           <li key={site.id} className={cls.site}>
             <div className={cls.media}>
               {site.image && (
                 <>
                   <Photo image={site.image} sizes="(min-width: 768px) 320px, 78vw" />
-                  <span className={cls.arrow} aria-hidden="true">
-                    <Image src="/homepage/icon-arrow-up-right-dark.svg" alt="" width={18} height={18} />
-                  </span>
+                  {site.href && (
+                    <span className={cls.arrow} aria-hidden="true">
+                      <Image src="/homepage/icon-arrow-up-right-dark.svg" alt="" width={18} height={18} />
+                    </span>
+                  )}
                 </>
               )}
             </div>
             <div className={cls.text}>
               <h3 className={cls.title}>
-                <a href="#contact" className={cls.link}>
-                  {site.title}
-                </a>
+                {site.href ? (
+                  <a href={site.href} className={cls.link}>
+                    {site.title}
+                  </a>
+                ) : (
+                  site.title
+                )}
               </h3>
               <p className={cls.description}>{site.description}</p>
             </div>

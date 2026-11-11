@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   // Pin it to the cores the plan actually provides.
   experimental: {
     cpus: 2,
+    // The root layout lives under app/[lang], so unknown URLs need their own
+    // 404 document: app/global-not-found.tsx.
+    globalNotFound: true,
   },
   images: {
     // Images come from public/homepage and from the CMS media host (any domain

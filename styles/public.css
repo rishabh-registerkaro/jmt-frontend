@@ -318,3 +318,57 @@ html:has(.site) {
   filter: blur(24.45px);
   pointer-events: none;
 }
+
+/* ── Bengali / Hindi pages (/bn, /hi) ──────────────────────────────────────
+   app/[lang]/layout.tsx renders <html lang="bn|hi">. These rules are not in a
+   cascade layer, so they win over the Tailwind utilities on the same element.
+   Goal: the translated page keeps the English page's layout. Devanagari and
+   Bengali glyphs are taller (matras above and below the line) and the words
+   run longer, so headings get a bit more line-height, a slightly smaller size,
+   balanced wrapping (no single orphaned word) and no negative tracking, which
+   would squeeze conjuncts together. */
+html[lang="bn"] .site {
+  font-family: var(--font-bengali);
+}
+html[lang="hi"] .site {
+  font-family: var(--font-devanagari);
+}
+
+html:is([lang="bn"], [lang="hi"]) .site :is(h1, h2, h3) {
+  line-height: 1.35;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+/* Display headings at 92% of the English size (same fluid curve). */
+html:is([lang="bn"], [lang="hi"]) .site .heading-xl {
+  font-size: calc(clamp(32px, 24.9577464789px + 1.8779342723vw, 52px) * 0.92);
+}
+html:is([lang="bn"], [lang="hi"]) .site #hero-title {
+  font-size: calc(clamp(40px, 28.7323943662px + 3.0046948357vw, 72px) * 0.92);
+}
+
+/* Wide tracking (eyebrows, badges: tracking-[2.1px] etc.) splits Bengali and
+   Devanagari words into loose letters; these scripts have no capitals anyway. */
+html:is([lang="bn"], [lang="hi"]) .site :is(.eyebrow, [class*="tracking-"]) {
+  letter-spacing: 0;
+}
+
+/* Body copy: no orphans in short blocks. */
+html:is([lang="bn"], [lang="hi"]) .site p {
+  text-wrap: pretty;
+}
+
+/* Header and CTAs never wrap or shrink, so the navbar keeps its height and
+   alignment in every language. */
+html:is([lang="bn"], [lang="hi"]) .site :is(.btn-base, .btn-primary, .btn-outline, .eyebrow) {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+/* Desktop navbar row only — the mobile drawer has room to wrap long links. */
+@media (width >= 64rem) {
+  html:is([lang="bn"], [lang="hi"]) .site header nav :is(a, button) {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}

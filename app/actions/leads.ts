@@ -5,10 +5,19 @@ import { ADMIN_TIMEOUT_MS, adminUrl, sharedSecret } from "@/lib/adminApi";
 import {
   EMPTY_LEAD_VALUES,
   HONEYPOT_FIELD,
+  LOCALE_FIELD,
   readLeadValues,
   validateLead,
 } from "@/utils/leadForm";
-import type { LeadFormState } from "@/types/homepage";
+import { getHomepageData } from "@/server/homepage";
+import { isSwitcherLanguage, type LeadFormCopy, type LeadFormState } from "@/types/homepage";
+
+/** The form's messages as set in the admin, in the visitor's language (cached). */
+async function formCopy(formData: FormData): Promise<LeadFormCopy> {
+  const requested = formData.get(LOCALE_FIELD);
+  const lang = isSwitcherLanguage(requested) ? requested : "en";
+  return (await getHomepageData(lang)).contactCopy.form;
+}
 
 /**
  * Homepage "Request workers" form → jmt-admin's POST /api/lead/homepage,
@@ -17,6 +26,10 @@ import type { LeadFormState } from "@/types/homepage";
  *
  * The obvious checks run here first, so a mistyped field gets its message
  * without a round trip; jmt-admin re-validates everything anyway.
+ *
+ * The success and error texts are the ones set in the admin (Contact →
+ * Request form); only jmt-admin's specific refusals (e.g. rate limiting)
+ * are passed through as-is.
  */
 export async function submitLead(
   _previous: LeadFormState,
@@ -25,7 +38,7 @@ export async function submitLead(
   // Bots fill every field; pretend success so they don't retry.
   const honeypot = formData.get(HONEYPOT_FIELD);
   if (typeof honeypot === "string" && honeypot.trim() !== "") {
-    return successState();
+    return successState(await formCopy(formData));
   }
 
   const values = readLeadValues(formData);
@@ -33,7 +46,7 @@ export async function submitLead(
   if (Object.keys(fieldErrors).length > 0) {
     return {
       status: "error",
-      message: "Please check the highlighted fields.",
+      message: (await formCopy(formData)).invalidText,
       fieldErrors,
       values,
     };
@@ -57,14 +70,18 @@ export async function submitLead(
       signal: AbortSignal.timeout(ADMIN_TIMEOUT_MS + 5_000),
     });
     const state: unknown = await res.json();
-    if (isLeadFormState(state)) return state;
+    if (isLeadFormState(state)) {
+      const copy = await formCopy(formData);
+      if (state.status === "success") return successState(copy);
+      if (Object.keys(state.fieldErrors).length > 0) return { ...state, message: copy.invalidText };
+      return state;
+    }
     throw new Error(`unexpected response (HTTP ${res.status})`);
   } catch (error) {
     console.error("[homepage] Failed to send lead to jmt-admin:", error);
     return {
       status: "error",
-      message:
-        "We couldn't send your request just now. Please try again, or call or WhatsApp us directly.",
+      message: (await formCopy(formData)).errorText,
       fieldErrors: {},
       values,
     };
@@ -84,10 +101,10 @@ function isLeadFormState(value: unknown): value is LeadFormState {
   );
 }
 
-function successState(): LeadFormState {
+function successState(copy: LeadFormCopy): LeadFormState {
   return {
     status: "success",
-    message: "Thanks — your requirement is in. The owner will call you back within 24 hours.",
+    message: copy.successText,
     fieldErrors: {},
     values: EMPTY_LEAD_VALUES,
   };
