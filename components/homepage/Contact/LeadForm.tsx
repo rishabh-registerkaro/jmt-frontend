@@ -3,7 +3,14 @@
 import Image from "next/image";
 import { useActionState, useEffect, useId, useRef, useState, type RefObject } from "react";
 import { submitLead } from "@/app/actions/leads";
-import { HONEYPOT_FIELD, INITIAL_LEAD_STATE, LOCALE_FIELD, MAX_HEADCOUNT } from "@/utils/leadForm";
+import {
+  HONEYPOT_FIELD,
+  INITIAL_LEAD_STATE,
+  LOCALE_FIELD,
+  MAX_HEADCOUNT,
+  readLeadValues,
+  validateLead,
+} from "@/utils/leadForm";
 import type { LeadField, LeadFormCopy, LeadFormState } from "@/types/homepage";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 
@@ -22,8 +29,16 @@ const cls = {
     "[&[type=number]::-webkit-outer-spin-button]:m-0 [&[type=number]::-webkit-outer-spin-button]:appearance-none",
   ].join(" "),
   inputValid: "border-input-line focus:border-orange focus:[box-shadow:0_0_0_3px_rgba(242,105,33,0.18)]",
-  inputInvalid: "border-error focus:border-error focus:[box-shadow:0_0_0_3px_rgba(198,40,40,0.15)]",
-  status: "m-0 text-[14px] leading-[20px] empty:hidden focus:outline-none",
+  inputInvalid:
+    "border-error bg-[#fff7f7] focus:border-error focus:[box-shadow:0_0_0_3px_rgba(198,40,40,0.15)]",
+  // Room on the right for the ✓ / ! badge (not on date inputs: the picker icon lives there).
+  inputBadge: "pr-[44px]",
+  badge:
+    "pointer-events-none absolute top-1/2 right-[16px] flex size-[20px] -translate-y-1/2 items-center justify-center rounded-full text-white",
+  // Fixed one-line slot under every field: messages appear without moving anything.
+  error: "m-0 flex h-[18px] min-w-0 items-center gap-[5px] pl-[14px] text-[12.5px] leading-[18px] text-error",
+  status:
+    "absolute top-full right-0 left-0 m-0 mt-[8px] truncate text-center text-[13px] leading-[18px] text-error empty:hidden focus:outline-none",
   success: [
     "relative flex flex-[1_1_auto] flex-col items-center justify-center gap-[10px] xs:gap-[12px] overflow-hidden",
     "min-h-[340px] px-[18px] py-[32px] xs:px-[24px] xs:py-[40px] rounded-[16px] text-center",
@@ -138,6 +153,52 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
 
   const showSuccess = state.status === "success" && dismissed !== state;
 
+  // Live validation: a field is checked when the visitor leaves it, then
+  // re-checked on every keystroke so the message clears as soon as it's fixed.
+  // `checked[field]` = the current message, or null when valid. Fields not
+  // checked yet fall back to the server's verdict from the last submit.
+  const [checked, setChecked] = useState<Partial<Record<LeadField, string | null>>>({});
+  const [filled, setFilled] = useState<Partial<Record<LeadField, boolean>>>({});
+
+  const checkFields = (fields: readonly LeadField[]) => {
+    if (!formRef.current) return {};
+    const values = readLeadValues(new FormData(formRef.current));
+    const errors = validateLead(values);
+    setChecked((prev) => {
+      const next = { ...prev };
+      for (const field of fields) next[field] = errors[field] ?? null;
+      return next;
+    });
+    setFilled((prev) => {
+      const next = { ...prev };
+      for (const field of fields) next[field] = values[field] !== "";
+      return next;
+    });
+    return errors;
+  };
+
+  const errorFor = (field: LeadField) =>
+    field in checked ? checked[field] ?? undefined : state.fieldErrors[field];
+
+  // Submitting runs every check first; invalid → stay here and focus the first problem.
+  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const errors = checkFields(FIELDS.map((f) => f.name));
+    const first = FIELDS.find((f) => errors[f.name]);
+    if (first) {
+      event.preventDefault();
+      formRef.current?.querySelector<HTMLInputElement>(`[name="${first.name}"]`)?.focus();
+    }
+  };
+
+  const statusMessage =
+    state.status === "error" && Object.keys(state.fieldErrors).length === 0 ? state.message : "";
+
+  const resetForm = () => {
+    setChecked({});
+    setFilled({});
+    setDismissed(state);
+  };
+
   // Move focus to the outcome so keyboard and screen-reader users hear it:
   // the success panel, else the first invalid field, else the error message.
   useEffect(() => {
@@ -162,7 +223,7 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
         message={state.message}
         resetLabel={copy.resetLabel}
         resetInText={t.form.resetIn}
-        onReset={() => setDismissed(state)}
+        onReset={resetForm}
       />
     );
   }
@@ -171,44 +232,74 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
     <form
       ref={formRef}
       action={formAction}
-      className="flex flex-[1_1_auto] flex-col justify-between gap-[16px]"
+      className="flex flex-[1_1_auto] flex-col justify-between gap-[14px]"
       noValidate
+      onSubmit={onSubmit}
       aria-describedby={`${idPrefix}-status`}
     >
       <input type="hidden" name={LOCALE_FIELD} value={locale} />
-      <div className="grid grid-cols-1 gap-[16px] xs:grid-cols-2">
+      <div className="grid grid-cols-1 gap-x-[16px] gap-y-[4px] xs:grid-cols-2">
         {FIELDS.map((field) => {
           const inputId = `${idPrefix}-${field.name}`;
           const errorId = `${inputId}-error`;
-          const error = state.fieldErrors[field.name];
+          const error = errorFor(field.name);
+          const valid = checked[field.name] === null && filled[field.name];
+          const hasBadge = field.type !== "date";
           return (
-            <div key={field.name} className={`flex flex-col gap-[6px]${field.wide ? " xs:col-span-2" : ""}`}>
+            <div key={field.name} className={`flex min-w-0 flex-col gap-[6px]${field.wide ? " xs:col-span-2" : ""}`}>
               <label htmlFor={inputId} className="text-[14px] leading-[22.4px] font-semibold text-ink">
                 {copy.labels[field.name]}
                 {!field.required && copy.optionalHint && (
                   <span className="font-normal text-slate"> {copy.optionalHint}</span>
                 )}
               </label>
-              <input
-                id={inputId}
-                name={field.name}
-                type={field.type}
-                inputMode={field.inputMode}
-                autoComplete={field.autoComplete}
-                maxLength={field.maxLength}
-                required={field.required}
-                defaultValue={state.values[field.name]}
-                min={field.type === "number" ? 1 : undefined}
-                max={field.type === "number" ? MAX_HEADCOUNT : undefined}
-                aria-invalid={error ? true : undefined}
-                aria-describedby={error ? errorId : undefined}
-                className={`${cls.input} ${error ? cls.inputInvalid : cls.inputValid}`}
-              />
-              {error && (
-                <p id={errorId} className="m-0 pl-[12px] text-[13px] leading-[18px] text-error">
-                  {error}
-                </p>
-              )}
+              <div className="relative">
+                <input
+                  id={inputId}
+                  name={field.name}
+                  type={field.type}
+                  inputMode={field.inputMode}
+                  autoComplete={field.autoComplete}
+                  maxLength={field.maxLength}
+                  required={field.required}
+                  defaultValue={state.values[field.name]}
+                  min={field.type === "number" ? 1 : undefined}
+                  max={field.type === "number" ? MAX_HEADCOUNT : undefined}
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={error ? errorId : undefined}
+                  onBlur={() => checkFields([field.name])}
+                  onChange={() => {
+                    if (field.name in checked) checkFields([field.name]);
+                  }}
+                  className={[
+                    cls.input,
+                    error ? cls.inputInvalid : cls.inputValid,
+                    hasBadge ? cls.inputBadge : "",
+                  ].join(" ")}
+                />
+                {hasBadge && (error || valid) && (
+                  <span aria-hidden="true" className={`${cls.badge} ${error ? "bg-error" : "bg-success"}`}>
+                    {error ? (
+                      <svg viewBox="0 0 20 20" className="size-[12px]" fill="currentColor">
+                        <rect x="9" y="4" width="2.4" height="8" rx="1.2" />
+                        <circle cx="10.2" cy="15.2" r="1.4" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" className="size-[12px]" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12.5l4.5 4.5L19 7.5" />
+                      </svg>
+                    )}
+                  </span>
+                )}
+              </div>
+              {/* Always rendered, fixed height: an error never pushes the layout. */}
+              <p id={errorId} className={cls.error} aria-live="polite">
+                {error && (
+                  <span className="truncate" title={error}>
+                    {error}
+                  </span>
+                )}
+              </p>
             </div>
           );
         })}
@@ -220,20 +311,31 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
         <input id={`${idPrefix}-${HONEYPOT_FIELD}`} name={HONEYPOT_FIELD} type="text" tabIndex={-1} autoComplete="off" />
       </div>
 
-      <p
-        id={`${idPrefix}-status`}
-        ref={statusRef}
-        tabIndex={-1}
-        className={state.status === "error" ? `${cls.status} text-error` : cls.status}
-        role={state.status === "error" ? "alert" : undefined}
-      >
-        {state.status === "error" ? state.message : ""}
-      </p>
-
-      <button type="submit" className="btn-primary mt-[4px] w-full" disabled={isPending} aria-busy={isPending}>
-        {isPending ? copy.submitting : copy.submit}
-        {!isPending && <Image src="/homepage/icon-arrow-right-white-form.svg" alt="" width={18} height={18} />}
-      </button>
+      {/* The status line floats under the button (in the card's bottom padding),
+          so a send failure doesn't change the form's height either. Field
+          problems are already shown on the fields, so only other errors appear. */}
+      <div className="relative">
+        <button type="submit" className="btn-primary w-full" disabled={isPending} aria-busy={isPending}>
+          {isPending && (
+            <span
+              aria-hidden="true"
+              className="size-[16px] animate-spin rounded-full border-2 border-white/40 border-t-white"
+            />
+          )}
+          {isPending ? copy.submitting : copy.submit}
+          {!isPending && <Image src="/homepage/icon-arrow-right-white-form.svg" alt="" width={18} height={18} />}
+        </button>
+        <p
+          id={`${idPrefix}-status`}
+          ref={statusRef}
+          tabIndex={-1}
+          className={cls.status}
+          role={statusMessage ? "alert" : undefined}
+          title={statusMessage || undefined}
+        >
+          {statusMessage}
+        </p>
+      </div>
     </form>
   );
 }
