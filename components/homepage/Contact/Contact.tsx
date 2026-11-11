@@ -27,7 +27,7 @@ const cls = {
     "group-hover/row:underline group-hover/row:underline-offset-[3px]",
   ].join(" "),
   form: [
-    "flex flex-col gap-[24px] px-[20px] py-[28px] md:p-[37px]",
+    "flex flex-col gap-[20px] xs:gap-[24px] px-[16px] py-[24px] xs:px-[20px] xs:py-[28px] md:p-[37px]",
     "rounded-[20px] border border-card-line bg-white",
     "[filter:drop-shadow(0_30px_30px_rgba(19,53,90,0.35))]", // drop-shadow($shadow-form)
   ].join(" "),
@@ -122,7 +122,7 @@ export default function Contact({ contact, image, copy }: ContactProps) {
           {/* ── Right: requirement form ── */}
           <div className={cls.form}>
             <div className="flex flex-col gap-[4px]">
-              <h3 className="m-0 text-[22px] leading-[1.6] font-semibold tracking-[-0.4px] text-ink">
+              <h3 className="m-0 text-[20px] leading-[1.35] xs:text-[22px] xs:leading-[1.6] font-semibold tracking-[-0.4px] text-ink">
                 {copy.formTitle}
               </h3>
               {copy.formText && <p className="m-0 text-[14px] leading-[22.4px] text-slate">{copy.formText}</p>}

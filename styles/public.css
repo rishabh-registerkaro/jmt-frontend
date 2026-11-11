@@ -372,3 +372,16 @@ html:is([lang="bn"], [lang="hi"]) .site :is(.btn-base, .btn-primary, .btn-outlin
     flex-shrink: 0;
   }
 }
+
+/* Lead form thank-you check mark */
+@keyframes lead-success-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.lead-success-pop {
+  animation: lead-success-pop 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lead-success-pop { animation: none; }
+}

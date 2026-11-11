@@ -22,6 +22,7 @@
     "assurances": "What every crew comes with"
   },
   "form": {
-    "honeypot": "Leave this field empty"
+    "honeypot": "Leave this field empty",
+    "resetIn": "This form will reset in {s}s"
   }
 }

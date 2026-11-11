@@ -61,6 +61,29 @@ function fallbackBundle(lang: SwitcherLanguage): HomepageBundle {
   };
 }
 
+/**
+ * Fills in any request-form label the admin response lacks (e.g. a field added
+ * after the content was saved or cached, like "email") from the built-in
+ * defaults in the same language, so a new field never renders without a label.
+ */
+function withFormLabelDefaults(bundle: HomepageBundle, lang: SwitcherLanguage): HomepageBundle {
+  const form = bundle.data.contactCopy.form;
+  const labels: Record<string, unknown> = isRecord(form.labels) ? form.labels : {};
+  const defaults = buildHomepageData(null, [], lang).contactCopy.form.labels;
+  const merged = { ...defaults };
+  for (const key of Object.keys(defaults) as (keyof typeof defaults)[]) {
+    const value = labels[key];
+    if (typeof value === "string" && value.trim() !== "") merged[key] = value;
+  }
+  return {
+    ...bundle,
+    data: {
+      ...bundle.data,
+      contactCopy: { ...bundle.data.contactCopy, form: { ...form, labels: merged } },
+    },
+  };
+}
+
 /** One cached request per language (the URL differs); all share the same tags. */
 const getBundle = cache(async (lang: SwitcherLanguage): Promise<HomepageBundle> => {
   try {
@@ -72,7 +95,7 @@ const getBundle = cache(async (lang: SwitcherLanguage): Promise<HomepageBundle> 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const body: unknown = await res.json();
     if (!isBundle(body)) throw new Error("unexpected response shape");
-    return body;
+    return withFormLabelDefaults(body, lang);
   } catch (error) {
     const reason = error instanceof Error ? error.message.split("\n")[0] : String(error);
     console.error(`[homepage] jmt-admin API unavailable, using fallback content: ${reason}`);
