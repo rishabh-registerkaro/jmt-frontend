@@ -11,8 +11,12 @@ interface ContactProps {
 
 const cls = {
   card: "flex flex-col overflow-hidden rounded-[20px] bg-brown lg:min-h-[527px]",
+  // The card stretches to the form's height on desktop (and grows when the
+  // form shows validation errors). The photo takes all of that extra height
+  // so the copy below stays compact instead of leaving an empty brown gap.
+  media: "relative min-h-[177px] flex-[1_1_177px] bg-navy",
   cardBody: [
-    "flex flex-[1_1_auto] flex-col justify-end gap-[24px]",
+    "flex flex-none flex-col gap-[24px]",
     "px-[24px] py-[28px] md:p-[36px]",
   ].join(" "),
   cardTitle: [
@@ -76,7 +80,7 @@ export default function Contact({ contact, image, copy }: ContactProps) {
         <div className="grid grid-cols-1 gap-[20px] lg:grid-cols-2 lg:items-stretch">
           {/* ── Left: contact card ── */}
           <div className={cls.card} data-reveal="left">
-            <div className="relative h-[177px] flex-none bg-navy">
+            <div className={cls.media}>
               <Photo image={image} sizes="(min-width: 1024px) 50vw, 100vw" />
             </div>
             <div className={cls.cardBody}>
