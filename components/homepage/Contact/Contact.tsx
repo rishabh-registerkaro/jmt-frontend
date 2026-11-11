@@ -69,13 +69,13 @@ export default function Contact({ contact, image, copy }: ContactProps) {
   return (
     <section id="contact" className="bg-white" aria-labelledby="contact-title">
       <div className="site-container section-pad flex flex-col gap-[24px]">
-        <h2 id="contact-title" className="heading-xl">
+        <h2 id="contact-title" className="heading-xl" data-reveal="clip">
           {copy.title}
         </h2>
 
         <div className="grid grid-cols-1 gap-[20px] lg:grid-cols-2 lg:items-stretch">
           {/* ── Left: contact card ── */}
-          <div className={cls.card}>
+          <div className={cls.card} data-reveal="left">
             <div className="relative h-[177px] flex-none bg-navy">
               <Photo image={image} sizes="(min-width: 1024px) 50vw, 100vw" />
             </div>
@@ -120,7 +120,7 @@ export default function Contact({ contact, image, copy }: ContactProps) {
           </div>
 
           {/* ── Right: requirement form ── */}
-          <div className={cls.form}>
+          <div className={cls.form} data-reveal="right">
             <div className="flex flex-col gap-[4px]">
               <h3 className="m-0 text-[20px] leading-[1.35] xs:text-[22px] xs:leading-[1.6] font-semibold tracking-[-0.4px] text-ink">
                 {copy.formTitle}

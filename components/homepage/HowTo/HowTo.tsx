@@ -63,14 +63,14 @@ export default function HowTo({ steps, copy }: HowToProps) {
     <section id="how-we-work" className={cls.process} aria-labelledby="process-title">
       <div className={cls.inner}>
         <div className={cls.header}>
-          <h2 id="process-title" className={cls.title}>
+          <h2 id="process-title" className={cls.title} data-reveal="clip">
             {copy.heading.lead}{" "}
             {copy.heading.accent && <span className={cls.accent}>{copy.heading.accent}</span>}
           </h2>
-          {copy.intro && <p className={cls.copy}>{copy.intro}</p>}
+          {copy.intro && <p className={cls.copy} data-reveal style={{ "--rd": "150ms" } as React.CSSProperties}>{copy.intro}</p>}
         </div>
 
-        <ol className={cls.steps}>
+        <ol className={cls.steps} data-reveal-stagger="contents">
           {steps.map((step, index) => {
             const col = STEP_COL[index] ?? "";
             const isFirst = index === 0;

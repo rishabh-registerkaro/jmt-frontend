@@ -14,17 +14,17 @@ export default function Founder({ founder, contact, labels, t }: FounderProps) {
   return (
     <section id="about" className={cls.founder} aria-labelledby="founder-title">
       <div className={cls.founder__inner}>
-        <div className={cls.founder__media}>
+        <div className={cls.founder__media} data-reveal="img">
           <Photo image={founder.image} sizes="(min-width: 1024px) 50vw, 100vw" />
         </div>
 
         <div className={cls.founder__content}>
-          <h2 id="founder-title" className={cls.founder__title}>
+          <h2 id="founder-title" className={cls.founder__title} data-reveal="clip">
             {founder.heading}
           </h2>
-          <p className={cls.founder__story}>{founder.story}</p>
+          <p className={cls.founder__story} data-reveal style={{ "--rd": "120ms" } as React.CSSProperties}>{founder.story}</p>
 
-          <div className={cls.founder__signoff}>
+          <div className={cls.founder__signoff} data-reveal style={{ "--rd": "220ms" } as React.CSSProperties}>
             <div className={cls.founder__person}>
               <p className={cls.founder__name}>{founder.name}</p>
               <p className={cls.founder__role}>{founder.role}</p>
@@ -35,7 +35,7 @@ export default function Founder({ founder, contact, labels, t }: FounderProps) {
             </a>
           </div>
 
-          <ul className={cls.founder__assurances} aria-label={t.founder.assurances}>
+          <ul className={cls.founder__assurances} aria-label={t.founder.assurances} data-reveal-stagger>
             {founder.assurances.map((item) => (
               <li key={item} className={cls.founder__assurance}>
                 <Image src="/homepage/icon-check.svg" alt="" width={16} height={16} />

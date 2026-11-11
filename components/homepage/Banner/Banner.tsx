@@ -16,7 +16,7 @@ export default function Banner({ banner }: BannerProps) {
           "lg:flex-[0_0_49.86%] lg:py-[10px] lg:pr-[10px] lg:pl-12 xl:pl-20 wide:pl-[calc((100vw_-_1280px)/2)]",
         ].join(" ")}
       >
-        <div className="flex max-w-[628px] flex-col items-start gap-[22px]">
+        <div className="flex max-w-[628px] flex-col items-start gap-[22px]" data-reveal-stagger>
           <h2 id="banner-title" className="heading-xl text-white">
             {banner.title}
           </h2>
@@ -39,7 +39,7 @@ export default function Banner({ banner }: BannerProps) {
           )}
         </div>
       </div>
-      <div className="relative h-[240px] overflow-hidden md:h-[340px] lg:h-auto lg:flex-auto">
+      <div className="relative h-[240px] overflow-hidden md:h-[340px] lg:h-auto lg:flex-auto" data-reveal="img">
         <Photo image={banner.image} sizes="(min-width: 1024px) 50vw, 100vw" />
       </div>
     </section>

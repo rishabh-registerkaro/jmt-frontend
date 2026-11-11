@@ -14,7 +14,7 @@ export default function Sites({ sites, copy }: SitesProps) {
       aria-labelledby="sites-title"
     >
       <SitesCarousel sites={sites}>
-        <h2 id="sites-title" className="heading-xl max-w-[680px]">
+        <h2 id="sites-title" className="heading-xl max-w-[680px]" data-reveal="clip">
           {copy.title}
         </h2>
       </SitesCarousel>

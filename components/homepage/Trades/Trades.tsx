@@ -19,13 +19,13 @@ export default function Trades({ trades, copy }: TradesProps) {
     <section id="trades" className={cls.trades} aria-labelledby="trades-title">
       <div className={cls.trades__inner}>
         <div className={cls.trades__header}>
-          <h2 id="trades-title" className={cls.trades__title}>
+          <h2 id="trades-title" className={cls.trades__title} data-reveal="clip">
             {copy.title}
           </h2>
-          {copy.intro && <p className={cls.trades__copy}>{copy.intro}</p>}
+          {copy.intro && <p className={cls.trades__copy} data-reveal style={{ "--rd": "150ms" } as React.CSSProperties}>{copy.intro}</p>}
         </div>
 
-        <ul className={cls.trades__grid}>
+        <ul className={cls.trades__grid} data-reveal-stagger>
           {trades.map((trade) => (
             <li key={trade.id} className={cls.trade}>
               <Photo

@@ -12,15 +12,15 @@ export default function WhyChoose({ reasons, image, copy }: WhyChooseProps) {
     <section id="why-us" className={cls.why} aria-labelledby="why-title">
       <div className={cls.why__inner}>
         <div className={cls.why__header}>
-          <h2 id="why-title" className={cls.why__title}>
+          <h2 id="why-title" className={cls.why__title} data-reveal="clip">
             {copy.heading.lead}{" "}
             {copy.heading.accent && <span className={cls.why__accent}>{copy.heading.accent}</span>}
           </h2>
-          {copy.intro && <p className={cls.why__copy}>{copy.intro}</p>}
+          {copy.intro && <p className={cls.why__copy} data-reveal style={{ "--rd": "150ms" } as React.CSSProperties}>{copy.intro}</p>}
         </div>
 
         <div className={cls.why__body}>
-          <ol className={cls.reasons}>
+          <ol className={cls.reasons} data-reveal-stagger>
             {reasons.map((reason) => (
               <li key={reason.number} className={cls.reason}>
                 <span className={cls.reason__number} aria-hidden="true">
@@ -35,7 +35,7 @@ export default function WhyChoose({ reasons, image, copy }: WhyChooseProps) {
             ))}
           </ol>
 
-          <figure className={cls.why__figure}>
+          <figure className={cls.why__figure} data-reveal="img">
             <Photo image={image} sizes="(min-width: 1024px) 45vw, 100vw" />
             {copy.badge && (
               <figcaption className={cls.why__badge}>

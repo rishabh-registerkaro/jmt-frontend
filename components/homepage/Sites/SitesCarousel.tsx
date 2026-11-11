@@ -55,7 +55,7 @@ export default function SitesCarousel({ sites, children }: SitesCarouselProps) {
     <>
       <div className={cls.header}>
         {children}
-        <div className={cls.controls}>
+        <div className={cls.controls} data-reveal="right">
           <button
             type="button"
             className={cls.control}
@@ -79,7 +79,7 @@ export default function SitesCarousel({ sites, children }: SitesCarouselProps) {
         </div>
       </div>
 
-      <ul id="sites-track" ref={trackRef} className={cls.track} aria-label={t.sites.list}>
+      <ul id="sites-track" ref={trackRef} className={cls.track} aria-label={t.sites.list} data-reveal-stagger>
         {sites.map((site) => (
           <li key={site.id} className={cls.site}>
             <div className={cls.media}>

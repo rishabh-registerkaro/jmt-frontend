@@ -58,6 +58,9 @@ const cls = {
   ].join(" "),
 };
 
+// Staggered entrance (.reveal* in styles/public.css), started by the intro loader.
+const delay = (ms: number) => ({ "--d": `${ms}ms` }) as React.CSSProperties;
+
 export default function HeroSection({ content, contact, t }: HeroSectionProps) {
   const whatsappHref = contact.whatsappHref ?? "#contact";
   const whatsappIsExternal = whatsappHref.startsWith("http");
@@ -67,19 +70,19 @@ export default function HeroSection({ content, contact, t }: HeroSectionProps) {
       <div className={cls.inner}>
         <div className={cls.content}>
           <div className={cls.intro}>
-            <p className={cls.eyebrow}>
+            <p className={`${cls.eyebrow} reveal`} style={delay(250)}>
               <span className={cls.dot} aria-hidden="true" />
               {content.eyebrow}
             </p>
-            <h1 id="hero-title" className={cls.title}>
+            <h1 id="hero-title" className={`${cls.title} reveal-clip`} style={delay(360)}>
               {content.titleLead}{" "}
               <span className={cls.accent}>{content.titleAccent}</span>{" "}
               {content.titleTail}
             </h1>
-            <p className={cls.subtitle}>{content.subtitle}</p>
+            <p className={`${cls.subtitle} reveal`} style={delay(520)}>{content.subtitle}</p>
           </div>
 
-          <div className={cls.ctas}>
+          <div className={`${cls.ctas} reveal`} style={delay(620)}>
             <a href={content.primaryHref} className="btn-primary">
               {content.primaryCta}
               <Image src="/homepage/icon-arrow-right-white.svg" alt="" width={18} height={18} />
@@ -99,10 +102,10 @@ export default function HeroSection({ content, contact, t }: HeroSectionProps) {
           </div>
 
           <ul className={cls.trust}>
-            {content.trustPoints.map((point) => {
+            {content.trustPoints.map((point, i) => {
               const icon = TRUST_ICONS[point.icon];
               return (
-                <li key={point.label} className={cls.trustItem}>
+                <li key={point.label} className={`${cls.trustItem} reveal`} style={delay(720 + i * 90)}>
                   <Image src={icon.src} alt="" width={icon.size} height={icon.size} />
                   {point.label}
                 </li>
@@ -112,7 +115,7 @@ export default function HeroSection({ content, contact, t }: HeroSectionProps) {
         </div>
       </div>
 
-      <div className={cls.media}>
+      <div className={`${cls.media} reveal-zoom`} style={delay(100)}>
         <Photo image={content.image} sizes="100vw" priority />
       </div>
       <div className={cls.wash} aria-hidden="true" />
@@ -121,7 +124,8 @@ export default function HeroSection({ content, contact, t }: HeroSectionProps) {
         alt=""
         width={548}
         height={536}
-        className={cls.mandala}
+        className={`${cls.mandala} reveal-spin`}
+        style={delay(300)}
         aria-hidden="true"
       />
     </section>

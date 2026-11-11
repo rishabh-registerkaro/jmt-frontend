@@ -83,11 +83,11 @@ export default function Services({ services, copy }: ServicesProps) {
     <section id="services" className={cls.services} aria-labelledby="services-title">
       <div className={cls.inner}>
         <div className={cls.header}>
-          <h2 id="services-title" className={cls.title}>
+          <h2 id="services-title" className={cls.title} data-reveal="clip">
             {copy.heading.lead}{" "}
             {copy.heading.accent && <span className={cls.accent}>{copy.heading.accent}</span>}
           </h2>
-          <div className={cls.aside}>
+          <div className={cls.aside} data-reveal style={{ "--rd": "150ms" } as React.CSSProperties}>
             {copy.intro && <p className={cls.copy}>{copy.intro}</p>}
             {copy.cta.label && (
               <a href={copy.cta.href} className={cls.cta}>
@@ -98,7 +98,7 @@ export default function Services({ services, copy }: ServicesProps) {
           </div>
         </div>
 
-        <ul className={`${BENTO} ${rowsClass}`}>
+        <ul className={`${BENTO} ${rowsClass}`} data-reveal-stagger>
           {cards.map((service, index) => (
             <li key={service.id} className={`${cls.card} ${itemClasses[index] ?? ""}`}>
               <Photo image={service.image} sizes={CARD_SIZES[index] ?? CARD_SIZES[1]} />

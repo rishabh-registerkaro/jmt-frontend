@@ -53,7 +53,7 @@ export default function Footer({ chrome, lang, homeLabel }: FooterProps) {
           "lg:pt-[120px] lg:pb-[88px] xl:flex-row xl:gap-[50px] xl:px-[104px]",
         ].join(" ")}
       >
-        <div className="flex max-w-[320px] flex-col gap-4 xl:flex-[0_0_278px]">
+        <div className="flex max-w-[320px] flex-col gap-4 xl:flex-[0_0_278px]" data-reveal>
           <Link
             href={localePath(lang)}
             className="notranslate inline-flex self-start rounded-[8px] focus-ring"
@@ -72,6 +72,7 @@ export default function Footer({ chrome, lang, homeLabel }: FooterProps) {
             "grid flex-auto grid-cols-1 gap-8 xs:grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(160px,1fr))]",
             "xl:flex xl:flex-wrap xl:justify-between",
           ].join(" ")}
+          data-reveal-stagger
         >
           {columns.map((column) => (
             <nav key={column.title} className="flex min-w-0 flex-col gap-4" aria-label={column.title}>

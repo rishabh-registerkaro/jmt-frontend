@@ -55,7 +55,7 @@ export default function Faq({ groups, copy, founder, contact, labels, t }: FaqPr
       <span id={JOIN_CREW_ANCHOR} aria-hidden="true" />
       <div className={cls.inner}>
         {/* ── Left column ── */}
-        <div className="flex flex-col lg:pt-[18px]">
+        <div className="flex flex-col lg:pt-[18px]" data-reveal="left">
           <h2 id="faq-title" className={cls.title}>
             {copy.title}
           </h2>
@@ -99,7 +99,7 @@ export default function Faq({ groups, copy, founder, contact, labels, t }: FaqPr
         </div>
 
         {/* ── Right column: tabs + accordion ── */}
-        <div className="flex min-w-0 flex-col gap-[24px]">
+        <div className="flex min-w-0 flex-col gap-[24px]" data-reveal style={{ "--rd": "150ms" } as React.CSSProperties}>
           <FaqTabs groups={groups} />
           {(copy.moreText || copy.moreLink.label) && (
             <p className="m-0 pl-[4px] text-[15px] leading-[24px] text-slate">

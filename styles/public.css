@@ -385,3 +385,288 @@ html:is([lang="bn"], [lang="hi"]) .site :is(.btn-base, .btn-primary, .btn-outlin
 @media (prefers-reduced-motion: reduce) {
   .lead-success-pop { animation: none; }
 }
+
+/* ───────────────────────── Intro loader + hero reveal ─────────────────────────
+   components/intro/IntroLoader.tsx renders the overlay; the inline boot script
+   in app/[lang]/layout.tsx puts one of these on <html> before first paint:
+     .intro-play             first visit this session → overlay shows
+     .intro-skip.intro-done  seen already / reduced motion → no overlay
+   With JS off neither is set, so the overlay never shows and nothing is hidden. */
+
+.intro { display: none; }
+html.intro-play .intro {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-site);
+  color: var(--color-brown);
+  /* Failsafe: if the client component never runs, get out of the way. */
+  animation: intro-failsafe-hide 0s 6s forwards;
+}
+html.intro-skip .intro { display: none; }
+html.intro-lock { overflow: hidden; }
+
+/* Two halves make the background, so the exit can split them apart. */
+.intro-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50.5%;
+  background: var(--color-peach-100);
+  transition: transform 900ms var(--ease-site);
+}
+.intro-panel--top { top: 0; }
+.intro-panel--bottom { bottom: 0; }
+.intro-panel--top::after,
+.intro-panel--bottom::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-orange);
+  transform: scaleX(0);
+  transition: transform 500ms var(--ease-site);
+}
+.intro-panel--top::after { bottom: 0; }
+.intro-panel--bottom::before { top: 0; }
+.intro.is-leaving .intro-panel--top { transform: translateY(-101%); transition-delay: 180ms; }
+.intro.is-leaving .intro-panel--bottom { transform: translateY(101%); transition-delay: 180ms; }
+.intro.is-leaving .intro-panel::after,
+.intro.is-leaving .intro-panel::before { transform: scaleX(1); }
+
+.intro-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  transition: opacity 320ms ease, transform 500ms var(--ease-site);
+}
+.intro.is-leaving .intro-stage { opacity: 0; transform: scale(0.92); }
+
+.intro-mark {
+  position: relative;
+  width: clamp(120px, 26vw, 180px);
+  aspect-ratio: 547.64 / 535.74;
+  display: grid;
+  place-items: center;
+}
+.intro-mandala {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: intro-spin 14s linear infinite;
+}
+.intro-mandala-line {
+  fill: none;
+  stroke: var(--color-orange);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: intro-draw 1.4s 100ms var(--ease-site) forwards;
+}
+.intro-mandala-fill {
+  fill: url(#intro-grad);
+  opacity: 0;
+  animation: intro-fill 700ms 1s ease-out forwards;
+}
+.intro-ring {
+  position: absolute;
+  inset: 8%;
+  border: 1.5px solid var(--color-orange);
+  border-radius: 50%;
+  opacity: 0;
+  animation: intro-ring 2s 400ms cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+.intro-ring--late { animation-delay: 1.4s; }
+
+.intro-name {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 90vw;
+  font-size: clamp(18px, 3.2vw, 26px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.intro-letter-mask { display: inline-block; overflow: hidden; line-height: 1.25; }
+.intro-letter {
+  display: inline-block;
+  transform: translateY(110%);
+  animation: intro-letter 700ms calc(500ms + var(--i, 0) * 40ms) var(--ease-site) forwards;
+}
+
+.intro-meta {
+  position: absolute;
+  left: clamp(16px, 4vw, 48px);
+  right: clamp(16px, 4vw, 48px);
+  bottom: clamp(20px, 4vh, 40px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  transition: opacity 300ms ease;
+}
+.intro.is-leaving .intro-meta,
+.intro.is-leaving .intro-bar { opacity: 0; }
+.intro-tag {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-brown);
+  opacity: 0.7;
+}
+.intro-count {
+  font-size: clamp(40px, 8vw, 88px);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-brown);
+}
+.intro-count sup { font-size: 0.32em; font-weight: 700; color: var(--color-orange); vertical-align: top; margin-left: 2px; }
+.intro-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(100, 35, 1, 0.08);
+  transition: opacity 300ms ease;
+}
+.intro-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--color-orange);
+  transform-origin: left;
+  transform: scaleX(0);
+}
+
+@keyframes intro-draw { to { stroke-dashoffset: 0; } }
+@keyframes intro-fill { to { opacity: 0.22; } }
+@keyframes intro-spin { to { transform: rotate(360deg); } }
+@keyframes intro-ring {
+  0% { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+@keyframes intro-letter { to { transform: translateY(0); } }
+@keyframes intro-failsafe-hide { to { visibility: hidden; opacity: 0; pointer-events: none; } }
+@keyframes intro-failsafe-show { to { opacity: 1; } }
+
+/* Hero reveal. Hidden only while the intro is playing; starts on .intro-done
+   (set as the curtain opens, or immediately on later visits). --d = delay. */
+html.intro-play:not(.intro-done) :is(.reveal, .reveal-clip, .reveal-zoom, .reveal-spin) {
+  opacity: 0;
+  animation: intro-failsafe-show 0s 6s forwards;
+}
+html.intro-done .reveal { animation: reveal-up 900ms var(--d, 0ms) var(--ease-site) backwards; }
+html.intro-done .reveal-clip { animation: reveal-clip 1100ms var(--d, 0ms) var(--ease-site) backwards; }
+html.intro-done .reveal-zoom { animation: reveal-zoom 1600ms var(--d, 0ms) var(--ease-site) backwards; }
+html.intro-done .reveal-spin { animation: reveal-spin 1800ms var(--d, 0ms) var(--ease-site) backwards; }
+
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes reveal-clip {
+  from { opacity: 0; transform: translateY(40px); clip-path: inset(0 0 100% 0); }
+  to { opacity: 1; transform: none; clip-path: inset(-20% -10% -20% -10%); }
+}
+@keyframes reveal-zoom {
+  from { opacity: 0; transform: scale(1.08); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes reveal-spin {
+  from { opacity: 0; transform: rotate(-35deg) scale(0.85); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.intro-play .intro { display: none; }
+  html :is(.reveal, .reveal-clip, .reveal-zoom, .reveal-spin) { animation: none !important; opacity: 1 !important; }
+}
+
+/* ───────────────────────── Scroll reveal ─────────────────────────
+   components/intro/ScrollReveal.tsx adds .is-inview as elements scroll in.
+   Content is hidden only under html.reveal-ready (set by the boot script, not
+   for reduced motion). If the client script never arms (.reveal-armed), a
+   failsafe shows everything after 4s. Animations use `backwards` fill so they
+   let go of transform/opacity when done and hover effects keep working. */
+
+html.reveal-ready [data-reveal]:not(.is-inview),
+html.reveal-ready [data-reveal-stagger]:not(.is-inview) > * {
+  opacity: 0;
+}
+html.reveal-ready:not(.reveal-armed) [data-reveal]:not(.is-inview),
+html.reveal-ready:not(.reveal-armed) [data-reveal-stagger]:not(.is-inview) > * {
+  animation: intro-failsafe-show 0s 4s forwards;
+}
+
+[data-reveal].is-inview {
+  animation: sr-up 900ms var(--rd, 0ms) var(--ease-site) backwards;
+}
+[data-reveal="clip"].is-inview { animation-name: sr-clip; animation-duration: 1100ms; }
+[data-reveal="left"].is-inview { animation-name: sr-left; animation-duration: 1000ms; }
+[data-reveal="right"].is-inview { animation-name: sr-right; animation-duration: 1000ms; }
+[data-reveal="zoom"].is-inview { animation-name: sr-zoom; animation-duration: 1200ms; }
+[data-reveal="img"].is-inview { animation-name: sr-curtain; animation-duration: 1300ms; }
+[data-reveal="img"].is-inview img {
+  animation: sr-settle 1800ms var(--rd, 0ms) var(--ease-site) backwards;
+}
+
+[data-reveal-stagger].is-inview > * {
+  animation: sr-up 850ms calc(var(--rd, 0ms) + var(--i, 0) * 90ms) var(--ease-site) backwards;
+}
+
+/* data-reveal-stagger="contents": children turn into display:contents on
+   desktop (HowTo steps join one grid), so animate their cells instead. --i is
+   inherited from the step. */
+@media (width >= 64rem) {
+  html.reveal-ready [data-reveal-stagger="contents"]:not(.is-inview) > * > * { opacity: 0; }
+  html.reveal-ready:not(.reveal-armed) [data-reveal-stagger="contents"]:not(.is-inview) > * > * {
+    animation: intro-failsafe-show 0s 4s forwards;
+  }
+  [data-reveal-stagger="contents"].is-inview > * > * {
+    animation: sr-up 850ms calc(var(--rd, 0ms) + var(--i, 0) * 110ms) var(--ease-site) backwards;
+  }
+}
+
+@keyframes sr-up {
+  from { opacity: 0; transform: translateY(40px); }
+}
+@keyframes sr-clip {
+  from { opacity: 0; transform: translateY(36px); clip-path: inset(0 0 100% 0); }
+  to { opacity: 1; transform: none; clip-path: inset(-20% -10% -20% -10%); }
+}
+@keyframes sr-left {
+  from { opacity: 0; transform: translateX(-56px); }
+}
+@keyframes sr-right {
+  from { opacity: 0; transform: translateX(56px); }
+}
+@keyframes sr-zoom {
+  from { opacity: 0; transform: scale(0.94); }
+}
+@keyframes sr-curtain {
+  from { clip-path: inset(100% 0 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes sr-settle {
+  from { transform: scale(1.18); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  [data-reveal] img,
+  [data-reveal-stagger] > * {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
