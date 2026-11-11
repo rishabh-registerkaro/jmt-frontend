@@ -3,9 +3,8 @@ import { Geist, Geist_Mono, Manrope, Noto_Sans_Bengali, Noto_Sans_Devanagari } f
 import Navbar from "@/components/homepage/Navbar/Navbar";
 import Footer from "@/components/homepage/Footer/Footer";
 import LiveRefresh from "@/components/homepage/LiveRefresh";
-import IntroLoader from "@/components/intro/IntroLoader";
-import ScrollReveal from "@/components/intro/ScrollReveal";
-import { INTRO_BOOT_SCRIPT } from "@/components/intro/introBoot";
+import ScrollReveal from "@/components/motion/ScrollReveal";
+import { REVEAL_BOOT_SCRIPT } from "@/components/motion/revealBoot";
 import { LanguageProvider } from "@/components/i18n/LanguageProvider";
 import { LOCALES, getDictionary, hasLocale } from "@/lib/i18n";
 import { getHomepageVersion, getSiteChrome } from "@/server/homepage";
@@ -69,11 +68,11 @@ export default async function LocaleLayout({
   const t = getDictionary(lang);
 
   return (
-    // suppressHydrationWarning: the boot script adds intro-* classes to <html> before hydration.
+    // suppressHydrationWarning: the boot script adds reveal-ready to <html> before hydration.
     <html lang={lang} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {/* Decides before first paint whether the intro plays (components/intro/introBoot.ts). */}
-        <script dangerouslySetInnerHTML={{ __html: INTRO_BOOT_SCRIPT }} />
+        {/* Enables entrance/scroll animations before first paint (components/motion/revealBoot.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: REVEAL_BOOT_SCRIPT }} />
         <LanguageProvider locale={lang}>
           <div
             className={[
@@ -89,7 +88,6 @@ export default async function LocaleLayout({
             >
               {t.skipToContent}
             </a>
-            <IntroLoader brandName={chrome.brand.name} />
             <ScrollReveal />
             <Navbar chrome={chrome} lang={lang} homeLabel={t.nav.home} />
             <main id="main" className="block focus:outline-none" tabIndex={-1}>

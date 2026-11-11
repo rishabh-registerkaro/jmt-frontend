@@ -2,7 +2,7 @@
 
 The public **Joy Maa Tara** homepage, in English, Bengali and Hindi. Built with Next.js 16 (App Router) and Tailwind CSS 4.
 
-This is a UI-only app with **no database**. All content and form submissions go through the [`jmt-admin`](https://github.com/rishabh-registerkaro/jmt-admin) API, which is its backend.
+This is a UI-only app with **no database**. All content and form submissions go through the [`jmt-admin`](https://github.com/rishabh-registerkaro/jmt-admin) API, which is its backend.    qwdw
 
 | What | How it works |
 |---|---|
