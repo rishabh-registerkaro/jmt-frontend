@@ -58,7 +58,7 @@ const cls = {
   ].join(" "),
 };
 
-// Staggered entrance (.reveal* in styles/public.css), started by the intro loader.
+// Staggered entrance on page load (.reveal* in styles/public.css).
 const delay = (ms: number) => ({ "--d": `${ms}ms` }) as React.CSSProperties;
 
 export default function HeroSection({ content, contact, t }: HeroSectionProps) {
@@ -124,8 +124,7 @@ export default function HeroSection({ content, contact, t }: HeroSectionProps) {
         alt=""
         width={548}
         height={536}
-        className={`${cls.mandala} reveal-spin`}
-        style={delay(300)}
+        className={cls.mandala}
         aria-hidden="true"
       />
     </section>

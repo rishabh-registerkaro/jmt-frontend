@@ -13,9 +13,8 @@ import { useEffect } from "react";
 //   data-reveal-stagger      on a list/grid: its children come in one by one
 //   style={{"--rd": "150ms"}} optional extra delay
 //
-// Each element animates once, when ~15% of it enters the viewport. While the
-// first-visit intro is playing, nothing starts until it finishes. Styles live
-// in styles/public.css ("Scroll reveal"). The boot script adds
+// Each element animates once, when ~15% of it enters the viewport. Styles live
+// in styles/public.css ("Scroll reveal"). The boot script (revealBoot.ts) adds
 // html.reveal-ready (skipped for reduced motion); this component adds
 // html.reveal-armed, and without it a CSS failsafe shows everything anyway.
 
@@ -29,8 +28,6 @@ export default function ScrollReveal() {
     html.classList.add("reveal-armed");
 
     const seen = new WeakSet<Element>();
-    let started = false;
-    const pending: Element[] = [];
 
     const io = new IntersectionObserver(
       (entries) => {
@@ -51,19 +48,12 @@ export default function ScrollReveal() {
           (child as HTMLElement).style.setProperty("--i", String(Math.min(i, MAX_STAGGER)));
         });
       }
-      if (started) io.observe(el);
-      else pending.push(el);
+      io.observe(el);
     };
 
     const scan = (root: ParentNode) => {
       if (root instanceof Element && root.matches(SELECTOR)) register(root);
       root.querySelectorAll(SELECTOR).forEach(register);
-    };
-
-    const start = () => {
-      if (started) return;
-      started = true;
-      pending.splice(0).forEach((el) => io.observe(el));
     };
 
     scan(document);
@@ -74,24 +64,9 @@ export default function ScrollReveal() {
     });
     mo.observe(document.body, { childList: true, subtree: true });
 
-    // Hold everything until the intro curtain opens.
-    let classWatch: MutationObserver | undefined;
-    if (html.classList.contains("intro-play") && !html.classList.contains("intro-done")) {
-      classWatch = new MutationObserver(() => {
-        if (html.classList.contains("intro-done")) {
-          classWatch?.disconnect();
-          start();
-        }
-      });
-      classWatch.observe(html, { attributes: true, attributeFilter: ["class"] });
-    } else {
-      start();
-    }
-
     return () => {
       io.disconnect();
       mo.disconnect();
-      classWatch?.disconnect();
     };
   }, []);
 
