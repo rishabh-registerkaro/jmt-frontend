@@ -81,7 +81,7 @@ export default function HeroSection({ content, contact, t }: HeroSectionProps) {
               <span className={cls.dot} aria-hidden="true" />
               {content.eyebrow}
             </p>
-            <h1 id="hero-title" className={`${cls.title} reveal-clip`} style={delay(360)}>
+            <h1 id="hero-title" className={`${cls.title} reveal-clip`}>
               {content.titleLead}{" "}
               <span className={cls.accent}>{content.titleAccent}</span>{" "}
               {content.titleTail}

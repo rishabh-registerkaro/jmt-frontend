@@ -10,9 +10,11 @@ import Plans from "@/components/service/Plans";
 import Steps from "@/components/service/Steps";
 import ServiceFaq from "@/components/service/ServiceFaq";
 import RelatedServices from "@/components/service/RelatedServices";
+import { RoleSelectionProvider } from "@/components/service/RoleSelection";
 import Contact from "@/components/homepage/Contact/Contact";
 import MobileBar from "@/components/homepage/MobileBar/MobileBar";
-import { LOCALES, getDictionary, hasLocale, localePath, type Locale } from "@/lib/i18n";
+import { getDictionary, hasLocale, localePath, type Locale } from "@/lib/i18n";
+import { breadcrumbJsonLd, jsonLdHtml, pageMetadata, serviceJsonLd } from "@/lib/seo";
 import { getHomepageData, getSiteChrome } from "@/server/homepage";
 import { getServicePage, getServiceSlugs } from "@/server/service";
 import { servicePath } from "@/lib/siteLinks";
@@ -47,24 +49,16 @@ const pagePath = (lang: Locale, slug: string) => servicePath(lang, slug);
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang, slug } = await params;
   if (!hasLocale(lang)) return {};
-  const content = await getServicePage(slug);
+  const [content, chrome] = await Promise.all([getServicePage(slug), getSiteChrome(lang)]);
   if (!content) return {};
-  const { title, description } = content.meta;
-  return {
-    metadataBase: new URL(process.env.SITE_URL || "http://localhost:3002"),
-    title,
-    description,
-    alternates: {
-      canonical: pagePath(lang, slug),
-      languages: { ...Object.fromEntries(LOCALES.map((l) => [l, pagePath(l, slug)])), "x-default": pagePath("en", slug) },
-    },
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      images: [{ url: content.hero.image.src, width: content.hero.image.width, height: content.hero.image.height }],
-    },
-  };
+  return pageMetadata({
+    lang,
+    pathFor: (l) => pagePath(l, slug),
+    title: content.meta.title,
+    description: content.meta.description,
+    image: content.hero.image,
+    siteName: chrome.brand.name,
+  });
 }
 
 /** Subnav links to hidden sections are dropped; links to other ids are kept. */
@@ -84,9 +78,32 @@ export default async function ServicePage({ params }: PageProps) {
   const t = getDictionary(lang);
   const show = content.visible;
   const ids = SERVICE_SECTION_IDS;
+  const home = localePath(lang);
+  // Mirrors the visible breadcrumb in ServiceHero: Home / Services / <current>.
+  const breadcrumb = breadcrumbJsonLd([
+    { name: content.hero.breadcrumb.home, path: home },
+    { name: content.hero.breadcrumb.services, path: `${home}#services` },
+    { name: content.hero.breadcrumb.current, path: pagePath(lang, slug) },
+  ]);
+  const service = serviceJsonLd({
+    name: content.hero.breadcrumb.current,
+    description: content.meta.description,
+    path: pagePath(lang, slug),
+    image: content.hero.image.src,
+  });
+
+  // Roles ticked in "Roles we supply" are shown in, and sent with, the request form.
+  const roles = show.roles
+    ? content.roles.trades.flatMap((trade) => trade.roles.map((role) => ({ id: role.id, name: role.name })))
+    : [];
 
   return (
-    <>
+    <RoleSelectionProvider
+      rolesSectionId={show.roles ? ids.roles : null}
+      roles={roles}
+      preselected={show.roles ? content.roles.preselected : []}
+    >
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml([breadcrumb, service])} />
       <ServiceHero content={content.hero} contact={chrome.contact} homeHref={localePath(lang)} t={t} />
       <ServiceSubnav links={visibleSubnavLinks(content)} cta={content.subnav.cta} />
       {show.useCases && <UseCases id={ids.useCases} copy={content.useCases.copy} cards={content.useCases.cards} />}
@@ -110,6 +127,6 @@ export default async function ServicePage({ params }: PageProps) {
       </div>
       {/* Phones: fixed Call / WhatsApp / Request bar (Figma 244:500), same as the homepage's. */}
       <MobileBar contact={chrome.contact} ctaLabel={content.hero.primaryCta} ctaHref="#contact" t={t} />
-    </>
+    </RoleSelectionProvider>
   );
 }

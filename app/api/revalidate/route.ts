@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { normalizeSecret, sharedSecret } from "@/lib/adminApi";
 
 // Called by jmt-admin after every content save (and by its manual
@@ -9,10 +10,17 @@ import { normalizeSecret, sharedSecret } from "@/lib/adminApi";
 
 const TAG_PATTERN = /^[a-z0-9_-]{1,100}$/i;
 
+/** Constant-time compare (hash both sides so unequal lengths don't short-circuit). */
+function secretMatches(provided: string, expected: string): boolean {
+  const a = createHash("sha256").update(provided).digest();
+  const b = createHash("sha256").update(expected).digest();
+  return timingSafeEqual(a, b);
+}
+
 export async function POST(req: NextRequest) {
   const expected = sharedSecret();
   const provided = normalizeSecret(req.headers.get("x-revalidate-secret"));
-  if (!expected || provided !== expected) {
+  if (!expected || !secretMatches(provided, expected)) {
     return NextResponse.json({ success: false, message: "Invalid revalidate secret" }, { status: 401 });
   }
 

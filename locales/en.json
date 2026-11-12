@@ -6,7 +6,8 @@
     "language": "Language",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "home": "home"
+    "home": "home",
+    "contactButton": "Contact"
   },
   "opensWhatsApp": "(opens WhatsApp)",
   "sites": {
@@ -32,6 +33,13 @@
       "email": "name@company.com",
       "siteLocation": "City or site name",
       "headcount": "e.g. 12"
+    },
+    "roles": {
+      "title": "Roles requested",
+      "edit": "Edit roles",
+      "add": "Choose roles",
+      "empty": "No roles picked yet. Tick the ones you need above, or just tell us on the call.",
+      "remove": "Remove {name}"
     }
   },
   "process": {

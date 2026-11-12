@@ -6,7 +6,8 @@
     "language": "ভাষা",
     "openMenu": "মেনু খুলুন",
     "closeMenu": "মেনু বন্ধ করুন",
-    "home": "হোম"
+    "home": "হোম",
+    "contactButton": "যোগাযোগ"
   },
   "opensWhatsApp": "(WhatsApp খুলবে)",
   "sites": {
@@ -32,6 +33,13 @@
       "email": "name@company.com",
       "siteLocation": "শহর বা সাইটের নাম",
       "headcount": "যেমন 12"
+    },
+    "roles": {
+      "title": "অনুরোধ করা কাজের ভূমিকা",
+      "edit": "ভূমিকা বদলান",
+      "add": "ভূমিকা বেছে নিন",
+      "empty": "এখনও কোনো ভূমিকা বাছা হয়নি। উপরের তালিকা থেকে বেছে নিন, অথবা ফোনে জানান।",
+      "remove": "{name} সরান"
     }
   },
   "process": {

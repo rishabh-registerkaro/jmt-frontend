@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
 import Photo from "@/components/common/Photo";
 import type { RolesContent } from "@/types/service";
+import { useRoleSelection } from "./RoleSelection";
 
 interface RolesPickerProps {
   content: Omit<RolesContent, "copy">;
@@ -60,14 +60,12 @@ const fill = (template: string, names: string[]) =>
   template.replace("{n}", String(names.length)).replace("{list}", names.join(", "));
 
 export default function RolesPicker({ content }: RolesPickerProps) {
-  const [selected, setSelected] = useState<string[]>(content.preselected);
-
-  const allRoles = content.trades.flatMap((trade) => trade.roles);
-  const selectedNames = allRoles.filter((role) => selected.includes(role.id)).map((role) => role.name);
+  // Shared with the request form at the bottom of the page (RoleSelectionProvider).
+  const selection = useRoleSelection();
+  if (!selection) throw new Error("RolesPicker must be rendered inside RoleSelectionProvider");
+  const { isSelected, toggle } = selection;
+  const selectedNames = selection.selectedRoles.map((role) => role.name);
   const none = selectedNames.length === 0;
-
-  const toggle = (id: string) =>
-    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
   return (
     <>
@@ -92,7 +90,7 @@ export default function RolesPicker({ content }: RolesPickerProps) {
                       <input
                         type="checkbox"
                         className="peer sr-only"
-                        checked={selected.includes(role.id)}
+                        checked={isSelected(role.id)}
                         onChange={() => toggle(role.id)}
                       />
                       <span className={cls.box} aria-hidden="true">

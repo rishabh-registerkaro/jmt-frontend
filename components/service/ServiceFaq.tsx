@@ -16,7 +16,9 @@ interface ServiceFaqProps {
 // Figma "Service FAQ" 237:700 — founder photo card 440 | questions 792, gap 48.
 const cls = {
   split: "grid grid-cols-1 gap-[20px] md:gap-[32px] lg:grid-cols-[minmax(0,440fr)_minmax(0,792fr)] lg:gap-[48px]",
-  card: "relative isolate flex min-h-[300px] flex-col justify-end overflow-hidden rounded-[18px] bg-navy-card md:min-h-[520px] md:rounded-[20px] lg:order-first lg:min-h-[774px]",
+  // lg: fixed height, pinned to the top of the row. As a stretched grid item it
+  // grew whenever an answer opened, re-cropping the photo; now it never moves.
+  card: "relative isolate flex min-h-[300px] flex-col justify-end overflow-hidden rounded-[18px] bg-navy-card md:min-h-[520px] md:rounded-[20px] lg:order-first lg:h-[774px] lg:min-h-0 lg:self-start",
   shade: "absolute inset-0 bg-[linear-gradient(180deg,rgba(8,27,48,0)_30%,rgba(8,27,48,0.9)_100%)] md:bg-[linear-gradient(180deg,rgba(8,27,48,0)_45%,rgba(8,27,48,0.9)_100%)]",
   caption: "relative z-1 flex flex-col items-start gap-[10px] px-[18px] pb-[18px] md:gap-[14px] md:px-[28px] md:pb-[28px]",
   kicker: "m-0 text-[11px] leading-[normal] font-bold tracking-[1.32px] text-peach-200 uppercase md:text-[12px] md:tracking-[1.44px]",

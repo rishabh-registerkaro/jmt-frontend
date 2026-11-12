@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import PlusMinus from "@/components/common/PlusMinus";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import type { FaqAudience, FaqGroup } from "@/types/homepage";
 import { JOIN_CREW_ANCHOR } from "./anchors";
@@ -200,21 +200,13 @@ export default function FaqTabs({ groups }: FaqTabsProps) {
                     onClick={() => toggle(item.id)}
                   >
                     <span className={cls.question}>{item.question}</span>
-                    <span className={`${cls.badge} ${open ? "bg-orange" : "bg-input-bg"}`} aria-hidden="true">
-                      <Image
-                        src={open ? "/homepage/m/x-white.svg" : "/homepage/m/plus.svg"}
-                        alt=""
-                        width={13}
-                        height={13}
-                      />
+                    <span
+                      className={`${cls.badge} ${open ? "bg-orange text-white" : "bg-input-bg text-ink"}`}
+                      aria-hidden="true"
+                    >
+                      <PlusMinus open={open} size={13} />
                     </span>
-                    <Image
-                      src={open ? "/homepage/icon-close.svg" : "/homepage/icon-plus.svg"}
-                      alt=""
-                      width={20}
-                      height={20}
-                      className="hidden flex-none md:block"
-                    />
+                    <PlusMinus open={open} size={20} strokeWidth={1.45} className="hidden text-navy md:block" />
                   </button>
                 </h3>
                 <div

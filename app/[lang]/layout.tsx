@@ -1,14 +1,27 @@
+import type { Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { Geist, Geist_Mono, Manrope, Noto_Sans_Bengali, Noto_Sans_Devanagari } from "next/font/google";
 import Navbar from "@/components/homepage/Navbar/Navbar";
 import Footer from "@/components/homepage/Footer/Footer";
 import LiveRefresh from "@/components/homepage/LiveRefresh";
+import PreviewBar from "@/components/preview/PreviewBar";
 import ScrollReveal from "@/components/motion/ScrollReveal";
 import { REVEAL_BOOT_SCRIPT } from "@/components/motion/revealBoot";
 import { LanguageProvider } from "@/components/i18n/LanguageProvider";
 import { LOCALES, getDictionary, hasLocale } from "@/lib/i18n";
 import { getHomepageVersion, getSiteChrome } from "@/server/homepage";
+import { jsonLdHtml, organizationJsonLd } from "@/lib/seo";
 import "../globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  // Brand orange (--color-orange in styles/public.css).
+  themeColor: "#f26921",
+};
 
 // Root document for the public Joy Maa Tara homepage, one per language:
 // "/" (English — proxy.ts rewrites it to /en), "/bn" and "/hi". The server
@@ -17,8 +30,10 @@ import "../globals.css";
 // (site-container, btn-primary, heading-xl, …) live in styles/public.css; the
 // literal `site` class is the hook for the scroll-padding rule there.
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+// Fallback faces only (Tailwind's font-sans/font-mono); page text uses Manrope
+// (font-site). Not preloaded, so they don't compete with the LCP image.
+const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: "swap", preload: false });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap", preload: false });
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -64,7 +79,11 @@ export default async function LocaleLayout({
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
 
-  const [chrome, version] = await Promise.all([getSiteChrome(lang), getHomepageVersion(lang)]);
+  const [chrome, version, { isEnabled: previewing }] = await Promise.all([
+    getSiteChrome(lang),
+    getHomepageVersion(lang),
+    draftMode(),
+  ]);
   const t = getDictionary(lang);
 
   return (
@@ -73,6 +92,8 @@ export default async function LocaleLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {/* Enables entrance/scroll animations before first paint (components/motion/revealBoot.ts). */}
         <script dangerouslySetInnerHTML={{ __html: REVEAL_BOOT_SCRIPT }} />
+        {/* Organization + WebSite: brand, logo, phone and email shown in the navbar/footer. */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(organizationJsonLd(chrome))} />
         <LanguageProvider locale={lang}>
           <div
             className={[
@@ -96,8 +117,17 @@ export default async function LocaleLayout({
             <Footer chrome={chrome} lang={lang} homeLabel={t.nav.home} />
             {/* Re-renders the page when the admin saves in /dashboard/homepage. */}
             <LiveRefresh version={version} />
+            {/* Unsaved dashboard edits are being previewed (lib/preview.ts). */}
+            {previewing && <PreviewBar />}
           </div>
         </LanguageProvider>
+        {/* Real-user traffic and Core Web Vitals (Vercel dashboard). Off elsewhere: the scripts live on Vercel. */}
+        {process.env.VERCEL && (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        )}
       </body>
     </html>
   );

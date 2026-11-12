@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useId, useState } from "react";
+import PlusMinus from "@/components/common/PlusMinus";
 import type { ServiceFaqContent } from "@/types/service";
 
 interface ServiceFaqListProps {
@@ -9,7 +9,7 @@ interface ServiceFaqListProps {
 }
 
 // Accordion from Figma "Service FAQ" 237:718 — one question open at a time,
-// the first open on load. Open: orange 1.5px border and an orange × badge;
+// the first open on load. Open: orange 1.5px border and an orange − badge;
 // closed: peach + badge.
 const cls = {
   item: "rounded-[14px] border-[1.5px] bg-white transition-colors duration-240 md:rounded-[16px]",
@@ -48,21 +48,11 @@ export default function ServiceFaqList({ items }: ServiceFaqListProps) {
                 onClick={() => setOpenId(open ? null : item.id)}
               >
                 <span className={cls.question}>{item.question}</span>
-                <span className={`${cls.badge} ${open ? "bg-orange" : "bg-peach-100"}`} aria-hidden="true">
-                  <Image
-                    src={open ? "/homepage/m/x-white.svg" : "/service/m/plus-13.svg"}
-                    alt=""
-                    width={13}
-                    height={13}
-                    className="md:hidden"
-                  />
-                  <Image
-                    src={open ? "/service/icon-x.svg" : "/service/icon-plus.svg"}
-                    alt=""
-                    width={14}
-                    height={14}
-                    className="hidden md:block"
-                  />
+                <span
+                  className={`${cls.badge} ${open ? "bg-orange text-white" : "bg-peach-100 text-orange"}`}
+                  aria-hidden="true"
+                >
+                  <PlusMinus open={open} size={14} />
                 </span>
               </button>
             </h3>

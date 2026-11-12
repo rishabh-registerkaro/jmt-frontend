@@ -1,16 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { LanguageOption, NavLink, SwitcherLanguage } from "@/types/homepage";
 import { rememberLocale, useLanguage } from "@/components/i18n/LanguageProvider";
 
 interface NavMenuProps {
   links: NavLink[];
-  callHref: string;
-  /** Text on the call button (admin: Site details → Labels). */
-  callLabel: string;
+  /** The orange header button: the Contact page. */
+  ctaHref: string;
+  ctaLabel: string;
   /** Switcher entries from the admin; empty hides the switcher. */
   languages: LanguageOption[];
 }
@@ -75,13 +75,15 @@ const cls = {
   },
 };
 
-export default function NavMenu({ links, callHref, callLabel, languages }: NavMenuProps) {
+export default function NavMenu({ links, ctaHref, ctaLabel, languages }: NavMenuProps) {
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { locale: language, t } = useLanguage();
   const router = useRouter();
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
   const idPrefix = useId();
   const drawerId = `${idPrefix}-drawer`;
 
@@ -116,7 +118,30 @@ export default function NavMenu({ links, callHref, callLabel, languages }: NavMe
     document.body.style.overflow = "hidden";
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeDrawer(true);
+      if (event.key === "Escape") {
+        closeDrawer(true);
+        return;
+      }
+      // Keep Tab inside the open drawer (and its toggle) so keyboard users
+      // don't land on the page hidden behind it.
+      if (event.key !== "Tab") return;
+      const drawer = drawerRef.current;
+      if (!drawer) return;
+      const focusables = [
+        toggleRef.current,
+        ...drawer.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'),
+      ].filter((el): el is HTMLElement => el !== null);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !focusables.includes(active as HTMLElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !focusables.includes(active as HTMLElement))) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     const desktop = window.matchMedia(DESKTOP_QUERY);
     const onBreakpoint = (event: MediaQueryListEvent) => {
@@ -131,7 +156,15 @@ export default function NavMenu({ links, callHref, callLabel, languages }: NavMe
     };
   }, [drawerOpen, closeDrawer]);
 
-  const switchTo = useCallback((code: SwitcherLanguage) => router.push(rememberLocale(code)), [router]);
+  // Stay on the same page in the other language: /about → /bn/about, /hi/contact → /contact.
+  const switchTo = useCallback(
+    (code: SwitcherLanguage) => {
+      const home = rememberLocale(code);
+      const rest = (pathname ?? "/").replace(/^\/(?:en|bn|hi)(?=\/|$)/, "").replace(/\/+$/, "");
+      router.push(rest ? `${home === "/" ? "" : home}${rest}` : home);
+    },
+    [router, pathname],
+  );
 
   // The admin hid this language (or the whole switcher): send the visitor to
   // English, or they'd be stuck on a page with no way back.
@@ -186,9 +219,9 @@ export default function NavMenu({ links, callHref, callLabel, languages }: NavMe
     </div>
   );
 
-  const callButton = (
+  const ctaButton = (
     <a
-      href={callHref}
+      href={ctaHref}
       className={[
         "inline-flex h-[44px] flex-none items-center gap-2 rounded-full border border-pill-line bg-orange-nav px-[19px]",
         "text-[14px] leading-[22.4px] font-semibold whitespace-nowrap text-white no-underline",
@@ -196,15 +229,19 @@ export default function NavMenu({ links, callHref, callLabel, languages }: NavMe
       ].join(" ")}
     >
       <Image src="/homepage/icon-phone-white-16.svg" alt="" width={16} height={16} />
-      {callLabel}
+      {ctaLabel}
     </a>
   );
 
   return (
     <>
-      {/* Figma "Frame 212": nav + actions share one 916px row, spread to its edges. */}
-      <div className="ml-auto hidden min-w-0 flex-[0_1_916px] items-center justify-between gap-6 lg:flex">
-        <nav ref={navRef} className="hidden lg:block" aria-label={t.nav.main}>
+      {/* Desktop: nav links sit at the true centre of the header; language + contact stay right. */}
+      <div className="ml-auto hidden min-w-0 flex-1 items-center justify-end gap-6 lg:flex">
+        <nav
+          ref={navRef}
+          className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:block"
+          aria-label={t.nav.main}
+        >
           <ul className="flex items-center gap-5 xl:gap-7">
             {links.map((link, index) => {
               const hasChildren = link.children.length > 0;
@@ -267,7 +304,7 @@ export default function NavMenu({ links, callHref, callLabel, languages }: NavMe
 
         <div className="hidden flex-none items-center gap-2.5 lg:flex">
           {renderLanguageToggle(false)}
-          {callButton}
+          {ctaButton}
         </div>
       </div>
 
@@ -291,6 +328,7 @@ export default function NavMenu({ links, callHref, callLabel, languages }: NavMe
       </button>
 
       <div
+        ref={drawerRef}
         id={drawerId}
         className={[
           "fixed inset-x-0 top-[64px] md:top-[68px] bottom-0 z-60 flex flex-col gap-6 overflow-y-auto",
@@ -335,7 +373,7 @@ export default function NavMenu({ links, callHref, callLabel, languages }: NavMe
           </ul>
         </nav>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          {callButton}
+          {ctaButton}
         </div>
       </div>
     </>

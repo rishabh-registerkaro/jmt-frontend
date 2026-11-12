@@ -14,7 +14,8 @@ import Faq from "@/components/homepage/Faq/Faq";
 import Contact from "@/components/homepage/Contact/Contact";
 import MobileBar from "@/components/homepage/MobileBar/MobileBar";
 import { HOME_META_DEFAULTS } from "@/app/lib/content/home-content";
-import { LOCALES, getDictionary, hasLocale, localePath } from "@/lib/i18n";
+import { getDictionary, hasLocale, localePath } from "@/lib/i18n";
+import { pageMetadata } from "@/lib/seo";
 import { getHomepageData, getSiteChrome } from "@/server/homepage";
 
 // Matches HOMEPAGE_REVALIDATE_SECONDS in server/homepage.ts (must be a literal here).
@@ -26,36 +27,18 @@ interface PageProps {
   params: Promise<{ lang: string }>;
 }
 
-const OG_LOCALES = { en: "en_IN", bn: "bn_IN", hi: "hi_IN" } as const;
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang } = await params;
   if (!hasLocale(lang)) return {};
-  const { meta, hero } = await getHomepageData(lang);
-  const title = meta.title ?? HOME_META_DEFAULTS.metaTitle;
-  const description = meta.description ?? HOME_META_DEFAULTS.metaDescription;
-
-  return {
-    // Makes relative URLs (og:image, hreflang) absolute.
-    // Set SITE_URL to the domain that serves this homepage.
-    metadataBase: new URL(process.env.SITE_URL || "http://localhost:3002"),
-    title,
-    description,
-    alternates: {
-      canonical: localePath(lang),
-      languages: {
-        ...Object.fromEntries(LOCALES.map((l) => [l, localePath(l)])),
-        "x-default": "/",
-      },
-    },
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      locale: OG_LOCALES[lang],
-      images: [{ url: hero.image.src, width: hero.image.width, height: hero.image.height }],
-    },
-  };
+  const [{ meta, hero }, chrome] = await Promise.all([getHomepageData(lang), getSiteChrome(lang)]);
+  return pageMetadata({
+    lang,
+    pathFor: localePath,
+    title: meta.title ?? HOME_META_DEFAULTS.metaTitle,
+    description: meta.description ?? HOME_META_DEFAULTS.metaDescription,
+    image: hero.image,
+    siteName: chrome.brand.name,
+  });
 }
 
 export default async function HomePage({ params }: PageProps) {
@@ -87,8 +70,13 @@ export default async function HomePage({ params }: PageProps) {
     contact: () => <Contact contact={chrome.contact} image={data.contactImage} copy={data.contactCopy} />,
   };
 
+  // The hero holds the page's only <h1>; if the admin hides it, keep one for
+  // screen readers and search engines.
+  const heroShown = data.enabled.hero && data.order.includes("hero");
+
   return (
     <>
+      {!heroShown && <h1 className="sr-only">{data.meta.title ?? chrome.brand.name}</h1>}
       {data.order
         .filter((key) => data.enabled[key] && sections[key])
         .map((key) => (

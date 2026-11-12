@@ -424,20 +424,25 @@ html:is([lang="bn"], [lang="hi"]) .site :is(.btn-base, .btn-primary, .btn-outlin
    under html.reveal-ready, which the boot script in app/[lang]/layout.tsx sets
    before first paint unless the visitor prefers reduced motion. */
 html.reveal-ready .reveal { animation: reveal-up 900ms var(--d, 0ms) var(--ease-site) backwards; }
-html.reveal-ready .reveal-clip { animation: reveal-clip 1100ms var(--d, 0ms) var(--ease-site) backwards; }
+/* Page <h1>s. No delay: on mobile the heading is often the LCP element. */
+html.reveal-ready .reveal-clip { animation: reveal-clip 700ms var(--ease-site) backwards; }
 html.reveal-ready .reveal-zoom { animation: reveal-zoom 1600ms var(--d, 0ms) var(--ease-site) backwards; }
 
 @keyframes reveal-up {
   from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: none; }
 }
+/* Slide only — no fade, no clip mask: text at opacity 0 or fully clipped
+   doesn't count as painted, which held LCP back ~0.4–1.4s on mobile. */
 @keyframes reveal-clip {
-  from { opacity: 0; transform: translateY(40px); clip-path: inset(0 0 100% 0); }
-  to { opacity: 1; transform: none; clip-path: inset(-20% -10% -20% -10%); }
+  from { transform: translateY(16px); }
+  to { transform: none; }
 }
+/* Scale only, no fade: the hero photo is the LCP element, and an element at
+   opacity 0 doesn't count as painted — fading it in held LCP back ~1.6s. */
 @keyframes reveal-zoom {
-  from { opacity: 0; transform: scale(1.08); }
-  to { opacity: 1; transform: none; }
+  from { transform: scale(1.08); }
+  to { transform: none; }
 }
 @keyframes reveal-failsafe-show { to { opacity: 1; } }
 
@@ -521,4 +526,20 @@ html.reveal-ready:not(.reveal-armed) [data-reveal-stagger]:not(.is-inview) > * {
     animation: none !important;
     opacity: 1 !important;
   }
+}
+
+/* ───────────────────────── About page role marquee ─────────────────────────
+   components/about/AboutTrades.tsx: each row holds its pills twice, so moving
+   it by half its width loops seamlessly. --marquee-duration per row;
+   data-reverse runs a row the other way; hover pauses it. */
+@keyframes about-marquee {
+  to { transform: translateX(-50%); }
+}
+.about-marquee {
+  animation: about-marquee var(--marquee-duration, 60s) linear infinite;
+}
+.about-marquee[data-reverse] { animation-direction: reverse; }
+.about-marquee:hover { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .about-marquee { animation: none; }
 }

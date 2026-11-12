@@ -45,7 +45,8 @@ export function useLanguage(): LanguageContextValue {
 
 /** Saves the choice (cookie for the server redirect on "/", localStorage for the client) and returns its URL. */
 export function rememberLocale(locale: Locale): string {
-  document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=31536000; SameSite=Lax`;
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=31536000; SameSite=Lax${secure}`;
   try {
     localStorage.setItem(LOCALE_STORAGE_KEY, locale);
   } catch {

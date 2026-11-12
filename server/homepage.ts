@@ -22,6 +22,7 @@ import {
   buildSiteChrome,
 } from "@/lib/homepage/buildHomepage";
 import { mapChromeLinks, mapServiceCards } from "@/lib/siteLinks";
+import { getPreviewDraft } from "@/lib/preview";
 import type { HomepageData, SiteChrome, SwitcherLanguage } from "@/types/homepage";
 
 export { HOMEPAGE_REVALIDATE_SECONDS, HOMEPAGE_TAGS } from "@/lib/homepage/buildHomepage";
@@ -31,6 +32,8 @@ interface HomepageBundle {
   data: HomepageData;
   chrome: SiteChrome;
   version: string;
+  /** ISO time of the last homepage save; absent from older jmt-admin builds and the fallback. */
+  updatedAt?: string | null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -97,6 +100,9 @@ function withSiteLinks(bundle: HomepageBundle, lang: SwitcherLanguage): Homepage
 const getBundle = cache(async (lang: SwitcherLanguage): Promise<HomepageBundle> => withSiteLinks(await fetchBundle(lang), lang));
 
 async function fetchBundle(lang: SwitcherLanguage): Promise<HomepageBundle> {
+  // Previewing unsaved homepage edits from the dashboard (lib/preview.ts).
+  const preview = await getPreviewDraft(lang);
+  if (preview?.kind === "homepage" && isBundle(preview.bundle)) return withFormLabelDefaults(preview.bundle, lang);
   try {
     const res = await fetch(adminUrl(`/api/homepage/client?locale=${lang}`), {
       cache: "force-cache",
@@ -122,6 +128,12 @@ export async function getSiteChrome(lang: SwitcherLanguage): Promise<SiteChrome>
 /** Version stamp of the saved homepage ("" when none). Used by LiveRefresh. */
 export async function getHomepageVersion(lang: SwitcherLanguage): Promise<string> {
   return (await getBundle(lang)).version;
+}
+
+/** Last homepage save in jmt-admin (sitemap <lastmod>); null when unknown. */
+export async function getHomepageUpdatedAt(): Promise<string | null> {
+  const value = (await getBundle("en")).updatedAt;
+  return typeof value === "string" ? value : null;
 }
 
 /** All section content for the homepage in `lang`. */

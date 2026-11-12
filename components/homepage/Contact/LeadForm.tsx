@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useActionState, useEffect, useId, useRef, useState, type RefObject } from "react";
 import { submitLead } from "@/app/actions/leads";
 import {
@@ -8,11 +9,15 @@ import {
   INITIAL_LEAD_STATE,
   LOCALE_FIELD,
   MAX_HEADCOUNT,
+  PAGE_PATH_FIELD,
+  PAGE_TITLE_FIELD,
+  SERVICES_FIELD,
   readLeadValues,
   validateLead,
 } from "@/utils/leadForm";
 import type { LeadField, LeadFormCopy, LeadFormState } from "@/types/homepage";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { useRoleSelection } from "@/components/service/RoleSelection";
 
 const cls = {
   // Mobile (<768, Figma "Homepage — Mobile 390"): 45px rounded-rect fields, sand border.
@@ -131,6 +136,72 @@ function SuccessPanel({
   );
 }
 
+/**
+ * Service pages: the roles ticked in "Roles we supply", as removable chips,
+ * with a link back up to the picker to add more. Sent as hidden fields
+ * (one SERVICES_FIELD per role) and saved on the lead as "Services requested".
+ */
+function RequestedRoles({
+  selection,
+  copy,
+}: {
+  selection: NonNullable<ReturnType<typeof useRoleSelection>>;
+  copy: { title: string; edit: string; add: string; empty: string; remove: string };
+}) {
+  const { selectedRoles, remove, rolesSectionId } = selection;
+  // Nothing to pick from (roles section hidden) and nothing picked: no block.
+  if (!rolesSectionId && selectedRoles.length === 0) return null;
+  const none = selectedRoles.length === 0;
+
+  return (
+    <div className="flex flex-col gap-[8px]">
+      {selectedRoles.map((role) => (
+        <input key={role.id} type="hidden" name={SERVICES_FIELD} value={role.name} />
+      ))}
+      <div className="flex items-center justify-between gap-[12px]">
+        <span className="text-[13px] leading-[18px] font-semibold text-ink md:text-[14px] md:leading-[22.4px]">
+          {copy.title}
+          {!none && <span className="font-normal text-slate"> ({selectedRoles.length})</span>}
+        </span>
+        {rolesSectionId && (
+          <a
+            href={`#${rolesSectionId}`}
+            className="focus-ring rounded-[6px] text-[13px] leading-[18px] font-semibold text-orange underline-offset-[3px] hover:underline"
+          >
+            {none ? copy.add : copy.edit}
+          </a>
+        )}
+      </div>
+      {none ? (
+        <p className="m-0 rounded-[12px] border border-dashed border-sand px-[14px] py-[10px] text-[13px] leading-[19px] text-slate">
+          {copy.empty}
+        </p>
+      ) : (
+        <ul className="m-0 flex list-none flex-wrap gap-[6px] p-0" aria-label={copy.title}>
+          {selectedRoles.map((role) => (
+            <li
+              key={role.id}
+              className="flex items-center gap-[4px] rounded-full border border-orange bg-peach-100 py-[4px] pr-[4px] pl-[12px] text-[13px] leading-[18px] font-semibold text-ink"
+            >
+              {role.name}
+              <button
+                type="button"
+                onClick={() => remove(role.id)}
+                aria-label={copy.remove.replace("{name}", role.name)}
+                className="focus-ring flex size-[22px] cursor-pointer items-center justify-center rounded-full text-slate transition-colors hover:bg-white hover:text-ink"
+              >
+                <svg viewBox="0 0 24 24" className="size-[12px]" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden="true">
+                  <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 interface FieldConfig {
   name: LeadField;
   type: "text" | "tel" | "email" | "number" | "date";
@@ -159,12 +230,20 @@ const FIELDS: FieldConfig[] = [
 
 export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
   const { locale, t } = useLanguage();
+  // Service pages only: the roles ticked in "Roles we supply" (null on the homepage).
+  const selection = useRoleSelection();
   const [state, formAction, isPending] = useActionState(submitLead, INITIAL_LEAD_STATE);
   const [dismissed, setDismissed] = useState<LeadFormState | null>(null);
   const idPrefix = useId();
   const formRef = useRef<HTMLFormElement>(null);
   const statusRef = useRef<HTMLParagraphElement>(null);
   const successRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const [pageTitle, setPageTitle] = useState("");
+  // document.title only exists in the browser; read it after mount / navigation.
+  useEffect(() => {
+    setPageTitle(document.title);
+  }, [pathname]);
 
   const showSuccess = state.status === "success" && dismissed !== state;
 
@@ -253,6 +332,9 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
       aria-describedby={`${idPrefix}-status`}
     >
       <input type="hidden" name={LOCALE_FIELD} value={locale} />
+      {/* Which page the form was sent from, shown as the lead's Source in the admin. */}
+      <input type="hidden" name={PAGE_PATH_FIELD} value={pathname ?? ""} />
+      <input type="hidden" name={PAGE_TITLE_FIELD} value={pageTitle} />
       <div className="grid grid-cols-2 gap-x-[10px] gap-y-[16px] md:gap-x-[16px] md:gap-y-[4px]">
         {FIELDS.map((field) => {
           const inputId = `${idPrefix}-${field.name}`;
@@ -332,6 +414,8 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
           );
         })}
       </div>
+
+      {selection && <RequestedRoles selection={selection} copy={t.form.roles} />}
 
       {/* Honeypot: hidden from people and assistive tech, tempting to bots. */}
       <div className="sr-only" aria-hidden="true">

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { localePath, type Locale } from "@/lib/i18n";
+import { getDictionary, localePath, type Locale } from "@/lib/i18n";
+import { contactPath } from "@/lib/siteLinks";
 import type { SiteChrome } from "@/types/homepage";
 import NavMenu from "./NavMenu";
 
@@ -12,12 +13,16 @@ interface NavbarProps {
 }
 
 export default function Navbar({ chrome, lang, homeLabel }: NavbarProps) {
-  const { brand, contact, labels, languages, nav } = chrome;
+  const { brand, languages, nav } = chrome;
+  // The orange button opens the Contact page, so the menu doesn't repeat a
+  // "Contact" link (lib/siteLinks.ts points it at the same URL).
+  const contactHref = contactPath(lang);
+  const menuLinks = nav.filter((link) => link.href !== contactHref);
   return (
     <header className="sticky top-0 z-50 border-b border-[#f1e3d3] bg-white lg:border-brown/20">
       {/* Mobile (Figma "Homepage — Mobile 390"): 16px gutters, 10px block padding.
           lg min-height 79px: Figma's 80px frame includes its 1px bottom border. */}
-      <div className="site-container flex min-h-[63px] items-center gap-2 py-[10px] max-md:px-4 md:min-h-[68px] md:gap-6 md:py-0 lg:min-h-[79px] lg:py-[7px]">
+      <div className="site-container relative flex min-h-[63px] items-center gap-2 py-[10px] max-md:px-4 md:min-h-[68px] md:gap-6 md:py-0 lg:min-h-[79px] lg:py-[7px]">
         {/* The brand name is never translated (translate="no" for browser translators too). */}
         <Link
           href={localePath(lang)}
@@ -35,9 +40,9 @@ export default function Navbar({ chrome, lang, homeLabel }: NavbarProps) {
           />
         </Link>
         <NavMenu
-          links={nav}
-          callHref={contact.phoneHref ?? "#contact"}
-          callLabel={labels.callButton}
+          links={menuLinks}
+          ctaHref={contactHref}
+          ctaLabel={getDictionary(lang).nav.contactButton}
           languages={languages}
         />
       </div>

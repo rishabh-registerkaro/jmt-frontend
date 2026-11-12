@@ -114,7 +114,7 @@ export default function ServiceHero({ content, contact, homeHref, t }: ServiceHe
             <span className={cls.tagDot} aria-hidden="true" />
             {content.tag}
           </p>
-          <h1 id="service-hero-title" className={`${cls.title} reveal-clip`} style={delay(360)}>
+          <h1 id="service-hero-title" className={`${cls.title} reveal-clip`}>
             {content.title.lead} <span className="text-orange">{content.title.accent}</span> {content.title.tail}
           </h1>
           <p className={`${cls.subtitle} reveal`} style={delay(520)}>
@@ -158,7 +158,8 @@ export default function ServiceHero({ content, contact, homeHref, t }: ServiceHe
       </div>
 
       <div className={`${cls.media} reveal-zoom`} style={delay(100)}>
-        <Photo image={content.image} sizes="100vw" />
+        {/* Desktop LCP image: same URL as the inline one, so one preload covers both. */}
+        <Photo image={content.image} sizes="100vw" priority />
       </div>
       <div className={cls.wash} aria-hidden="true" />
       <div className={cls.shade} aria-hidden="true" />

@@ -13,6 +13,7 @@
 
 import { cache } from "react";
 import { ADMIN_TIMEOUT_MS, adminUrl } from "@/lib/adminApi";
+import { getPreviewDraft } from "@/lib/preview";
 import { HOMEPAGE_REVALIDATE_SECONDS } from "@/lib/homepage/buildHomepage";
 import { SERVICE_SLUG_PATTERN, normalizeServicePage } from "@/lib/service/normalizeServicePage";
 import { SITE_LABOUR_SUPPLY } from "@/data/services/siteLabourSupply";
@@ -54,6 +55,9 @@ async function adminJson(path: string, tags: string[]): Promise<unknown> {
 export const getServicePage = cache(async (slug: string): Promise<ServicePageContent | null> => {
   if (!SERVICE_SLUG_PATTERN.test(slug)) return null;
   const builtIn = BUILT_IN[slug];
+  // Previewing unsaved edits from the dashboard (lib/preview.ts) — drafts included.
+  const preview = await getPreviewDraft();
+  if (preview?.kind === "service" && preview.slug === slug) return normalizeServicePage(preview.content, slug, builtIn);
   try {
     const body = await adminJson(`/api/jmt-services/client/${slug}`, [SERVICE_TAGS.page(slug), SERVICE_TAGS.list]);
     if (!isRecord(body) || !("page" in body)) throw new Error("unexpected response shape");
@@ -69,17 +73,37 @@ export const getServicePage = cache(async (slug: string): Promise<ServicePageCon
   }
 });
 
-/** Slugs to prerender at build time: published CMS pages plus the built-in ones. */
-export async function getServiceSlugs(): Promise<string[]> {
-  const slugs = new Set(Object.keys(BUILT_IN));
+export interface ServiceIndexEntry {
+  slug: string;
+  /** Last CMS change (ISO), when the page is saved in jmt-admin. Built-in-only pages have none. */
+  updatedAt?: string;
+}
+
+/** Published CMS pages plus the built-in ones, with their last CMS change. */
+export async function getServiceIndex(): Promise<ServiceIndexEntry[]> {
+  const index = new Map<string, ServiceIndexEntry>(Object.keys(BUILT_IN).map((slug) => [slug, { slug }]));
   try {
     const body = await adminJson("/api/jmt-services/client", [SERVICE_TAGS.list]);
-    if (isRecord(body) && Array.isArray(body.slugs)) {
-      for (const slug of body.slugs) if (typeof slug === "string" && SERVICE_SLUG_PATTERN.test(slug)) slugs.add(slug);
+    if (isRecord(body) && Array.isArray(body.pages)) {
+      for (const page of body.pages) {
+        if (!isRecord(page) || typeof page.slug !== "string" || !SERVICE_SLUG_PATTERN.test(page.slug)) continue;
+        const updatedAt = typeof page.updatedAt === "string" ? page.updatedAt : undefined;
+        index.set(page.slug, { slug: page.slug, updatedAt });
+      }
+    } else if (isRecord(body) && Array.isArray(body.slugs)) {
+      // Older jmt-admin builds answer with slugs only.
+      for (const slug of body.slugs) {
+        if (typeof slug === "string" && SERVICE_SLUG_PATTERN.test(slug) && !index.has(slug)) index.set(slug, { slug });
+      }
     }
   } catch (error) {
     // Not fatal: pages not prerendered here are rendered on their first visit.
     console.error(`[service] could not list service pages from jmt-admin: ${reason(error)}`);
   }
-  return [...slugs];
+  return [...index.values()];
+}
+
+/** Slugs to prerender at build time: published CMS pages plus the built-in ones. */
+export async function getServiceSlugs(): Promise<string[]> {
+  return (await getServiceIndex()).map((entry) => entry.slug);
 }

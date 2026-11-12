@@ -5,7 +5,12 @@ import { NextResponse, type NextRequest } from "next/server";
 //   /en[/...]  → redirected to the same path without /en (English lives at "/")
 //   /          → the visitor's remembered language (jmt-locale cookie, set by
 //                the navbar switcher), else English via an internal rewrite
-//   /services, /bn/contact, … → redirected to that homepage section (SECTION_ROUTES)
+//   /services, /bn/faq, … → redirected to that homepage section (SECTION_ROUTES)
+//   /contact-us → /contact, the Contact page (PAGE_ALIASES)
+//   /about-us   → /about, the About page (PAGE_ALIASES)
+//   /join, /careers, /jobs → /join-our-crew, the Join our crew page (PAGE_ALIASES)
+//   /site-labour-supply → /service/site-service-supply (PAGE_ALIASES)
+//   /sitemap.xml, /robots.txt → app/sitemap.ts, app/robots.ts (not matched here)
 //   /anything  → rewritten under /en, so unknown paths 404 normally
 //
 // Kept self-contained (no app imports), as the proxy docs recommend. The
@@ -25,7 +30,8 @@ const LEGACY_COOKIE = "googtrans";
 // browsers having cached the redirect.
 const SECTION_ROUTES: Record<string, string> = {
   services: "services",
-  "site-labour-supply": "services",
+  // "/service" without a slug: the services list on the homepage.
+  service: "services",
   "supervision-and-compliance": "services",
   sites: "sites",
   "sites-we-staff": "sites",
@@ -36,19 +42,28 @@ const SECTION_ROUTES: Record<string, string> = {
   "our-team": "trades",
   "how-we-work": "how-we-work",
   process: "how-we-work",
-  about: "about",
-  "about-us": "about",
+  // "/about" is its own page (app/[lang]/about); "/about-us" goes there too (below).
   founder: "about",
   faq: "faq",
   faqs: "faq",
-  contact: "contact",
-  "contact-us": "contact",
+  // "contact" is a real page now (app/[lang]/contact); "contact-us" redirects there below.
   "request-workers": "contact",
   "get-a-quote": "contact",
-  "join-our-crew": "join-our-crew",
+  // "join-our-crew" is a real page now (app/[lang]/join-our-crew); join/careers/jobs redirect there below.
+};
+
+// Friendly URLs → real pages: "/contact-us" → "/contact", "/bn/contact-us" → "/bn/contact".
+// Values are paths without the language prefix.
+const PAGE_ALIASES: Record<string, string> = {
+  "contact-us": "contact",
+  "about-us": "about",
   join: "join-our-crew",
   careers: "join-our-crew",
   jobs: "join-our-crew",
+  // Service pages by their homepage name (lib/siteLinks.ts SERVICE_PAGES).
+  "site-labour-supply": "service/site-service-supply",
+  "site-service-supply": "service/site-service-supply",
+  "labour-supply": "service/site-service-supply",
 };
 
 function firstSegment(pathname: string): string {
@@ -60,7 +75,16 @@ function sectionRedirect(request: NextRequest): NextResponse | null {
   const parts = request.nextUrl.pathname.split("/").filter(Boolean);
   const locale = parts.length === 2 && (parts[0] === "en" || TRANSLATED.includes(parts[0])) ? parts[0] : null;
   if (parts.length !== (locale ? 2 : 1)) return null;
-  const section = SECTION_ROUTES[parts[parts.length - 1].toLowerCase()];
+  const slug = parts[parts.length - 1].toLowerCase();
+  const page = PAGE_ALIASES[slug];
+  if (page) {
+    const url = request.nextUrl.clone();
+    url.pathname = locale && locale !== "en" ? `/${locale}/${page}` : `/${page}`;
+    // Legacy URLs moved for good: permanent, so search engines pass their
+    // signals to the new page.
+    return NextResponse.redirect(url, 308);
+  }
+  const section = SECTION_ROUTES[slug];
   if (!section) return null;
 
   const url = request.nextUrl.clone();
@@ -83,14 +107,19 @@ export function proxy(request: NextRequest) {
   } else if (segment === "en") {
     const url = request.nextUrl.clone();
     url.pathname = pathname.slice(3) || "/";
-    response = NextResponse.redirect(url);
+    // English lives without a prefix: /en/* is a permanent duplicate.
+    response = NextResponse.redirect(url, 308);
   } else {
     const remembered = request.cookies.get(LOCALE_COOKIE)?.value;
     // GET only: a form/server-action POST to "/" must reach the English page.
     if (request.method === "GET" && pathname === "/" && remembered && TRANSLATED.includes(remembered)) {
       const url = request.nextUrl.clone();
       url.pathname = `/${remembered}`;
-      response = NextResponse.redirect(url);
+      // Temporary and per-visitor (crawlers send no cookie and get English):
+      // never let a CDN or browser cache reuse it for someone else.
+      response = NextResponse.redirect(url, 307);
+      response.headers.set("Cache-Control", "private, no-store");
+      response.headers.set("Vary", "Cookie");
     } else {
       const url = request.nextUrl.clone();
       url.pathname = `/en${pathname === "/" ? "" : pathname}`;

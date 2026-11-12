@@ -6,7 +6,8 @@
     "language": "भाषा",
     "openMenu": "मेनू खोलें",
     "closeMenu": "मेनू बंद करें",
-    "home": "होम"
+    "home": "होम",
+    "contactButton": "संपर्क"
   },
   "opensWhatsApp": "(WhatsApp खुलेगा)",
   "sites": {
@@ -32,6 +33,13 @@
       "email": "name@company.com",
       "siteLocation": "शहर या साइट का नाम",
       "headcount": "जैसे 12"
+    },
+    "roles": {
+      "title": "माँगी गई भूमिकाएँ",
+      "edit": "भूमिकाएँ बदलें",
+      "add": "भूमिकाएँ चुनें",
+      "empty": "अभी कोई भूमिका नहीं चुनी गई। ऊपर की सूची से चुनें, या कॉल पर बताएँ।",
+      "remove": "{name} हटाएँ"
     }
   },
   "process": {
