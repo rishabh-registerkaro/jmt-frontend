@@ -1,4 +1,6 @@
+import { breakable } from "@/components/common/BreakableText";
 import Image from "next/image";
+import { ArrowRight, Clock, FileText, Globe, Mail, MessageCircle, Phone, ShieldCheck, Users, type LucideIcon } from "lucide-react";
 import type { ContactInfo, HomeImage } from "@/types/homepage";
 import Photo from "@/components/common/Photo";
 import type { ContactPageContent } from "@/data/contactPage";
@@ -25,7 +27,7 @@ const cls = {
   rowLink: "group/row rounded-[12px] focus-ring [--focus-offset:-2px]",
   badge:
     "flex size-[38px] flex-none items-center justify-center rounded-[10px] bg-[rgba(242,105,33,0.12)] md:size-[42px] md:rounded-[12px]",
-  badgeIcon: "size-[17px] md:size-[19px]",
+  badgeIcon: "size-[17px] text-orange md:size-[19px]",
   label: "text-[10.5px] leading-[normal] font-bold tracking-[1.05px] text-slate uppercase md:text-[11px] md:tracking-[1.1px]",
   value: "text-[15px] leading-[normal] font-semibold wrap-anywhere md:text-[16.5px] group-hover/row:underline group-hover/row:underline-offset-[3px]",
   arrow: "hidden size-[32px] flex-none items-center justify-center rounded-full bg-input-bg md:flex",
@@ -40,12 +42,22 @@ const cls = {
   hoursLine: "flex items-center gap-[8px] pt-[12px] text-[12.5px] leading-[normal] font-semibold text-brown md:hidden",
 };
 
+// Proof chip icons. The CMS stores either a short key ("shield" | "users" |
+// "file") or, for documents saved before the switch to Lucide, the old
+// "/contact/chip-<key>.svg" path; both resolve to the same icon.
+const PROOF_ICONS: Record<string, LucideIcon> = { shield: ShieldCheck, users: Users, file: FileText };
+
+function proofIcon(value: string): LucideIcon {
+  const key = value.match(/chip-([a-z]+)\.svg$/)?.[1] ?? value;
+  return PROOF_ICONS[key] ?? ShieldCheck;
+}
+
 interface Channel {
   key: string;
   label: string;
   value: string;
   href: string | null;
-  icon: string;
+  icon: LucideIcon;
   external?: boolean;
   /** Placeholder values (no link yet) show in orange, as in the design. */
   placeholder: boolean;
@@ -66,7 +78,7 @@ export default function BusinessCard({
       label: copy.labels.phone,
       value: contact.phoneDisplay,
       href: contact.phoneHref,
-      icon: "/contact/icon-phone.svg",
+      icon: Phone,
       placeholder: !contact.phoneHref,
     },
     {
@@ -74,7 +86,7 @@ export default function BusinessCard({
       label: copy.labels.whatsapp,
       value: copy.whatsappValue,
       href: contact.whatsappHref,
-      icon: "/contact/icon-msg.svg",
+      icon: MessageCircle,
       external: contact.whatsappHref?.startsWith("http") ?? false,
       placeholder: false,
     },
@@ -83,7 +95,7 @@ export default function BusinessCard({
       label: copy.labels.email,
       value: contact.emailDisplay,
       href: contact.emailHref,
-      icon: "/contact/icon-mail.svg",
+      icon: Mail,
       placeholder: !contact.emailHref,
     },
     {
@@ -91,7 +103,7 @@ export default function BusinessCard({
       label: copy.labels.reply,
       value: contact.replyTime,
       href: null,
-      icon: "/contact/icon-clock.svg",
+      icon: Clock,
       placeholder: false,
     },
   ];
@@ -123,17 +135,17 @@ export default function BusinessCard({
             const inner = (
               <>
                 <span className={cls.badge}>
-                  <Image src={channel.icon} alt="" width={19} height={19} className={cls.badgeIcon} />
+                  <channel.icon aria-hidden="true" className={cls.badgeIcon} />
                 </span>
                 <span className="flex min-w-0 flex-[1_1_0] flex-col gap-px md:gap-[2px]">
                   <span className={cls.label}>{channel.label}</span>
                   <span className={`${cls.value} ${channel.placeholder ? "text-orange" : "text-ink"}`}>
-                    {channel.value}
+                    {breakable(channel.value)}
                   </span>
                 </span>
                 {channel.href && (
                   <span className={cls.arrow} aria-hidden="true">
-                    <Image src="/contact/icon-arrow-dark.svg" alt="" width={14} height={14} />
+                    <ArrowRight aria-hidden="true" size={14} className="text-ink" />
                   </span>
                 )}
               </>
@@ -157,28 +169,31 @@ export default function BusinessCard({
         </ul>
 
         <ul className={`m-0 list-none p-0 ${cls.chips}`}>
-          {copy.proofs.map((proof) => (
-            <li key={proof.label} className={cls.chip}>
-              <Image src={proof.icon} alt="" width={14} height={14} className="size-[13px] md:size-[14px]" />
-              {proof.label}
-            </li>
-          ))}
+          {copy.proofs.map((proof) => {
+            const ProofIcon = proofIcon(proof.icon);
+            return (
+              <li key={proof.label} className={cls.chip}>
+                <ProofIcon aria-hidden="true" className="size-[13px] flex-none text-orange md:size-[14px]" />
+                {proof.label}
+              </li>
+            );
+          })}
         </ul>
 
         {/* Desktop: pinned to the bottom of the stretched card. */}
         <div className="hidden flex-[1_1_auto] md:block" aria-hidden="true" />
         <div className={cls.hoursBox}>
           <span className={cls.hoursItem}>
-            <Image src="/contact/hours-clock.svg" alt="" width={16} height={16} />
+            <Clock aria-hidden="true" size={16} className="flex-none text-brown" />
             {contact.hours}
           </span>
           <span className={cls.hoursItem}>
-            <Image src="/contact/hours-globe.svg" alt="" width={16} height={16} />
+            <Globe aria-hidden="true" size={16} className="flex-none text-brown" />
             {copy.languages.long}
           </span>
         </div>
         <p className={`m-0 ${cls.hoursLine}`}>
-          <Image src="/contact/hours-clock.svg" alt="" width={16} height={16} className="size-[14px]" />
+          <Clock aria-hidden="true" className="size-[14px] flex-none text-brown" />
           <span>
             {contact.hours} · <Responsive desktop={copy.languages.long} mobile={copy.languages.short} />
           </span>

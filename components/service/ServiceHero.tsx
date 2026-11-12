@@ -1,23 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight, Clock, MessageCircle, Moon, RefreshCw, Users, type LucideIcon } from "lucide-react";
 import Photo from "@/components/common/Photo";
 import type { ContactInfo } from "@/types/homepage";
 import type { ServiceFactIcon, ServiceHeroContent } from "@/types/service";
-import type { Dictionary } from "@/lib/i18n";
+import { UI_TEXT as t } from "@/lib/uiText";
 
 interface ServiceHeroProps {
   content: ServiceHeroContent;
   contact: ContactInfo;
   homeHref: string;
-  t: Dictionary;
 }
 
 // 20px icons in 44px badges (md+), 16px in 34px badges on phones.
-const FACT_ICONS: Record<ServiceFactIcon, { lg: string; sm: string }> = {
-  users: { lg: "/service/icon-users.svg", sm: "/service/m/users-16.svg" },
-  clock: { lg: "/service/icon-clock.svg", sm: "/service/m/clock-16.svg" },
-  moon: { lg: "/service/icon-moon.svg", sm: "/service/m/moon-16.svg" },
-  refresh: { lg: "/service/icon-refresh.svg", sm: "/service/m/refresh-16.svg" },
+const FACT_ICONS: Record<ServiceFactIcon, LucideIcon> = {
+  users: Users,
+  clock: Clock,
+  moon: Moon,
+  refresh: RefreshCw,
 };
 
 // Figma "Hero (full-bleed photo)" 237:60 — 1440×780.
@@ -82,7 +82,7 @@ const cls = {
 
 const delay = (ms: number) => ({ "--d": `${ms}ms` }) as React.CSSProperties;
 
-export default function ServiceHero({ content, contact, homeHref, t }: ServiceHeroProps) {
+export default function ServiceHero({ content, contact, homeHref }: ServiceHeroProps) {
   const whatsappHref = contact.whatsappHref ?? "#contact";
   const whatsappIsExternal = whatsappHref.startsWith("http");
 
@@ -123,14 +123,14 @@ export default function ServiceHero({ content, contact, homeHref, t }: ServiceHe
           <div className={`${cls.ctas} reveal`} style={delay(620)}>
             <a href="#contact" className={cls.primary}>
               {content.primaryCta}
-              <Image src="/service/icon-arrow-white.svg" alt="" width={18} height={18} />
+              <ArrowRight size={18} className="text-white" aria-hidden="true" />
             </a>
             <a
               href={whatsappHref}
               className={cls.whatsapp}
               {...(whatsappIsExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             >
-              <Image src="/service/icon-msg.svg" alt="" width={18} height={18} />
+              <MessageCircle size={18} className="text-brown" aria-hidden="true" />
               {content.whatsappCta}
               {whatsappIsExternal && <span className="sr-only"> {t.opensWhatsApp}</span>}
             </a>
@@ -142,18 +142,20 @@ export default function ServiceHero({ content, contact, homeHref, t }: ServiceHe
         </div>
 
         <ul className={`${cls.facts} reveal`} style={delay(760)}>
-          {content.facts.map((fact) => (
-            <li key={fact.label} className={cls.fact}>
-              <span className={cls.factBadge} aria-hidden="true">
-                <Image src={FACT_ICONS[fact.icon].sm} alt="" width={16} height={16} className="md:hidden" />
-                <Image src={FACT_ICONS[fact.icon].lg} alt="" width={20} height={20} className="hidden md:block" />
-              </span>
-              <span className="flex min-w-0 flex-col gap-[2px]">
-                <span className={cls.factLabel}>{fact.label}</span>
-                <span className={cls.factValue}>{fact.value}</span>
-              </span>
-            </li>
-          ))}
+          {content.facts.map((fact) => {
+            const FactIcon = FACT_ICONS[fact.icon];
+            return (
+              <li key={fact.label} className={cls.fact}>
+                <span className={cls.factBadge} aria-hidden="true">
+                  <FactIcon className="size-[16px] text-white md:size-[20px]" aria-hidden="true" />
+                </span>
+                <span className="flex min-w-0 flex-col gap-[2px]">
+                  <span className={cls.factLabel}>{fact.label}</span>
+                  <span className={cls.factValue}>{fact.value}</span>
+                </span>
+              </li>
+            );
+          })}
         </ul>
       </div>
 

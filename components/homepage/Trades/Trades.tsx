@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { BrickWall, Grid3x3, Hammer, Zap, type LucideIcon } from "lucide-react";
 import type { TradeCard, TradeIcon, TradesCopy } from "@/types/homepage";
 import Photo from "@/components/common/Photo";
 
@@ -7,11 +7,11 @@ interface TradesProps {
   copy: TradesCopy;
 }
 
-const TRADE_ICONS: Record<TradeIcon, string> = {
-  masonry: "/homepage/icon-trade-masonry.svg",
-  shuttering: "/homepage/icon-trade-shuttering.svg",
-  welding: "/homepage/icon-trade-welding.svg",
-  helpers: "/homepage/icon-trade-helpers.svg",
+const TRADE_ICONS: Record<TradeIcon, LucideIcon> = {
+  masonry: BrickWall,
+  shuttering: Hammer,
+  welding: Grid3x3,
+  helpers: Zap,
 };
 
 export default function Trades({ trades, copy }: TradesProps) {
@@ -26,7 +26,9 @@ export default function Trades({ trades, copy }: TradesProps) {
         </div>
 
         <ul className={cls.trades__grid} data-reveal-stagger>
-          {trades.map((trade) => (
+          {trades.map((trade) => {
+            const TradeIconCmp = TRADE_ICONS[trade.icon];
+            return (
             <li key={trade.id} className={cls.trade}>
               <Photo
                 image={trade.image}
@@ -34,11 +36,12 @@ export default function Trades({ trades, copy }: TradesProps) {
               />
               <span className="card-scrim md:hidden" aria-hidden="true" />
               <div className={cls.trade__label}>
-                <Image src={TRADE_ICONS[trade.icon]} alt="" width={20} height={20} className="max-md:hidden" />
+                <TradeIconCmp size={20} strokeWidth={1.75} className="text-orange max-md:hidden" aria-hidden="true" />
                 <h3 className={cls.trade__title}>{trade.title}</h3>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       </div>
     </section>

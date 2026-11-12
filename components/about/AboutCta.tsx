@@ -1,6 +1,7 @@
 import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import type { AboutCtaContent } from "@/types/about";
-import { ABOUT_INNER, DualIcon } from "./shared";
+import { ABOUT_INNER } from "./shared";
 
 interface AboutCtaProps {
   content: AboutCtaContent;
@@ -51,7 +52,7 @@ export default function AboutCta({ content, requestHref, joinHref }: AboutCtaPro
           <div className={cls.buttons}>
             <a href={requestHref} className={cls.primary}>
               {content.primaryCta}
-              <DualIcon sm={["/about/m/arrow-brown-17.svg", 17]} lg={["/about/icon-arrow-brown-18.svg", 18]} />
+              <ArrowRight aria-hidden="true" className="size-[17px] flex-none text-brown md:size-[18px]" />
             </a>
             <a href={joinHref} className={cls.secondary}>
               {content.secondaryCta}

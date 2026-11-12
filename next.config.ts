@@ -22,6 +22,9 @@ const MEDIA_HOSTNAMES = (process.env.MEDIA_HOSTNAMES ?? "")
   .map((h) => h.trim().replace(/^https?:\/\//, "").replace(/\/.*$/, ""))
   .filter(Boolean);
 
+/** TEMP (dev): serve original HD images. Flip to true for prod to get AVIF/WebP + srcset. */
+const OPTIMIZE_IMAGES: boolean = false;
+
 /** Vercel preview / development deployments are public URLs: keep them out of search. */
 const isNonProductionDeploy = Boolean(process.env.VERCEL_ENV) && process.env.VERCEL_ENV !== "production";
 
@@ -46,11 +49,10 @@ const nextConfig: NextConfig = {
   // Pin it to the cores the plan actually provides.
   experimental: {
     cpus: 2,
-    // The root layout lives under app/[lang], so unknown URLs need their own
-    // 404 document: app/global-not-found.tsx.
-    globalNotFound: true,
   },
-  images: MEDIA_HOSTNAMES.length > 0
+  // TEMP: optimizer off — images are served full-resolution, as uploaded.
+  // Set OPTIMIZE_IMAGES = true before the production push to re-enable it.
+  images: OPTIMIZE_IMAGES && MEDIA_HOSTNAMES.length > 0
     ? {
         // Optimizer on: AVIF/WebP, srcset from each Photo's `sizes`. Every CMS
         // image host must be listed in MEDIA_HOSTNAMES or next/image refuses it.

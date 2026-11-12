@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { ArrowRight, Calendar, Check, Clock, MapPin, MessageCircle, Phone, User, Users, type LucideIcon } from "lucide-react";
 import { useActionState, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { submitContactLead } from "@/app/actions/contactLead";
 import type { ContactPageContent } from "@/data/contactPage";
@@ -53,7 +53,7 @@ const cls = {
   ].join(" "),
   inputOk: "border-sand focus:border-orange focus:[box-shadow:0_0_0_3px_rgba(242,105,33,0.18)]",
   inputBad: "border-error bg-[#fff7f9] focus:border-error focus:[box-shadow:0_0_0_3px_rgba(198,40,40,0.15)]",
-  fieldIcon: "pointer-events-none absolute top-1/2 left-[14px] z-1 size-[16px] -translate-y-1/2",
+  fieldIcon: "pointer-events-none absolute top-1/2 left-[14px] z-1 size-[16px] -translate-y-1/2 text-slate",
   error: "m-0 text-[12.5px] leading-[18px] text-error",
   submit:
     "btn-primary w-full gap-[8px] [--btn-h:49px] px-[20px] text-[15.5px] leading-[normal] md:w-auto md:[--btn-h:51px] md:px-[28px] md:text-[16px]",
@@ -70,18 +70,18 @@ interface FieldConfig {
   type: "text" | "tel" | "number" | "date";
   autoComplete: string;
   inputMode?: "text" | "tel" | "numeric";
-  icon?: string;
+  icon?: LucideIcon;
   /** Phones: shares a row (crew size + start date). */
   half?: boolean;
 }
 
 const FIELDS: FieldConfig[] = [
-  { name: "name", type: "text", autoComplete: "name", icon: "/contact/field-user.svg" },
+  { name: "name", type: "text", autoComplete: "name", icon: User },
   { name: "companyName", type: "text", autoComplete: "organization" },
-  { name: "phone", type: "tel", autoComplete: "tel", inputMode: "tel", icon: "/contact/field-phone.svg" },
-  { name: "siteLocation", type: "text", autoComplete: "address-level2", icon: "/contact/field-pin.svg" },
-  { name: "headcount", type: "number", autoComplete: "off", inputMode: "numeric", icon: "/contact/field-users.svg", half: true },
-  { name: "startDate", type: "date", autoComplete: "off", icon: "/contact/field-cal.svg", half: true },
+  { name: "phone", type: "tel", autoComplete: "tel", inputMode: "tel", icon: Phone },
+  { name: "siteLocation", type: "text", autoComplete: "address-level2", icon: MapPin },
+  { name: "headcount", type: "number", autoComplete: "off", inputMode: "numeric", icon: Users, half: true },
+  { name: "startDate", type: "date", autoComplete: "off", icon: Calendar, half: true },
 ];
 
 // Phones (<768px) get the design's shorter crew-size placeholder.
@@ -175,9 +175,7 @@ export default function EnquiryForm({
             aria-hidden="true"
             className="lead-success-pop flex size-[56px] items-center justify-center rounded-full bg-success text-white shadow-[0_0_0_8px_rgba(46,125,79,0.12)]"
           >
-            <svg className="size-[26px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12.5l4.5 4.5L19 7.5" />
-            </svg>
+            <Check aria-hidden="true" className="size-[26px]" strokeWidth={2.6} />
           </span>
           <p className="m-0 mt-[6px] text-[20px] leading-[1.25] font-bold text-ink md:text-[22px]">{copy.successTitle}</p>
           <p className="m-0 max-w-[380px] text-[14.5px] leading-[22px] text-slate-strong">{state.message}</p>
@@ -219,12 +217,10 @@ export default function EnquiryForm({
                     onChange={() => checkFields(["service"])}
                   />
                   <span className={cls.optionDot} aria-hidden="true">
-                    <Image
-                      src="/contact/option-check.svg"
-                      alt=""
-                      width={10}
-                      height={10}
-                      className="hidden size-[9px] group-has-checked/opt:block md:size-[10px]"
+                    <Check
+                      aria-hidden="true"
+                      strokeWidth={3}
+                      className="hidden size-[9px] text-white group-has-checked/opt:block md:size-[10px]"
                     />
                   </span>
                   {copy.services[service]}
@@ -254,14 +250,14 @@ export default function EnquiryForm({
               return (
                 <div
                   key={field.name}
-                  className={`flex min-w-0 flex-col gap-[6px] md:col-span-1 md:gap-[7px] ${field.half ? "col-span-1" : "col-span-2"}`}
+                  className={`flex min-w-0 flex-col gap-[6px] md:col-span-1 md:gap-[7px] ${field.half ? "col-span-2 min-[420px]:col-span-1" : "col-span-2"}`}
                 >
                   <label htmlFor={inputId} className={cls.label}>
                     {copy.labels[field.name]}
                     <span className={cls.star} aria-hidden="true">*</span>
                   </label>
                   <div className="relative">
-                    {field.icon && <Image src={field.icon} alt="" width={16} height={16} className={cls.fieldIcon} />}
+                    {field.icon && <field.icon aria-hidden="true" className={cls.fieldIcon} />}
                     <input
                       id={inputId}
                       name={field.name}
@@ -319,7 +315,7 @@ export default function EnquiryForm({
               )}
               {isPending ? copy.submitting : copy.submit}
               {!isPending && (
-                <Image src="/contact/btn-arrow-white.svg" alt="" width={18} height={18} className="size-[17px] md:size-[18px]" />
+                <ArrowRight aria-hidden="true" className="size-[17px] flex-none text-white md:size-[18px]" />
               )}
             </button>
             {whatsappHref && (
@@ -328,7 +324,7 @@ export default function EnquiryForm({
                 className={cls.whatsapp}
                 {...(whatsappHref.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
               >
-                <Image src="/contact/whatsapp-msg-brown.svg" alt="" width={17} height={17} className="size-[16px] md:size-[17px]" />
+                <MessageCircle aria-hidden="true" className="size-[16px] flex-none text-brown md:size-[17px]" />
                 <Responsive desktop={copy.whatsapp.desktop} mobile={copy.whatsapp.mobile} />
               </a>
             )}
@@ -347,7 +343,7 @@ export default function EnquiryForm({
       )}
 
       <p className={`m-0 ${cls.reassure}`}>
-        <Image src="/contact/reassure-clock.svg" alt="" width={16} height={16} className="size-[15px] flex-none md:size-[16px]" />
+        <Clock aria-hidden="true" className="size-[15px] flex-none text-orange md:size-[16px]" />
         <Responsive desktop={copy.reassurance.desktop} mobile={copy.reassurance.mobile} />
       </p>
     </div>

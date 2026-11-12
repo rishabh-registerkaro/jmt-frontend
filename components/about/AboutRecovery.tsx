@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import type { AboutRecoveryContent } from "@/types/about";
 import { ABOUT_INNER, AboutSectionHeader } from "./shared";
 
@@ -49,7 +49,7 @@ export default function AboutRecovery({ content }: { content: AboutRecoveryConte
                 <div className={cls.card}>
                   <div className={cls.cardTop} aria-hidden="true">
                     <span className={`${cls.badge} ${tone} size-[40px] text-[13px]`}>{num}</span>
-                    {index !== last && <Image src="/about/icon-arrow-peach-18.svg" alt="" width={18} height={18} />}
+                    {index !== last && <ArrowRight aria-hidden="true" size={18} className="flex-none text-peach-200" />}
                   </div>
                   <h3 className={cls.title}>{step.title}</h3>
                   <p className={cls.text}>{step.text}</p>

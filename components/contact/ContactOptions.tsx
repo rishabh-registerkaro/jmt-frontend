@@ -1,4 +1,5 @@
-import Image from "next/image";
+import { breakable } from "@/components/common/BreakableText";
+import { ArrowRight, Building, Clock, Mail, Phone } from "lucide-react";
 import type { ContactInfo } from "@/types/homepage";
 import { Eyebrow } from "@/components/service/SectionHeader";
 import type { ContactPageContent } from "@/data/contactPage";
@@ -48,7 +49,7 @@ export default function ContactOptions({
     {
       key: "call",
       ...copy.call,
-      icon: "/contact/channel-phone.svg",
+      icon: Phone,
       value: contact.phoneDisplay,
       placeholder: !contact.phoneHref,
       href: contact.phoneHref ?? "#enquiry",
@@ -58,7 +59,7 @@ export default function ContactOptions({
     {
       key: "email",
       ...copy.email,
-      icon: "/contact/channel-mail.svg",
+      icon: Mail,
       value: contact.emailDisplay,
       placeholder: !contact.emailHref,
       href: contact.emailHref ?? "#enquiry",
@@ -68,7 +69,7 @@ export default function ContactOptions({
     {
       key: "visit",
       ...copy.visit,
-      icon: "/contact/channel-building.svg",
+      icon: Building,
       value: office.address || copy.visit.placeholder,
       placeholder: !office.address,
       // Visits are by appointment: book over WhatsApp, else via the form.
@@ -103,20 +104,20 @@ export default function ContactOptions({
                 {...(channel.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
               >
                 <span className={cls.badge}>
-                  <Image src={channel.icon} alt="" width={22} height={22} className="size-[18px] md:size-[22px]" />
+                  <channel.icon aria-hidden="true" className="size-[18px] text-white md:size-[22px]" />
                 </span>
                 <span className={cls.title}>{channel.title}</span>
                 <span className={cls.text}>
                   <Responsive desktop={channel.text.desktop} mobile={channel.text.mobile} />
                 </span>
-                <span className={`${cls.value} ${channel.placeholder ? "text-orange" : "text-ink"}`}>{channel.value}</span>
+                <span className={`${cls.value} ${channel.placeholder ? "text-orange" : "text-ink"}`}>{breakable(channel.value)}</span>
                 <span className={cls.reply}>
-                  <Image src="/contact/channel-clock.svg" alt="" width={13} height={13} className="size-[12px] md:size-[13px]" />
+                  <Clock aria-hidden="true" className="size-[12px] flex-none text-orange md:size-[13px]" />
                   <Responsive desktop={channel.reply.desktop} mobile={channel.reply.mobile} />
                 </span>
                 <span className={cls.link} aria-hidden="true">
                   {channel.link}
-                  <Image src="/contact/link-arrow.svg" alt="" width={15} height={15} />
+                  <ArrowRight aria-hidden="true" size={15} className="flex-none text-orange" />
                 </span>
               </a>
             </li>

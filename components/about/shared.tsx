@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Eyebrow } from "@/components/service/SectionHeader";
 import type { AboutSectionCopy, AccentHeading, Copy } from "@/types/about";
 
@@ -7,28 +6,6 @@ import type { AboutSectionCopy, AccentHeading, Copy } from "@/types/about";
 // lg/xl (1024/1280) the desktop row layouts.
 
 export const reveal = (ms: number) => ({ "--rd": `${ms}ms` }) as React.CSSProperties;
-
-/** One icon file per breakpoint: `sm` below md, `lg` from md (Figma ships both sizes). */
-export function DualIcon({
-  sm,
-  lg,
-  breakpoint = "md",
-}: {
-  sm: readonly [src: string, size: number];
-  lg: readonly [src: string, size: number];
-  breakpoint?: "md" | "lg";
-}) {
-  const [smSrc, smSize] = sm;
-  const [lgSrc, lgSize] = lg;
-  const hideSm = breakpoint === "md" ? "md:hidden" : "lg:hidden";
-  const showLg = breakpoint === "md" ? "hidden md:block" : "hidden lg:block";
-  return (
-    <>
-      <Image src={smSrc} alt="" width={smSize} height={smSize} className={`block flex-none ${hideSm}`} />
-      <Image src={lgSrc} alt="" width={lgSize} height={lgSize} className={`flex-none ${showLg}`} />
-    </>
-  );
-}
 
 /** The mobile frame's shorter line below md, the full line from md. */
 export function Responsive({ copy }: { copy: Copy }) {
@@ -61,7 +38,7 @@ const PILL_TONE: Record<PillTone, string> = {
 
 /** Rounded label with a dot (Figma "Pill / …"): 11.5px on phones, 13px from md. */
 export function Pill({ tone, children, className = "" }: { tone: PillTone; children: React.ReactNode; className?: string }) {
-  const dot = tone === "glass" ? "dot-white" : "dot-orange";
+  const dot = tone === "glass" ? "bg-white" : "bg-orange";
   return (
     <p
       className={[
@@ -71,9 +48,7 @@ export function Pill({ tone, children, className = "" }: { tone: PillTone; child
         className,
       ].join(" ")}
     >
-      <span aria-hidden="true" className="flex">
-        <DualIcon sm={[`/about/m/${dot}.svg`, 6]} lg={[`/about/${dot}.svg`, 7]} />
-      </span>
+      <span aria-hidden="true" className={`block size-[6px] flex-none rounded-full md:size-[7px] ${dot}`} />
       {children}
     </p>
   );

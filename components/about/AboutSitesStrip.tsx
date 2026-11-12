@@ -1,13 +1,6 @@
-import type { AboutSiteIcon, AboutSiteStrip } from "@/types/about";
-import { ABOUT_INNER, DualIcon, Responsive } from "./shared";
-
-const ICONS: Record<AboutSiteIcon, string> = {
-  bridge: "bridge",
-  train: "train",
-  station: "station",
-  building: "building",
-  road: "road",
-};
+import type { AboutSiteStrip } from "@/types/about";
+import { SITE_ICONS, SITE_ICON_STROKE } from "@/components/common/siteIcons";
+import { ABOUT_INNER, Responsive } from "./shared";
 
 // Figma "Sites we staff (strip)" — desktop 289:126 (one row, 56px apart),
 // mobile 296:106 (short labels, wrapped and centered).
@@ -28,9 +21,10 @@ export default function AboutSitesStrip({ content }: { content: AboutSiteStrip }
               className="flex items-center gap-[6px] text-[12px] leading-[normal] font-bold tracking-[0.96px] whitespace-nowrap text-[#b9a99a] uppercase md:gap-[10px] md:text-[13.5px] md:tracking-[1.08px]"
               style={{ "--i": index } as React.CSSProperties}
             >
-              <span aria-hidden="true" className="flex">
-                <DualIcon sm={[`/about/m/site-${ICONS[site.icon]}-18.svg`, 18]} lg={[`/about/site-${ICONS[site.icon]}.svg`, 22]} />
-              </span>
+              {(() => {
+                const Glyph = SITE_ICONS[site.icon];
+                return <Glyph strokeWidth={SITE_ICON_STROKE} className="size-[18px] flex-none md:size-[22px]" aria-hidden="true" />;
+              })()}
               <Responsive copy={site.label} />
             </li>
           ))}

@@ -1,13 +1,19 @@
-import Image from "next/image";
+import { Calendar, FileText, Flag, Hammer, type LucideIcon } from "lucide-react";
 import type { AboutDetailIcon, AboutStandardsContent } from "@/types/about";
 import { ABOUT_INNER, AboutSectionHeader } from "./shared";
 
-const ICONS: Record<AboutDetailIcon, string> = {
-  hammer: "/about/icon-hammer-17.svg",
-  flag: "/about/icon-flag-17.svg",
-  cal: "/about/icon-cal-17.svg",
-  file: "/about/icon-file-17.svg",
+const ICONS: Record<AboutDetailIcon, LucideIcon> = {
+  hammer: Hammer,
+  flag: Flag,
+  cal: Calendar,
+  file: FileText,
 };
+
+/** Orange 17px detail glyph. */
+function DetailIcon({ icon }: { icon: AboutDetailIcon }) {
+  const Icon = ICONS[icon];
+  return <Icon aria-hidden="true" size={17} className="flex-none text-orange" />;
+}
 
 // Figma "Our standards" — desktop 292:51, mobile 297:2.
 // Headline standards: lg+ one ruled row of four (sand rules between);
@@ -57,7 +63,7 @@ export default function AboutStandards({ content }: { content: AboutStandardsCon
           {content.details.map((item, index) => (
             <li key={item.title} className={cls.detail} style={{ "--i": index } as React.CSSProperties}>
               <span className={cls.badge} aria-hidden="true">
-                <Image src={ICONS[item.icon]} alt="" width={17} height={17} />
+                <DetailIcon icon={item.icon} />
               </span>
               <h3 className={cls.title}>{item.title}</h3>
               <p className={cls.text}>{item.text}</p>

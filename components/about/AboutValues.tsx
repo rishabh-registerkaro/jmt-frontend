@@ -1,11 +1,18 @@
+import { Check, FileText, HardHat, Phone, type LucideIcon } from "lucide-react";
 import type { AboutValueIcon, AboutValuesContent } from "@/types/about";
-import { ABOUT_H2, ABOUT_INNER, AccentText, DualIcon, Pill, reveal } from "./shared";
+import { ABOUT_H2, ABOUT_INNER, AccentText, Pill, reveal } from "./shared";
 
-const ICONS: Record<AboutValueIcon, { sm: readonly [string, number]; lg: readonly [string, number] }> = {
-  phone: { sm: ["/about/m/phone-20.svg", 20], lg: ["/about/icon-phone-22.svg", 22] },
-  file: { sm: ["/about/m/file-20.svg", 20], lg: ["/about/icon-file-22.svg", 22] },
-  hat: { sm: ["/about/m/hat-20.svg", 20], lg: ["/about/icon-hat-22.svg", 22] },
+const ICONS: Record<AboutValueIcon, LucideIcon> = {
+  phone: Phone,
+  file: FileText,
+  hat: HardHat,
 };
+
+/** Orange value glyph: 20px on phones, 22px from md. */
+function ValueIcon({ icon }: { icon: AboutValueIcon }) {
+  const Icon = ICONS[icon];
+  return <Icon aria-hidden="true" className="size-[20px] flex-none text-orange md:size-[22px]" />;
+}
 
 // Figma "Values" — desktop 289:236 (three 410×268 cards in a row), mobile
 // 296:183 (stacked full-width cards).
@@ -43,7 +50,7 @@ export default function AboutValues({ content }: { content: AboutValuesContent }
             <li key={value.title} className={cls.card} style={{ "--i": index } as React.CSSProperties}>
               <div className={cls.top}>
                 <span className={cls.badge} aria-hidden="true">
-                  <DualIcon sm={ICONS[value.icon].sm} lg={ICONS[value.icon].lg} />
+                  <ValueIcon icon={value.icon} />
                 </span>
                 <span className={cls.num} aria-hidden="true">
                   {String(index + 1).padStart(2, "0")}
@@ -53,7 +60,7 @@ export default function AboutValues({ content }: { content: AboutValuesContent }
               <p className={cls.text}>{value.text}</p>
               <p className={cls.proof}>
                 <span className={cls.check} aria-hidden="true">
-                  <DualIcon sm={["/service/m/check-white-11.svg", 11]} lg={["/service/icon-check-white-12.svg", 12]} />
+                  <Check aria-hidden="true" className="size-[11px] flex-none text-white md:size-[12px]" />
                 </span>
                 <span className={cls.proofText}>{value.proof}</span>
               </p>

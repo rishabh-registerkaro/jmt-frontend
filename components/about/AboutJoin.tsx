@@ -1,6 +1,6 @@
-import Image from "next/image";
+import { Check, MessageCircle } from "lucide-react";
 import type { AboutJoinContent } from "@/types/about";
-import { ABOUT_INNER, AboutSectionHeader, DualIcon } from "./shared";
+import { ABOUT_INNER, AboutSectionHeader } from "./shared";
 
 interface AboutJoinProps {
   id: string;
@@ -50,7 +50,7 @@ export default function AboutJoin({ id, content, applyHref }: AboutJoinProps) {
               <ul className={cls.perks}>
                 {content.perks.map((perk) => (
                   <li key={perk} className={cls.perk}>
-                    <DualIcon sm={["/service/m/check-orange-11.svg", 11]} lg={["/service/m/check-orange-12.svg", 12]} />
+                    <Check aria-hidden="true" className="size-[11px] flex-none text-orange md:size-[12px]" />
                     <span className={cls.perkText}>{perk}</span>
                   </li>
                 ))}
@@ -60,7 +60,7 @@ export default function AboutJoin({ id, content, applyHref }: AboutJoinProps) {
                 className={cls.apply}
                 {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
               >
-                <Image src="/about/icon-msg-16.svg" alt="" width={16} height={16} />
+                <MessageCircle aria-hidden="true" size={16} className="flex-none text-brown" />
                 {content.applyCta}
                 <span className="sr-only"> — {opening.title}</span>
               </a>

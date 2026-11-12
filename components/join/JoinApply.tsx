@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ArrowRight, Clock, MessageCircle, Phone } from "lucide-react";
 import { Eyebrow } from "@/components/service/SectionHeader";
 import { JOIN_PAGE } from "@/data/joinPage";
 import type { ContactInfo } from "@/types/homepage";
@@ -9,7 +9,6 @@ interface JoinApplyProps {
   content: (typeof JOIN_PAGE)["apply"];
   form: (typeof JOIN_PAGE)["form"];
   contact: ContactInfo;
-  defaultLanguage: string;
   opensWhatsApp: string;
 }
 
@@ -45,7 +44,7 @@ const cls = {
   talkNote: "m-0 text-[13.5px] leading-[21px] text-slate lg:hidden",
 };
 
-export default function JoinApply({ id, content, form, contact, defaultLanguage, opensWhatsApp }: JoinApplyProps) {
+export default function JoinApply({ id, content, form, contact, opensWhatsApp }: JoinApplyProps) {
   const callHref = contact.phoneHref ?? `#${id}`;
   const whatsappHref = contact.whatsappHref ?? `#${id}`;
   const whatsappExternal = whatsappHref.startsWith("http");
@@ -65,31 +64,31 @@ export default function JoinApply({ id, content, form, contact, defaultLanguage,
 
           <a href={callHref} className={cls.card}>
             <span className={cls.cardBadge} aria-hidden="true">
-              <Image src="/join/phone-white-22.svg" alt="" width={22} height={22} />
+              <Phone size={22} className="text-white" aria-hidden="true" />
             </span>
             <span className="flex min-w-0 flex-1 flex-col gap-[2px] leading-[normal]">
               <span className={cls.cardLabel}>{content.callLabel}</span>
               <span className="text-[18px] font-bold whitespace-nowrap text-orange">{contact.phoneDisplay}</span>
             </span>
             <span className={cls.cardArrow} aria-hidden="true">
-              <Image src="/service/icon-arrow-brown-16.svg" alt="" width={16} height={16} />
+              <ArrowRight size={16} className="text-brown" aria-hidden="true" />
             </span>
           </a>
           <a href={whatsappHref} className={cls.card} {...external}>
             <span className={cls.cardBadge} aria-hidden="true">
-              <Image src="/join/msg-white-22.svg" alt="" width={22} height={22} />
+              <MessageCircle size={22} className="text-white" aria-hidden="true" />
             </span>
             <span className="flex min-w-0 flex-1 flex-col gap-[2px] leading-[normal]">
               <span className={cls.cardLabel}>{content.whatsappLabel}</span>
               <span className="text-[18px] font-bold text-ink">{content.whatsappText}</span>
             </span>
             <span className={cls.cardArrow} aria-hidden="true">
-              <Image src="/service/icon-arrow-brown-16.svg" alt="" width={16} height={16} />
+              <ArrowRight size={16} className="text-brown" aria-hidden="true" />
             </span>
             {whatsappExternal && <span className="sr-only"> {opensWhatsApp}</span>}
           </a>
           <p className={cls.hours}>
-            <Image src="/join/clock-16.svg" alt="" width={16} height={16} />
+            <Clock size={16} className="flex-none text-brown" aria-hidden="true" />
             {contact.hours}
           </p>
           <p className={`m-0 ${cls.noFee}`}>
@@ -103,18 +102,18 @@ export default function JoinApply({ id, content, form, contact, defaultLanguage,
           </p>
         </div>
 
-        <ApplicationForm copy={form} defaultLanguage={defaultLanguage} />
+        <ApplicationForm copy={form} whatsappHref={whatsappHref} opensWhatsApp={opensWhatsApp} />
 
         <div className={cls.talk}>
           <a href={callHref} className={cls.talkBtn}>
             <span className={cls.talkBadge} aria-hidden="true">
-              <Image src="/join/m/phone-white-15.svg" alt="" width={15} height={15} />
+              <Phone size={15} className="text-white" aria-hidden="true" />
             </span>
             {content.callButton}
           </a>
           <a href={whatsappHref} className={cls.talkBtn} {...external}>
             <span className={cls.talkBadge} aria-hidden="true">
-              <Image src="/service/m/msg-15.svg" alt="" width={15} height={15} />
+              <MessageCircle size={15} className="text-white" aria-hidden="true" />
             </span>
             {content.whatsappButton}
             {whatsappExternal && <span className="sr-only"> {opensWhatsApp}</span>}

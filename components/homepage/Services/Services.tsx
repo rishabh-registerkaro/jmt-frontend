@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import type { ServiceCard, ServicesCopy } from "@/types/homepage";
 import Photo from "@/components/common/Photo";
 
@@ -120,7 +120,7 @@ export default function Services({ services, copy }: ServicesProps) {
             {copy.cta.label && (
               <a href={copy.cta.href} className={cls.cta}>
                 {copy.cta.label}
-                <Image src="/homepage/icon-arrow-up-right-white.svg" alt="" width={18} height={18} />
+                <ArrowUpRight size={18} className="text-white" aria-hidden="true" />
               </a>
             )}
           </div>
@@ -149,7 +149,7 @@ export default function Services({ services, copy }: ServicesProps) {
                 </h3>
               </div>
               <span className={cls.arrow} aria-hidden="true">
-                <Image src="/homepage/icon-arrow-up-right-white.svg" alt="" width={18} height={18} />
+                <ArrowUpRight size={18} className="text-white" aria-hidden="true" />
               </span>
             </li>
           ))}
@@ -158,7 +158,7 @@ export default function Services({ services, copy }: ServicesProps) {
         {copy.cta.label && (
           <a href={copy.cta.href} className={cls.ctaMobile}>
             {copy.cta.label}
-            <Image src="/homepage/icon-arrow-right-white.svg" alt="" width={18} height={18} />
+            <ArrowRight size={18} className="text-white" aria-hidden="true" />
           </a>
         )}
       </div>

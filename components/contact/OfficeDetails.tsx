@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Clock, FileText, MapPin, MessageCircle, Navigation } from "lucide-react";
 import type { ContactInfo } from "@/types/homepage";
 import { Eyebrow } from "@/components/service/SectionHeader";
 import { officeMapsUrl, type ContactPageContent } from "@/data/contactPage";
@@ -78,11 +79,11 @@ export default function OfficeDetails({ page, contact }: { page: ContactPageCont
                 </span>
               </div>
               <span className={cls.pinBadge} aria-hidden="true">
-                <Image src="/contact/map-pin-white.svg" alt="" width={20} height={20} className="size-[18px] md:size-[20px]" />
+                <MapPin aria-hidden="true" className="size-[18px] text-white md:size-[20px]" />
               </span>
             </div>
             <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className={cls.directions}>
-              <Image src="/contact/icon-nav.svg" alt="" width={15} height={15} className="size-[13px] md:size-[15px]" />
+              <Navigation aria-hidden="true" className="size-[13px] flex-none text-brown md:size-[15px]" />
               {copy.directions}
             </a>
           </div>
@@ -91,7 +92,7 @@ export default function OfficeDetails({ page, contact }: { page: ContactPageCont
             <div className={cls.officeCard}>
               <div className="flex items-center gap-[12px]">
                 <span className="hidden size-[40px] flex-none items-center justify-center rounded-[12px] bg-[rgba(242,105,33,0.12)] md:flex">
-                  <Image src="/contact/office-pin.svg" alt="" width={19} height={19} />
+                  <MapPin aria-hidden="true" size={19} className="text-orange" />
                 </span>
                 <span className="flex flex-col gap-[8px] md:gap-[2px]">
                   <span className={cls.officeLabel}>{copy.officeLabel}</span>
@@ -102,7 +103,7 @@ export default function OfficeDetails({ page, contact }: { page: ContactPageCont
                 {copy.address || copy.addressPlaceholder}
               </address>
               <p className={`${cls.line} text-brown`}>
-                <Image src="/contact/office-clock.svg" alt="" width={15} height={15} className="size-[14px] md:size-[15px]" />
+                <Clock aria-hidden="true" className="size-[14px] flex-none text-brown md:size-[15px]" />
                 {contact.hours}
               </p>
               {contact.whatsappHref && (
@@ -111,7 +112,7 @@ export default function OfficeDetails({ page, contact }: { page: ContactPageCont
                   className={`${cls.line} hidden w-fit rounded-[4px] text-orange no-underline focus-ring hover:underline md:flex`}
                   {...(whatsappExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                 >
-                  <Image src="/contact/office-msg.svg" alt="" width={15} height={15} />
+                  <MessageCircle aria-hidden="true" size={15} className="flex-none text-orange" />
                   {copy.whatsapp}
                 </a>
               )}
@@ -119,7 +120,7 @@ export default function OfficeDetails({ page, contact }: { page: ContactPageCont
 
             <div className={cls.procurement}>
               <h3 className={cls.procurementTitle}>
-                <Image src="/contact/procurement-file.svg" alt="" width={17} height={17} className="size-[15px] md:size-[17px]" />
+                <FileText aria-hidden="true" className="size-[15px] flex-none text-orange md:size-[17px]" />
                 {copy.procurementTitle}
               </h3>
               <dl className="m-0">

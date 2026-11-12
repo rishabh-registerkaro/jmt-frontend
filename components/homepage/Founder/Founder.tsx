@@ -1,16 +1,15 @@
-import Image from "next/image";
+import { ArrowRight, Check, Phone } from "lucide-react";
 import type { ChromeLabels, ContactInfo, FounderContent } from "@/types/homepage";
 import Photo from "@/components/common/Photo";
-import type { Dictionary } from "@/lib/i18n";
+import { UI_TEXT as t } from "@/lib/uiText";
 
 interface FounderProps {
   founder: FounderContent;
   contact: ContactInfo;
   labels: ChromeLabels;
-  t: Dictionary;
 }
 
-export default function Founder({ founder, contact, labels, t }: FounderProps) {
+export default function Founder({ founder, contact, labels }: FounderProps) {
   return (
     <section id="about" className={cls.founder} aria-labelledby="founder-title">
       <div className={cls.founder__inner}>
@@ -30,16 +29,16 @@ export default function Founder({ founder, contact, labels, t }: FounderProps) {
               <p className={cls.founder__role}>{founder.role}</p>
             </div>
             <a href={contact.phoneHref ?? "#contact"} className={cls.founder__cta}>
-              <Image src="/homepage/icon-phone-white-20.svg" alt="" width={20} height={20} className="max-md:hidden" />
+              <Phone size={20} strokeWidth={1.75} className="text-white max-md:hidden" aria-hidden="true" />
               {founder.ctaLabel || labels.callButton}
-              <Image src="/homepage/icon-arrow-right-white.svg" alt="" width={18} height={18} className="md:hidden" />
+              <ArrowRight size={18} className="text-white md:hidden" aria-hidden="true" />
             </a>
           </div>
 
           <ul className={cls.founder__assurances} aria-label={t.founder.assurances} data-reveal-stagger>
             {founder.assurances.map((item) => (
               <li key={item} className={cls.founder__assurance}>
-                <Image src="/homepage/icon-check.svg" alt="" width={16} height={16} className="size-[13px] md:size-4" />
+                <Check strokeWidth={2.25} className="size-[13px] text-orange md:size-4" aria-hidden="true" />
                 {item}
               </li>
             ))}

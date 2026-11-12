@@ -1,7 +1,7 @@
-import Image from "next/image";
+import { ArrowUpRight, Clock, MapPin } from "lucide-react";
 import Photo from "@/components/common/Photo";
 import type { AboutWhereContent } from "@/types/about";
-import { ABOUT_INNER, AboutSectionHeader, DualIcon } from "./shared";
+import { ABOUT_INNER, AboutSectionHeader } from "./shared";
 
 interface AboutWhereProps {
   content: AboutWhereContent;
@@ -34,6 +34,9 @@ const cls = {
   site: [
     "relative isolate h-[280px] w-[250px] flex-none snap-start overflow-hidden rounded-[18px] bg-navy-card",
     "md:h-[360px] md:w-[305px] md:rounded-[20px] lg:w-auto",
+    // Same hover as the homepage site cards (SitesCarousel): the photo settles in slightly.
+    "[&_img]:transition-transform [&_img]:duration-600 [&_img]:ease-site",
+    "hover:[&_img]:scale-[1.03] motion-reduce:[&_img]:transition-none",
   ].join(" "),
   link: "group absolute inset-0 z-1 rounded-[inherit] text-white no-underline focus-ring [--focus-offset:-3px] [--focus-color:#fff]",
   shade: "pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(8,27,48,0)_40%,rgba(8,27,48,0.85)_100%)]",
@@ -57,22 +60,29 @@ export default function AboutWhere({ content, sitesHref }: AboutWhereProps) {
         <div className={cls.body}>
           <div className={cls.base} data-reveal>
             <span className={cls.pin} aria-hidden="true">
-              <DualIcon sm={["/about/m/pin-22.svg", 22]} lg={["/about/icon-pin-24.svg", 24]} breakpoint="lg" />
+              <MapPin aria-hidden="true" className="size-[22px] flex-none text-white lg:size-[24px]" />
             </span>
             <div className={cls.baseText}>
               <p className={cls.eyebrow}>{base.eyebrow}</p>
               <h3 className={cls.baseTitle}>{base.title}</h3>
               {base.address && <p className={cls.address}>{base.address}</p>}
               <p className={cls.hours}>
-                <Image src="/about/icon-clock-16.svg" alt="" width={16} height={16} className="hidden flex-none lg:block" />
+                <Clock aria-hidden="true" size={16} className="hidden flex-none text-brown lg:block" />
                 {base.hours}
               </p>
             </div>
           </div>
 
-          <ul className={cls.track} data-reveal-stagger>
+          {/* The list is display:contents on desktop (no box), so an
+              IntersectionObserver on it never fires — reveal each card itself. */}
+          <ul className={cls.track}>
             {content.sites.map((site, index) => (
-              <li key={site.title} className={cls.site} style={{ "--i": index } as React.CSSProperties}>
+              <li
+                key={site.title}
+                className={cls.site}
+                data-reveal
+                style={{ "--rd": `${(index + 1) * 90}ms` } as React.CSSProperties}
+              >
                 <Photo image={site.image} sizes="(min-width: 1024px) 22vw, (min-width: 768px) 305px, 250px" />
                 <span className={cls.shade} aria-hidden="true" />
                 <a href={sitesHref} className={cls.link}>
@@ -82,7 +92,7 @@ export default function AboutWhere({ content, sitesHref }: AboutWhereProps) {
                     <span className={cls.siteText}>{site.text}</span>
                   </span>
                   <span className={cls.arrow} aria-hidden="true">
-                    <Image src="/about/icon-arrow-ur-16.svg" alt="" width={16} height={16} />
+                    <ArrowUpRight aria-hidden="true" size={16} className="flex-none text-ink" />
                   </span>
                 </a>
               </li>

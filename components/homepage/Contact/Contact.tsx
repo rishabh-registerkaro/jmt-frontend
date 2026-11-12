@@ -1,4 +1,5 @@
-import Image from "next/image";
+import { breakable } from "@/components/common/BreakableText";
+import { Clock, MessageCircle, Phone } from "lucide-react";
 import type { ContactCopy, ContactInfo, HomeImage } from "@/types/homepage";
 import Photo from "@/components/common/Photo";
 import LeadForm from "./LeadForm";
@@ -49,7 +50,7 @@ export default function Contact({ contact, image, copy }: ContactProps) {
       label: copy.labels.call,
       value: contact.phoneDisplay,
       href: contact.phoneHref,
-      icon: "/homepage/icon-contact-phone.svg",
+      icon: Phone,
       iconSize: 18,
       external: false,
     },
@@ -58,7 +59,7 @@ export default function Contact({ contact, image, copy }: ContactProps) {
       label: copy.labels.whatsapp,
       value: copy.labels.whatsappValue,
       href: contact.whatsappHref,
-      icon: "/homepage/icon-contact-chat.svg",
+      icon: MessageCircle,
       iconSize: 18,
       external: whatsappIsExternal,
     },
@@ -67,7 +68,7 @@ export default function Contact({ contact, image, copy }: ContactProps) {
       label: copy.labels.reply,
       value: contact.replyTime,
       href: null,
-      icon: "/homepage/icon-contact-clock.svg",
+      icon: Clock,
       iconSize: 20,
       external: false,
     },
@@ -80,7 +81,7 @@ export default function Contact({ contact, image, copy }: ContactProps) {
           {copy.title}
         </h2>
 
-        <div className="grid grid-cols-1 gap-[24px] md:gap-[20px] lg:grid-cols-2 lg:items-stretch">
+        <div className="grid grid-cols-1 gap-[24px] md:gap-[20px] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-stretch xl:grid-cols-2">
           {/* ── Left: contact card ── */}
           <div className={cls.card} data-reveal="left">
             <div className={cls.media}>
@@ -101,19 +102,18 @@ export default function Contact({ contact, image, copy }: ContactProps) {
                   const inner = (
                     <>
                       <span className="flex size-[40px] flex-none items-center justify-center rounded-full bg-white/12 md:rounded-[12px] md:bg-white/10">
-                        <Image
-                          src={channel.icon}
-                          alt=""
-                          width={channel.iconSize}
-                          height={channel.iconSize}
-                          className="max-md:size-[18px]"
+                        <channel.icon
+                          size={channel.iconSize}
+                          strokeWidth={1.75}
+                          className="text-white max-md:size-[18px]"
+                          aria-hidden="true"
                         />
                       </span>
                       <span className="flex min-w-0 flex-col gap-px md:gap-[2px]">
                         <span className="text-[11.5px] leading-[16px] font-normal text-white/75 md:leading-[1.6] md:font-semibold md:tracking-[1.4px] md:text-mist md:uppercase">
                           {channel.label}
                         </span>
-                        <span className={cls.value}>{channel.value}</span>
+                        <span className={cls.value}>{breakable(channel.value)}</span>
                       </span>
                     </>
                   );

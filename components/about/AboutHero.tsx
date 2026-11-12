@@ -1,6 +1,7 @@
 import Image from "next/image";
+import { ArrowRight, Factory, HardHat, ShieldCheck, Users, type LucideIcon } from "lucide-react";
 import type { AboutHeroContent, AboutServiceIcon } from "@/types/about";
-import { BTN_OUTLINE, BTN_PRIMARY, DualIcon, Pill, Responsive } from "./shared";
+import { BTN_OUTLINE, BTN_PRIMARY, Pill, Responsive } from "./shared";
 
 interface AboutHeroProps {
   content: AboutHeroContent;
@@ -10,12 +11,18 @@ interface AboutHeroProps {
   servicesHref: string;
 }
 
-const SERVICE_ICONS: Record<AboutServiceIcon, { sm: readonly [string, number]; lg: readonly [string, number] }> = {
-  users: { sm: ["/about/m/users-16.svg", 16], lg: ["/about/icon-users-19.svg", 19] },
-  shield: { sm: ["/homepage/m/step-shield.svg", 16], lg: ["/about/icon-shield-19.svg", 19] },
-  hat: { sm: ["/about/m/hat-16.svg", 16], lg: ["/about/icon-hat-19.svg", 19] },
-  factory: { sm: ["/about/m/factory-16.svg", 16], lg: ["/about/icon-factory-19.svg", 19] },
+// Glyph + stroke colour per icon (16px on phones, 19px from md).
+const SERVICE_ICONS: Record<AboutServiceIcon, { Icon: LucideIcon; color: string }> = {
+  users: { Icon: Users, color: "text-orange" },
+  shield: { Icon: ShieldCheck, color: "text-orange" },
+  hat: { Icon: HardHat, color: "text-orange" },
+  factory: { Icon: Factory, color: "text-slate" },
 };
+
+function ServiceIcon({ icon }: { icon: AboutServiceIcon }) {
+  const { Icon, color } = SERVICE_ICONS[icon];
+  return <Icon aria-hidden="true" className={`size-[16px] flex-none md:size-[19px] ${color}`} />;
+}
 
 // Figma "Hero" — desktop 289:50 (1440×1029), mobile 296:44 (390×1100).
 // Centered intro over a white → peach → white wash, then the orange mission
@@ -88,7 +95,7 @@ export default function AboutHero({ content, founderHref, servicesHref }: AboutH
           <div className={`${cls.ctas} reveal`} style={delay(520)}>
             <a href={founderHref} className={BTN_PRIMARY}>
               {content.primaryCta}
-              <DualIcon sm={["/about/m/arrow-white-17.svg", 17]} lg={["/service/icon-arrow-white.svg", 18]} />
+              <ArrowRight aria-hidden="true" className="size-[17px] flex-none text-white md:size-[18px]" />
             </a>
             <a href={servicesHref} className={BTN_OUTLINE}>
               {content.secondaryCta}
@@ -127,7 +134,7 @@ export default function AboutHero({ content, founderHref, servicesHref }: AboutH
                     className={`${cls.badge} ${service.live ? "bg-orange/12" : "bg-input-bg"}`}
                     aria-hidden="true"
                   >
-                    <DualIcon sm={SERVICE_ICONS[service.icon].sm} lg={SERVICE_ICONS[service.icon].lg} />
+                    <ServiceIcon icon={service.icon} />
                   </span>
                   <span className={cls.rowText}>
                     <span className={cls.rowTitle}>{service.title}</span>

@@ -1,6 +1,7 @@
+import { ArrowRight, Check, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import Photo from "@/components/common/Photo";
-import { DualIcon, Pill, Responsive } from "@/components/about/shared";
+import { Pill, Responsive } from "@/components/about/shared";
 import { JOIN_PAGE } from "@/data/joinPage";
 
 type HeroContent = (typeof JOIN_PAGE)["hero"];
@@ -11,8 +12,6 @@ interface JoinHeroProps {
   /** "Apply now" target: the form on this page. */
   applyHref: string;
   whatsappHref: string;
-  /** "Also in" chips: this page in the other two languages. */
-  otherLanguages: { href: string; label: string; lang: string }[];
   opensWhatsApp: string;
 }
 
@@ -39,11 +38,6 @@ const cls = {
   whatsapp: [
     "btn-outline gap-[8px] border-[1.2px] px-[20px] text-[16px] [--btn-h:54.3px] max-md:w-full",
     "md:pr-[24px] md:pl-[22px] md:text-[16.5px] md:[--btn-h:56.9px]",
-  ].join(" "),
-  langs: "flex items-center gap-[8px] text-[13px] leading-[normal] text-slate md:text-[14px]",
-  lang: [
-    "rounded-full border border-sand bg-white px-[10px] py-[4px] text-[12.5px] leading-[normal] font-semibold text-brown no-underline",
-    "transition-colors duration-160 hover:border-brown/40 focus-ring md:text-[13px]",
   ].join(" "),
 
   // Phones and tablets: one photo with the card overlapping its bottom.
@@ -72,7 +66,7 @@ function WorkerCard({ card, className }: { card: HeroContent["card"]; className:
         {card.items.map((item) => (
           <li key={item} className={cls.cardItem}>
             <span className={cls.cardCheck} aria-hidden="true">
-              <DualIcon sm={["/about/m/check-white-9.svg", 9]} lg={["/service/m/check-white-11.svg", 11]} breakpoint="lg" />
+              <Check strokeWidth={3} className="size-[9px] flex-none text-white lg:size-[11px]" aria-hidden="true" />
             </span>
             {item}
           </li>
@@ -82,7 +76,7 @@ function WorkerCard({ card, className }: { card: HeroContent["card"]; className:
   );
 }
 
-export default function JoinHero({ content, homeHref, applyHref, whatsappHref, otherLanguages, opensWhatsApp }: JoinHeroProps) {
+export default function JoinHero({ content, homeHref, applyHref, whatsappHref, opensWhatsApp }: JoinHeroProps) {
   const external = whatsappHref.startsWith("http");
   return (
     <section id="top" className={cls.hero} aria-labelledby="join-title">
@@ -116,25 +110,14 @@ export default function JoinHero({ content, homeHref, applyHref, whatsappHref, o
           <div className={`${cls.ctas} reveal`} style={delay(540)}>
             <a href={applyHref} className={cls.primary}>
               {content.primaryCta}
-              <DualIcon sm={["/about/m/arrow-white-17.svg", 17]} lg={["/service/icon-arrow-white.svg", 18]} />
+              <ArrowRight className="size-[17px] flex-none text-white md:size-[18px]" aria-hidden="true" />
             </a>
             <a href={whatsappHref} className={cls.whatsapp} {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
-              <DualIcon sm={["/join/m/msg-17.svg", 17]} lg={["/service/icon-msg.svg", 18]} />
+              <MessageCircle className="size-[17px] flex-none text-brown md:size-[18px]" aria-hidden="true" />
               {content.whatsappCta}
               {external && <span className="sr-only"> {opensWhatsApp}</span>}
             </a>
           </div>
-          {otherLanguages.length > 0 && (
-            <div className={`${cls.langs} reveal`} style={delay(620)}>
-              <DualIcon sm={["/join/m/globe-15.svg", 15]} lg={["/join/globe-16.svg", 16]} />
-              <span>{content.alsoIn}</span>
-              {otherLanguages.map((language) => (
-                <a key={language.lang} href={language.href} hrefLang={language.lang} lang={language.lang} className={cls.lang}>
-                  {language.label}
-                </a>
-              ))}
-            </div>
-          )}
         </div>
 
         <div className={`${cls.single} reveal`} style={delay(660)}>

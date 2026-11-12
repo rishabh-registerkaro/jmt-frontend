@@ -23,7 +23,7 @@ import {
 } from "@/lib/homepage/buildHomepage";
 import { mapChromeLinks, mapServiceCards } from "@/lib/siteLinks";
 import { getPreviewDraft } from "@/lib/preview";
-import type { HomepageData, SiteChrome, SwitcherLanguage } from "@/types/homepage";
+import type { HomepageData, SiteChrome } from "@/types/homepage";
 
 export { HOMEPAGE_REVALIDATE_SECONDS, HOMEPAGE_TAGS } from "@/lib/homepage/buildHomepage";
 
@@ -52,15 +52,14 @@ function isBundle(value: unknown): value is HomepageBundle {
     isRecord(value.chrome.contact) &&
     isRecord(value.chrome.labels) &&
     isRecord(value.chrome.brand) &&
-    Array.isArray(value.chrome.languages) &&
     typeof value.version === "string"
   );
 }
 
-function fallbackBundle(lang: SwitcherLanguage): HomepageBundle {
+function fallbackBundle(): HomepageBundle {
   return {
-    data: buildHomepageData(null, [], lang),
-    chrome: buildSiteChrome(null, null, null, lang),
+    data: buildHomepageData(null, []),
+    chrome: buildSiteChrome(null, null, null),
     version: "",
   };
 }
@@ -68,12 +67,12 @@ function fallbackBundle(lang: SwitcherLanguage): HomepageBundle {
 /**
  * Fills in any request-form label the admin response lacks (e.g. a field added
  * after the content was saved or cached, like "email") from the built-in
- * defaults in the same language, so a new field never renders without a label.
+ * defaults, so a new field never renders without a label.
  */
-function withFormLabelDefaults(bundle: HomepageBundle, lang: SwitcherLanguage): HomepageBundle {
+function withFormLabelDefaults(bundle: HomepageBundle): HomepageBundle {
   const form = bundle.data.contactCopy.form;
   const labels: Record<string, unknown> = isRecord(form.labels) ? form.labels : {};
-  const defaults = buildHomepageData(null, [], lang).contactCopy.form.labels;
+  const defaults = buildHomepageData(null, []).contactCopy.form.labels;
   const merged = { ...defaults };
   for (const key of Object.keys(defaults) as (keyof typeof defaults)[]) {
     const value = labels[key];
@@ -92,19 +91,19 @@ function withFormLabelDefaults(bundle: HomepageBundle, lang: SwitcherLanguage): 
  * Points homepage links at the service pages and makes the shared navbar and
  * footer anchors work from every page (lib/siteLinks.ts).
  */
-function withSiteLinks(bundle: HomepageBundle, lang: SwitcherLanguage): HomepageBundle {
-  return { ...bundle, data: mapServiceCards(bundle.data, lang), chrome: mapChromeLinks(bundle.chrome, lang) };
+function withSiteLinks(bundle: HomepageBundle): HomepageBundle {
+  return { ...bundle, data: mapServiceCards(bundle.data), chrome: mapChromeLinks(bundle.chrome) };
 }
 
-/** One cached request per language (the URL differs); all share the same tags. */
-const getBundle = cache(async (lang: SwitcherLanguage): Promise<HomepageBundle> => withSiteLinks(await fetchBundle(lang), lang));
+/** One cached request per render, shared by layout and page. */
+const getBundle = cache(async (): Promise<HomepageBundle> => withSiteLinks(await fetchBundle()));
 
-async function fetchBundle(lang: SwitcherLanguage): Promise<HomepageBundle> {
+async function fetchBundle(): Promise<HomepageBundle> {
   // Previewing unsaved homepage edits from the dashboard (lib/preview.ts).
-  const preview = await getPreviewDraft(lang);
-  if (preview?.kind === "homepage" && isBundle(preview.bundle)) return withFormLabelDefaults(preview.bundle, lang);
+  const preview = await getPreviewDraft();
+  if (preview?.kind === "homepage" && isBundle(preview.bundle)) return withFormLabelDefaults(preview.bundle);
   try {
-    const res = await fetch(adminUrl(`/api/homepage/client?locale=${lang}`), {
+    const res = await fetch(adminUrl("/api/homepage/client"), {
       cache: "force-cache",
       next: { tags: Object.values(HOMEPAGE_TAGS), revalidate: HOMEPAGE_REVALIDATE_SECONDS },
       signal: AbortSignal.timeout(ADMIN_TIMEOUT_MS),
@@ -112,31 +111,31 @@ async function fetchBundle(lang: SwitcherLanguage): Promise<HomepageBundle> {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const body: unknown = await res.json();
     if (!isBundle(body)) throw new Error("unexpected response shape");
-    return withFormLabelDefaults(body, lang);
+    return withFormLabelDefaults(body);
   } catch (error) {
     const reason = error instanceof Error ? error.message.split("\n")[0] : String(error);
     console.error(`[homepage] jmt-admin API unavailable, using fallback content: ${reason}`);
-    return fallbackBundle(lang);
+    return fallbackBundle();
   }
 }
 
-/** Navbar, footer and contact details in `lang`. */
-export async function getSiteChrome(lang: SwitcherLanguage): Promise<SiteChrome> {
-  return (await getBundle(lang)).chrome;
+/** Navbar, footer and contact details. */
+export async function getSiteChrome(): Promise<SiteChrome> {
+  return (await getBundle()).chrome;
 }
 
 /** Version stamp of the saved homepage ("" when none). Used by LiveRefresh. */
-export async function getHomepageVersion(lang: SwitcherLanguage): Promise<string> {
-  return (await getBundle(lang)).version;
+export async function getHomepageVersion(): Promise<string> {
+  return (await getBundle()).version;
 }
 
 /** Last homepage save in jmt-admin (sitemap <lastmod>); null when unknown. */
 export async function getHomepageUpdatedAt(): Promise<string | null> {
-  const value = (await getBundle("en")).updatedAt;
+  const value = (await getBundle()).updatedAt;
   return typeof value === "string" ? value : null;
 }
 
-/** All section content for the homepage in `lang`. */
-export async function getHomepageData(lang: SwitcherLanguage): Promise<HomepageData> {
-  return (await getBundle(lang)).data;
+/** All section content for the homepage. */
+export async function getHomepageData(): Promise<HomepageData> {
+  return (await getBundle()).data;
 }

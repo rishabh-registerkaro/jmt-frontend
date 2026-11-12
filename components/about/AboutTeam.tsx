@@ -1,7 +1,7 @@
-import Image from "next/image";
+import { ArrowRight, Quote, User } from "lucide-react";
 import Photo from "@/components/common/Photo";
 import type { AboutPerson, AboutTeamContent } from "@/types/about";
-import { ABOUT_INNER, AboutSectionHeader, DualIcon, Responsive, reveal } from "./shared";
+import { ABOUT_INNER, AboutSectionHeader, Responsive, reveal } from "./shared";
 
 interface AboutTeamProps {
   id: string;
@@ -23,7 +23,12 @@ const cls = {
     "m-0 grid list-none grid-cols-2 gap-[12px] p-0 md:gap-[20px]",
     "lg:grid-cols-[410fr_300fr_300fr_222fr] lg:gap-[24px]",
   ].join(" "),
-  person: "relative isolate overflow-hidden rounded-[18px] bg-navy-card md:rounded-[20px]",
+  person: [
+    "relative isolate overflow-hidden rounded-[18px] bg-navy-card md:rounded-[20px]",
+    // Same photo zoom as the homepage service cards.
+    "[&_img]:transition-[transform] [&_img]:duration-[600ms] [&_img]:ease-site motion-reduce:[&_img]:transition-none",
+    "hover:[&_img]:[transform:scale(1.03)]",
+  ].join(" "),
   founder: "col-span-2 h-[380px] md:h-[460px] lg:col-span-1 lg:h-[420px]",
   member: "h-[240px] md:h-[340px] lg:h-[420px]",
   shade: [
@@ -107,14 +112,14 @@ export default function AboutTeam({ id, content, joinHref }: AboutTeamProps) {
           <li className={cls.joinCard}>
             <div className="flex flex-col items-start gap-[10px]">
               <span className={cls.joinBadge} aria-hidden="true">
-                <Image src="/about/icon-user-20.svg" alt="" width={20} height={20} />
+                <User aria-hidden="true" size={20} className="flex-none text-white" />
               </span>
               <h3 className={cls.joinTitle}>{join.title}</h3>
               <p className={cls.joinText}>{join.text.text}</p>
             </div>
             <a href={joinHref} className={cls.joinBtn}>
               {join.cta}
-              <Image src="/about/icon-arrow-brown-15.svg" alt="" width={15} height={15} />
+              <ArrowRight aria-hidden="true" size={15} className="flex-none text-brown" />
             </a>
           </li>
         </ul>
@@ -127,14 +132,14 @@ export default function AboutTeam({ id, content, joinHref }: AboutTeamProps) {
             </span>
           </span>
           <span className={cls.joinBannerArrow} aria-hidden="true">
-            <Image src="/about/m/arrow-brown-17.svg" alt="" width={17} height={17} />
+            <ArrowRight aria-hidden="true" size={17} className="flex-none text-brown" />
           </span>
           <span className="sr-only">{join.cta}</span>
         </a>
 
         <figure className={cls.quote} data-reveal style={reveal(80)}>
           <span aria-hidden="true" className="flex">
-            <DualIcon sm={["/about/m/quote-24.svg", 24]} lg={["/about/icon-quote-30.svg", 30]} breakpoint="lg" />
+            <Quote aria-hidden="true" strokeWidth={1.6} className="size-[24px] flex-none text-orange lg:size-[30px]" />
           </span>
           <blockquote className="m-0 lg:flex-1">
             <p className={cls.quoteText}>{quote.text}</p>

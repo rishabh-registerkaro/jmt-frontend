@@ -1,19 +1,19 @@
-import Image from "next/image";
-import { DualIcon } from "@/components/about/shared";
+import { FileText, Hammer, HardHat, IdCard, Landmark, Phone, type LucideIcon } from "lucide-react";
 import { JOIN_PAGE, type ReadyIcon, type StepIcon } from "@/data/joinPage";
 import { JOIN_INNER, JoinSectionHeader } from "./shared";
 
-const STEP_ICONS: Record<StepIcon, { sm: readonly [string, number]; lg: readonly [string, number] }> = {
-  file: { sm: ["/join/m/step-file-20.svg", 20], lg: ["/join/step-file-24.svg", 24] },
-  phone: { sm: ["/join/m/step-phone-20.svg", 20], lg: ["/join/step-phone-24.svg", 24] },
-  hammer: { sm: ["/service/m/hammer-20.svg", 20], lg: ["/service/icon-hammer.svg", 24] },
-  hat: { sm: ["/service/m/hat-20.svg", 20], lg: ["/service/icon-hat.svg", 24] },
+// Figma strokes: 1.9 (Lucide units) on the step badges, Lucide default on the ready list.
+const STEP_ICONS: Record<StepIcon, LucideIcon> = {
+  file: FileText,
+  phone: Phone,
+  hammer: Hammer,
+  hat: HardHat,
 };
 
-const READY_ICONS: Record<ReadyIcon, { sm: readonly [string, number]; lg: readonly [string, number] }> = {
-  id: { sm: ["/join/m/id-16.svg", 16], lg: ["/join/id-17.svg", 17] },
-  bank: { sm: ["/join/m/bank-16.svg", 16], lg: ["/join/bank-17.svg", 17] },
-  phone: { sm: ["/join/m/phone-16.svg", 16], lg: ["/join/phone-17.svg", 17] },
+const READY_ICONS: Record<ReadyIcon, LucideIcon> = {
+  id: IdCard,
+  bank: Landmark,
+  phone: Phone,
 };
 
 // Figma "4 · How hiring works" — desktop 312:2 (a track: four ringed badges
@@ -55,11 +55,13 @@ export default function JoinHiring({ content }: { content: (typeof JOIN_PAGE)["h
         <JoinSectionHeader id="join-hiring-title" copy={content.copy} />
 
         <ol className={cls.list} data-reveal-stagger>
-          {content.steps.map((step, index) => (
+          {content.steps.map((step, index) => {
+            const Icon = STEP_ICONS[step.icon];
+            return (
             <li key={step.title} className={cls.item} style={{ "--i": index } as React.CSSProperties}>
               <div className={cls.rail} aria-hidden="true">
                 <span className={`${cls.badgeSm} ${tone(index)}`}>
-                  <Image src={STEP_ICONS[step.icon].sm[0]} alt="" width={20} height={20} />
+                  <Icon size={20} strokeWidth={1.9} className="text-white" aria-hidden="true" />
                 </span>
                 {index !== last && <span className={cls.line} />}
               </div>
@@ -69,16 +71,19 @@ export default function JoinHiring({ content }: { content: (typeof JOIN_PAGE)["h
                 <p className={cls.text}>{step.text}</p>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ol>
 
         <div className="relative hidden lg:block">
         <span className={cls.trackLine} aria-hidden="true" />
         <ol className={cls.track} data-reveal-stagger>
-          {content.steps.map((step, index) => (
+          {content.steps.map((step, index) => {
+            const Icon = STEP_ICONS[step.icon];
+            return (
             <li key={step.title} className="relative min-w-0" style={{ "--i": index } as React.CSSProperties}>
               <span className={`${cls.badgeLg} ${tone(index)}`} aria-hidden="true">
-                <Image src={STEP_ICONS[step.icon].lg[0]} alt="" width={24} height={24} />
+                <Icon size={24} strokeWidth={1.9} className="text-white" aria-hidden="true" />
               </span>
               <div className={cls.cardLg}>
                 <span className={cls.step}>{num(index)}</span>
@@ -86,19 +91,23 @@ export default function JoinHiring({ content }: { content: (typeof JOIN_PAGE)["h
                 <p className={cls.text}>{step.text}</p>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ol>
         </div>
 
         <div className={cls.ready} data-reveal>
           <p className={cls.readyLabel}>{content.keepReady.label}</p>
           <ul className="m-0 flex list-none flex-col gap-[8px] p-0 lg:flex-row lg:flex-wrap lg:gap-[16px]">
-            {content.keepReady.items.map((item) => (
+            {content.keepReady.items.map((item) => {
+              const Icon = READY_ICONS[item.icon];
+              return (
               <li key={item.text} className={cls.readyItem}>
-                <DualIcon sm={READY_ICONS[item.icon].sm} lg={READY_ICONS[item.icon].lg} breakpoint="lg" />
+                <Icon className="size-[16px] flex-none text-brown lg:size-[17px]" aria-hidden="true" />
                 {item.text}
               </li>
-            ))}
+              );
+            })}
           </ul>
         </div>
       </div>

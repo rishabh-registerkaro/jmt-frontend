@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { ContactInfo, HomeImage } from "@/types/homepage";
 import type { ContactPageContent } from "@/data/contactPage";
@@ -64,7 +63,7 @@ export default function ContactHero({
             </ol>
           </nav>
           <p className={`reveal ${cls.pill}`}>
-            <Image src="/contact/dot.svg" alt="" width={7} height={7} className="size-[6px] md:size-[7px]" />
+            <span aria-hidden="true" className="size-[6px] flex-none rounded-full bg-orange md:size-[7px]" />
             <Responsive desktop={copy.pill.desktop} mobile={copy.pill.mobile} />
           </p>
           <h1 id="contact-hero-title" className={`reveal-clip ${cls.title}`}>

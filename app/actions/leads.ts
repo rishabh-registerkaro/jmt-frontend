@@ -2,21 +2,13 @@
 
 import { headers } from "next/headers";
 import { ADMIN_TIMEOUT_MS, adminUrl, sharedSecret } from "@/lib/adminApi";
-import {
-  EMPTY_LEAD_VALUES,
-  HONEYPOT_FIELD,
-  LOCALE_FIELD,
-  readLeadValues,
-  validateLead,
-} from "@/utils/leadForm";
+import { EMPTY_LEAD_VALUES, HONEYPOT_FIELD, readLeadValues, validateLead } from "@/utils/leadForm";
 import { getHomepageData } from "@/server/homepage";
-import { isSwitcherLanguage, type LeadFormCopy, type LeadFormState } from "@/types/homepage";
+import type { LeadFormCopy, LeadFormState } from "@/types/homepage";
 
-/** The form's messages as set in the admin, in the visitor's language (cached). */
-async function formCopy(formData: FormData): Promise<LeadFormCopy> {
-  const requested = formData.get(LOCALE_FIELD);
-  const lang = isSwitcherLanguage(requested) ? requested : "en";
-  return (await getHomepageData(lang)).contactCopy.form;
+/** The form's messages as set in the admin (cached). */
+async function formCopy(): Promise<LeadFormCopy> {
+  return (await getHomepageData()).contactCopy.form;
 }
 
 /**
@@ -38,7 +30,7 @@ export async function submitLead(
   // Bots fill every field; pretend success so they don't retry.
   const honeypot = formData.get(HONEYPOT_FIELD);
   if (typeof honeypot === "string" && honeypot.trim() !== "") {
-    return successState(await formCopy(formData));
+    return successState(await formCopy());
   }
 
   const values = readLeadValues(formData);
@@ -46,7 +38,7 @@ export async function submitLead(
   if (Object.keys(fieldErrors).length > 0) {
     return {
       status: "error",
-      message: (await formCopy(formData)).invalidText,
+      message: (await formCopy()).invalidText,
       fieldErrors,
       values,
     };
@@ -71,7 +63,7 @@ export async function submitLead(
     });
     const state: unknown = await res.json();
     if (isLeadFormState(state)) {
-      const copy = await formCopy(formData);
+      const copy = await formCopy();
       if (state.status === "success") return successState(copy);
       if (Object.keys(state.fieldErrors).length > 0) return { ...state, message: copy.invalidText };
       return state;
@@ -81,7 +73,7 @@ export async function submitLead(
     console.error("[homepage] Failed to send lead to jmt-admin:", error);
     return {
       status: "error",
-      message: (await formCopy(formData)).errorText,
+      message: (await formCopy()).errorText,
       fieldErrors: {},
       values,
     };

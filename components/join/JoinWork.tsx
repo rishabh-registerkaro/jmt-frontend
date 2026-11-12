@@ -1,16 +1,15 @@
-import Image from "next/image";
+import { MapPin } from "lucide-react";
+import { SITE_ICONS, SITE_ICON_STROKE } from "@/components/common/siteIcons";
 import Photo from "@/components/common/Photo";
-import { DualIcon, Responsive } from "@/components/about/shared";
+import { Responsive } from "@/components/about/shared";
 import { JOIN_PAGE, type SiteIcon } from "@/data/joinPage";
 import { JOIN_INNER, JoinSectionHeader } from "./shared";
 
-const SITE_ICONS: Record<SiteIcon, string> = {
-  bridge: "/join/site-bridge-18.svg",
-  train: "/join/site-train-18.svg",
-  station: "/join/site-station-18.svg",
-  building: "/join/site-building-18.svg",
-  road: "/join/site-road-18.svg",
-};
+function SiteGlyph({ icon }: { icon: SiteIcon }) {
+  const Glyph = SITE_ICONS[icon];
+  // Figma stroke 1.35 on an 18 viewBox = 1.8 on a 24 grid.
+  return <Glyph size={18} strokeWidth={SITE_ICON_STROKE} className="flex-none text-brown" aria-hidden="true" />;
+}
 
 // Figma "3 · The work we do" — desktop 311:171 (four 305×400 photo cards and a
 // white "Where you'll work" bar with icons), mobile 313:153 (2×2 grid of
@@ -59,7 +58,7 @@ export default function JoinWork({ content }: { content: (typeof JOIN_PAGE)["wor
 
         <div className={cls.where} data-reveal>
           <p className="m-0 flex flex-none items-center gap-[8px]">
-            <DualIcon sm={["/join/m/pin-15.svg", 15]} lg={["/join/pin-17.svg", 17]} />
+            <MapPin className="size-[15px] flex-none text-orange md:size-[17px]" aria-hidden="true" />
             <span className="max-md:sr-only text-[14.5px] leading-[normal] font-bold whitespace-nowrap text-ink">{where.label}</span>
           </p>
           {/* Phones: one dotted line of short names (Figma "Bridges · Metro · …"). */}
@@ -69,7 +68,7 @@ export default function JoinWork({ content }: { content: (typeof JOIN_PAGE)["wor
           <ul className="m-0 hidden list-none flex-wrap gap-x-[34px] gap-y-[12px] p-0 md:contents">
             {where.sites.map((site) => (
               <li key={site.label.text} className={cls.site}>
-                <Image src={SITE_ICONS[site.icon]} alt="" width={18} height={18} />
+                <SiteGlyph icon={site.icon} />
                 {site.label.text}
               </li>
             ))}

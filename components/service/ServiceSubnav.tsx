@@ -12,9 +12,9 @@ interface ServiceSubnavProps {
 // the main navbar; the link of the section being read gets the orange
 // underline. Phones (Figma 242:102 "Section menu (sticky, swipe)"): a 52px
 // row of swipeable chips, the current one filled brown and scrolled into view.
-// Sticks right below the site header (64 / 69 / 80px tall).
+// Sits in normal page flow after the hero (scrolls away with the page).
 const cls = {
-  bar: "sticky top-[64px] z-40 border-b border-sand bg-white md:top-[69px] lg:top-[80px]",
+  bar: "relative z-40 border-b border-sand bg-white",
   inner: "site-container flex items-center justify-between gap-[16px] max-md:px-0",
   list: [
     "hide-scrollbar relative m-0 flex min-w-0 list-none gap-[8px] overflow-x-auto p-0 max-md:px-[20px] max-md:py-[10px]",

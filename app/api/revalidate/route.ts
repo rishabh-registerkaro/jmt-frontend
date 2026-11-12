@@ -36,8 +36,8 @@ export async function POST(req: NextRequest) {
   }
 
   for (const tag of tags as string[]) revalidateTag(tag, { expire: 0 });
-  // Every language ("/" → /en, /bn, /hi) renders under app/[lang].
-  revalidatePath("/[lang]", "layout");
+  // Every public page shares the root layout.
+  revalidatePath("/", "layout");
 
   return NextResponse.json({ success: true, revalidated: tags });
 }

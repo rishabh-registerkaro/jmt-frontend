@@ -1,26 +1,16 @@
 "use client";
 
-import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { ChevronDown, Phone } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import type { LanguageOption, NavLink, SwitcherLanguage } from "@/types/homepage";
-import { rememberLocale, useLanguage } from "@/components/i18n/LanguageProvider";
+import type { NavLink } from "@/types/homepage";
+import { UI_TEXT as t } from "@/lib/uiText";
 
 interface NavMenuProps {
   links: NavLink[];
   /** The orange header button: the Contact page. */
   ctaHref: string;
   ctaLabel: string;
-  /** Switcher entries from the admin; empty hides the switcher. */
-  languages: LanguageOption[];
 }
-
-// Literal Tailwind font-family utility for each label's script.
-const LANGUAGE_FONT: Record<SwitcherLanguage, string> = {
-  en: "",
-  bn: "font-bengali",
-  hi: "font-devanagari",
-};
 
 const DESKTOP_QUERY = "(min-width: 1024px)";
 
@@ -43,14 +33,6 @@ const cls = {
   dropdownLink: [
     "block rounded-[8px] px-3 py-2.5 text-[15px] leading-[22px] font-medium text-ink no-underline",
     "hover:bg-peach-100 hover:text-brown focus-ring [--focus-offset:0px]",
-  ].join(" "),
-  langOptionCompact: [
-    "inline-flex cursor-pointer appearance-none items-center rounded-full px-[8px] py-[5px]",
-    "text-[11.5px] leading-[16px] font-semibold focus-ring [--focus-offset:1px] aria-disabled:cursor-not-allowed",
-  ].join(" "),
-  langOption: [
-    "inline-flex cursor-pointer appearance-none items-center rounded-full px-[11px]",
-    "text-[12px] leading-[19.2px] font-semibold focus-ring [--focus-offset:1px] aria-disabled:cursor-not-allowed",
   ].join(" "),
   // drawer__link and drawer__heading share these.
   drawerRow: "block px-1 py-4 text-[18px] leading-[26px] font-semibold text-ink no-underline",
@@ -75,15 +57,12 @@ const cls = {
   },
 };
 
-export default function NavMenu({ links, ctaHref, ctaLabel, languages }: NavMenuProps) {
+export default function NavMenu({ links, ctaHref, ctaLabel }: NavMenuProps) {
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { locale: language, t } = useLanguage();
-  const router = useRouter();
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
-  const pathname = usePathname();
   const idPrefix = useId();
   const drawerId = `${idPrefix}-drawer`;
 
@@ -156,69 +135,6 @@ export default function NavMenu({ links, ctaHref, ctaLabel, languages }: NavMenu
     };
   }, [drawerOpen, closeDrawer]);
 
-  // Stay on the same page in the other language: /about → /bn/about, /hi/contact → /contact.
-  const switchTo = useCallback(
-    (code: SwitcherLanguage) => {
-      const home = rememberLocale(code);
-      const rest = (pathname ?? "/").replace(/^\/(?:en|bn|hi)(?=\/|$)/, "").replace(/\/+$/, "");
-      router.push(rest ? `${home === "/" ? "" : home}${rest}` : home);
-    },
-    [router, pathname],
-  );
-
-  // The admin hid this language (or the whole switcher): send the visitor to
-  // English, or they'd be stuck on a page with no way back.
-  useEffect(() => {
-    if (language !== "en" && !(languages.length > 1 && languages.some((lang) => lang.code === language))) {
-      router.replace(rememberLocale("en"));
-    }
-  }, [language, languages, router]);
-
-  // A single language has nothing to switch to. Labels never change with the
-  // page language, and translate="no" keeps browser translators off them.
-  // compact: the mobile header pill (Figma "Homepage — Mobile 390" → Language).
-  const renderLanguageToggle = (compact: boolean) => languages.length > 1 && (
-    <div
-      className={
-        compact
-          ? "notranslate inline-flex flex-none items-stretch gap-[2px] rounded-full border border-sand p-[3px]"
-          : "notranslate inline-flex h-[39.2px] flex-none items-stretch rounded-full border border-input-line bg-input-bg p-1"
-      }
-      role="group"
-      aria-label={t.nav.language}
-      translate="no"
-    >
-      {languages.map((lang) => {
-        const selected = lang.code === language;
-        return (
-          <button
-            key={lang.code}
-            type="button"
-            lang={lang.code}
-            translate="no"
-            className={[
-              compact ? cls.langOptionCompact : cls.langOption,
-              "notranslate",
-              "flex-none whitespace-nowrap",
-              selected ? `${compact ? "bg-orange" : "bg-orange-nav"} text-white` : `${compact ? "text-ink" : "text-slate-strong"} hover:text-orange`,
-              LANGUAGE_FONT[lang.code],
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            aria-pressed={selected}
-            title={lang.name}
-            onClick={() => {
-              if (!selected) switchTo(lang.code);
-            }}
-          >
-            {lang.label}
-            <span className="sr-only"> ({lang.name})</span>
-          </button>
-        );
-      })}
-    </div>
-  );
-
   const ctaButton = (
     <a
       href={ctaHref}
@@ -228,14 +144,14 @@ export default function NavMenu({ links, ctaHref, ctaLabel, languages }: NavMenu
         "transition-[background-color] duration-160 ease-[ease] hover:bg-orange-hover focus-ring",
       ].join(" ")}
     >
-      <Image src="/homepage/icon-phone-white-16.svg" alt="" width={16} height={16} />
+      <Phone size={16} strokeWidth={1.75} className="text-white" aria-hidden="true" />
       {ctaLabel}
     </a>
   );
 
   return (
     <>
-      {/* Desktop: nav links sit at the true centre of the header; language + contact stay right. */}
+      {/* Desktop: nav links sit at the true centre of the header; contact stays right. */}
       <div className="ml-auto hidden min-w-0 flex-1 items-center justify-end gap-6 lg:flex">
         <nav
           ref={navRef}
@@ -259,13 +175,11 @@ export default function NavMenu({ links, ctaHref, ctaLabel, languages }: NavMenu
                         onClick={() => setOpenDropdown(isOpen ? null : index)}
                       >
                         {link.label}
-                        <Image
-                          src="/homepage/icon-chevron-down.svg"
-                          alt=""
-                          width={16}
-                          height={16}
+                        <ChevronDown
+                          size={16}
+                          aria-hidden="true"
                           className={[
-                            "transition-transform duration-160 ease-[ease] motion-reduce:transition-none",
+                            "text-ink transition-transform duration-160 ease-[ease] motion-reduce:transition-none",
                             isOpen ? "rotate-180" : "",
                           ].join(" ")}
                         />
@@ -303,16 +217,14 @@ export default function NavMenu({ links, ctaHref, ctaLabel, languages }: NavMenu
         </nav>
 
         <div className="hidden flex-none items-center gap-2.5 lg:flex">
-          {renderLanguageToggle(false)}
           {ctaButton}
         </div>
       </div>
 
-      <div className="ml-auto lg:hidden">{renderLanguageToggle(true)}</div>
       <button
         ref={toggleRef}
         type="button"
-        className="flex size-[40px] flex-none cursor-pointer appearance-none items-center justify-center rounded-full bg-peach-100 focus-ring lg:hidden"
+        className="ml-auto flex size-[40px] flex-none cursor-pointer appearance-none items-center justify-center rounded-full bg-peach-100 focus-ring lg:hidden"
         aria-expanded={drawerOpen}
         aria-controls={drawerId}
         aria-label={drawerOpen ? t.nav.closeMenu : t.nav.openMenu}

@@ -1,6 +1,7 @@
 import Image from "next/image";
+import { Check } from "lucide-react";
 import type { AboutPromisesContent } from "@/types/about";
-import { ABOUT_INNER, DualIcon, Pill, Responsive, reveal } from "./shared";
+import { ABOUT_INNER, Pill, Responsive, reveal } from "./shared";
 
 // Figma "Promises band" — desktop 292:107 (copy left, 2×2 promise tiles right,
 // mandala top right), mobile 297:55 (copy, tiles, then the assurance chips;
@@ -51,7 +52,7 @@ export default function AboutPromises({ content }: { content: AboutPromisesConte
             {content.assurances.map((item, index) => (
               <li key={item} className={cls.chip} style={{ "--i": index } as React.CSSProperties}>
                 <span className={cls.chipBadge} aria-hidden="true">
-                  <DualIcon sm={["/about/m/check-white-9.svg", 9]} lg={["/about/icon-check-white-10.svg", 10]} />
+                  <Check aria-hidden="true" className="size-[9px] flex-none text-white md:size-[10px]" />
                 </span>
                 <span className={cls.chipText}>{item}</span>
               </li>

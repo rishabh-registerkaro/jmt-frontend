@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { Check, ShieldCheck, type LucideIcon } from "lucide-react";
 import Photo from "@/components/common/Photo";
 import type { IncludedChipIcon, IncludedContent } from "@/types/service";
 import SectionHeader, { SECTION_INNER } from "./SectionHeader";
@@ -8,9 +8,9 @@ interface IncludedProps {
   content: IncludedContent;
 }
 
-const CHIP_ICONS: Record<IncludedChipIcon, string> = {
-  check: "/service/icon-check-white-15.svg",
-  shield: "/service/icon-shield-white.svg",
+const CHIP_ICONS: Record<IncludedChipIcon, LucideIcon> = {
+  check: Check,
+  shield: ShieldCheck,
 };
 
 // Chip spots. md+ on the 520×644 photo (Figma: x −28 / 300 / −20, y 64 / 250 /
@@ -68,16 +68,29 @@ export default function Included({ id, content }: IncludedProps) {
               <Photo image={content.image} sizes="(min-width: 1024px) 38vw, 100vw" />
             </div>
             <ul className="m-0 list-none p-0">
-              {content.chips.map((chip, index) => (
-                <li key={chip.label} className={`${cls.chip} ${CHIP_POSITIONS[index] ?? ""}`}>
-                  <span className={cls.chipBadge} aria-hidden="true">
-                    {/* Phones use a check on every chip (Figma 242:153). */}
-                    <Image src="/service/icon-check-white-12.svg" alt="" width={12} height={12} className="md:hidden" />
-                    <Image src={CHIP_ICONS[chip.icon]} alt="" width={15} height={15} className="hidden md:block" />
-                  </span>
-                  {chip.label}
-                </li>
-              ))}
+              {content.chips.map((chip, index) => {
+                const ChipIcon = CHIP_ICONS[chip.icon];
+                return (
+                  <li key={chip.label} className={`${cls.chip} ${CHIP_POSITIONS[index] ?? ""}`}>
+                    <span className={cls.chipBadge} aria-hidden="true">
+                      {/* Phones use a check on every chip (Figma 242:153). */}
+                      {ChipIcon === Check ? (
+                        <Check
+                          strokeWidth={3}
+                          className="size-[12px] text-white md:size-[15px] md:[stroke-width:2.6]"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <>
+                          <Check strokeWidth={3} className="size-[12px] text-white md:hidden" aria-hidden="true" />
+                          <ChipIcon strokeWidth={2.6} className="hidden size-[15px] text-white md:block" aria-hidden="true" />
+                        </>
+                      )}
+                    </span>
+                    {chip.label}
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
@@ -93,8 +106,7 @@ export default function Included({ id, content }: IncludedProps) {
                 {provides.items.map((item) => (
                   <li key={item} className={cls.checkItem}>
                     <span className={cls.checkBadge} aria-hidden="true">
-                      <Image src="/service/m/check-orange-12.svg" alt="" width={12} height={12} className="md:hidden" />
-                      <Image src="/service/icon-check-orange-14.svg" alt="" width={14} height={14} className="hidden md:block" />
+                      <Check strokeWidth={3} className="size-[12px] text-orange md:size-[14px]" aria-hidden="true" />
                     </span>
                     {item}
                   </li>
@@ -112,8 +124,7 @@ export default function Included({ id, content }: IncludedProps) {
               <ul className={cls.pills}>
                 {yours.items.map((item) => (
                   <li key={item} className={cls.pill}>
-                    <Image src="/service/m/dot-brown-7.svg" alt="" width={7} height={7} className="flex-none md:hidden" />
-                    <Image src="/service/dot-brown.svg" alt="" width={6} height={6} className="hidden flex-none md:block" />
+                    <span className="size-[7px] flex-none rounded-full bg-brown md:size-[6px]" aria-hidden="true" />
                     {item}
                   </li>
                 ))}

@@ -1,8 +1,8 @@
-import Image from "next/image";
+import { MessageCircle, Phone } from "lucide-react";
 import type { ChromeLabels, ContactInfo, FaqCopy, FaqGroup, FounderContent } from "@/types/homepage";
 import FaqTabs from "./FaqTabs";
 import { JOIN_CREW_ANCHOR } from "./anchors";
-import type { Dictionary } from "@/lib/i18n";
+import { UI_TEXT as t } from "@/lib/uiText";
 
 interface FaqProps {
   groups: FaqGroup[];
@@ -10,7 +10,6 @@ interface FaqProps {
   founder: FounderContent;
   contact: ContactInfo;
   labels: ChromeLabels;
-  t: Dictionary;
 }
 
 const cls = {
@@ -58,7 +57,7 @@ const cls = {
   ].join(" "),
 };
 
-export default function Faq({ groups, copy, founder, contact, labels, t }: FaqProps) {
+export default function Faq({ groups, copy, founder, contact, labels }: FaqProps) {
   const whatsappHref = contact.whatsappHref ?? "#contact";
   const whatsappIsExternal = whatsappHref.startsWith("http");
 
@@ -105,7 +104,7 @@ export default function Faq({ groups, copy, founder, contact, labels, t }: FaqPr
 
             <div className="flex gap-[10px] md:flex-wrap">
               <a href={contact.phoneHref ?? "#contact"} className={cls.call}>
-                <Image src="/homepage/icon-phone-white-18.svg" alt="" width={18} height={18} />
+                <Phone size={18} strokeWidth={1.75} className="text-white" aria-hidden="true" />
                 {labels.callButton}
               </a>
               <a
@@ -113,8 +112,7 @@ export default function Faq({ groups, copy, founder, contact, labels, t }: FaqPr
                 className={cls.whatsapp}
                 {...(whatsappIsExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
               >
-                <Image src="/homepage/m/msg-brown.svg" alt="" width={18} height={18} className="md:hidden" />
-                <Image src="/homepage/icon-whatsapp-outline.svg" alt="" width={18} height={18} className="max-md:hidden" />
+                <MessageCircle size={18} className="text-brown md:[stroke-width:1.75]" aria-hidden="true" />
                 {labels.whatsappButton}
                 {whatsappIsExternal && <span className="sr-only"> {t.opensWhatsApp}</span>}
               </a>

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { ArrowRight, Check } from "lucide-react";
 import Photo from "@/components/common/Photo";
 import type { RolesContent } from "@/types/service";
 import { useRoleSelection } from "./RoleSelection";
@@ -14,8 +14,8 @@ interface RolesPickerProps {
 // Phones (242:230): one card per row, 120px photo with the role count beside
 // the trade name, roles as wrapping pill toggles, full-width summary bar.
 const cls = {
-  grid: "m-0 grid list-none grid-cols-1 gap-[12px] p-0 sm:grid-cols-2 md:gap-[24px] lg:grid-cols-4",
-  card: "flex flex-col overflow-hidden rounded-[16px] border border-sand bg-white md:rounded-[20px] lg:min-h-[472px]",
+  grid: "m-0 grid list-none grid-cols-1 gap-[12px] p-0 sm:grid-cols-2 md:gap-[24px] xl:grid-cols-4",
+  card: "flex flex-col overflow-hidden rounded-[16px] border border-sand bg-white md:rounded-[20px] xl:min-h-[472px]",
   photo: "relative h-[120px] flex-none overflow-hidden bg-navy-card md:h-[200px]",
   shade: [
     "absolute inset-0 bg-[linear-gradient(180deg,rgba(8,27,48,0)_30%,rgba(8,27,48,0.88)_100%)]",
@@ -41,9 +41,9 @@ const cls = {
   box: [
     "flex size-[18px] flex-none items-center justify-center rounded-full border-[1.5px] border-sand bg-white",
     "md:size-[22px] md:rounded-[6px]",
-    "peer-checked:border-orange peer-checked:bg-orange [&>img]:opacity-0 peer-checked:[&>img]:opacity-100",
+    "peer-checked:border-orange peer-checked:bg-orange [&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100",
   ].join(" "),
-  roleName: "text-[13.5px] leading-[normal] font-semibold whitespace-nowrap text-ink md:text-[15px]",
+  roleName: "text-[13.5px] leading-[normal] font-semibold whitespace-nowrap text-ink md:whitespace-normal md:text-[15px]",
   roleLevel: "hidden text-[12.5px] leading-[normal] text-slate md:block",
   summary: [
     "flex w-full items-center justify-between gap-[12px] rounded-full bg-brown py-[10px] pr-[10px] pl-[16px]",
@@ -75,7 +75,7 @@ export default function RolesPicker({ content }: RolesPickerProps) {
           return (
             <li key={trade.id} className={cls.card} style={{ "--i": index } as React.CSSProperties}>
               <div className={cls.photo}>
-                <Photo image={trade.image} sizes="(min-width: 1024px) 24vw, (min-width: 640px) 50vw, 100vw" />
+                <Photo image={trade.image} sizes="(min-width: 1280px) 24vw, (min-width: 640px) 50vw, 100vw" />
                 <span className={cls.shade} aria-hidden="true" />
                 <h3 className={cls.head}>
                   <span className={cls.tradeName}>{trade.name}</span>
@@ -94,10 +94,9 @@ export default function RolesPicker({ content }: RolesPickerProps) {
                         onChange={() => toggle(role.id)}
                       />
                       <span className={cls.box} aria-hidden="true">
-                        <Image src="/service/m/check-white-11.svg" alt="" width={11} height={11} className="md:hidden" />
-                        <Image src="/service/icon-check-white-13.svg" alt="" width={13} height={13} className="hidden md:block" />
+                        <Check strokeWidth={3} className="size-[11px] text-white md:size-[13px]" aria-hidden="true" />
                       </span>
-                      <span className="flex flex-col">
+                      <span className="flex min-w-0 flex-col">
                         <span className={cls.roleName}>{role.name}</span>
                         <span className={cls.roleLevel}>{role.level}</span>
                       </span>
@@ -124,8 +123,7 @@ export default function RolesPicker({ content }: RolesPickerProps) {
         <a href="#contact" className={cls.continue}>
           <span className="md:hidden">{content.continueShort}</span>
           <span className="hidden md:inline">{content.continueCta}</span>
-          <Image src="/service/m/arrow-white-14.svg" alt="" width={14} height={14} className="md:hidden" />
-          <Image src="/service/icon-arrow-white-16.svg" alt="" width={16} height={16} className="hidden md:block" />
+          <ArrowRight className="size-[14px] text-white md:size-[16px]" aria-hidden="true" />
         </a>
       </div>
     </>

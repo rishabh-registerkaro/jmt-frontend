@@ -1,30 +1,24 @@
 // Page metadata and JSON-LD for every public page, so each one gets the same
-// complete set: absolute canonical, reciprocal hreflang (en/bn/hi + x-default),
-// og:url/og:locale/og:locale:alternate, Twitter card, and noindex on Vercel
-// previews. Page-level `openGraph` replaces the layout's (Next merges
-// metadata shallowly), so pages must build theirs here rather than inherit.
+// complete set: absolute canonical, og:url/og:locale, Twitter card, and
+// noindex on Vercel previews. Page-level `openGraph` replaces the layout's
+// (Next merges metadata shallowly), so pages must build theirs here rather
+// than inherit.
 
 import type { Metadata } from "next";
-import { LOCALES, type Locale } from "@/lib/i18n";
 import { IS_NON_PRODUCTION_DEPLOY, SITE_URL, absoluteUrl } from "@/lib/site";
 import type { ContactInfo, SiteChrome } from "@/types/homepage";
 
-export const OG_LOCALES: Record<Locale, string> = { en: "en_IN", bn: "bn_IN", hi: "hi_IN" };
-
 export interface PageSeo {
-  lang: Locale;
-  /** Public path of this page in a language: "/", "/bn/about", … */
-  pathFor: (lang: Locale) => string;
+  /** Public path of this page: "/", "/about", … */
+  path: string;
   title: string;
   description: string;
   image?: { src: string; width?: number; height?: number; alt?: string };
   siteName?: string;
 }
 
-export function pageMetadata({ lang, pathFor, title, description, image, siteName }: PageSeo): Metadata {
-  const url = absoluteUrl(pathFor(lang));
-  const languages: Record<string, string> = Object.fromEntries(LOCALES.map((l) => [l, absoluteUrl(pathFor(l))]));
-  languages["x-default"] = absoluteUrl(pathFor("en"));
+export function pageMetadata({ path, title, description, image, siteName }: PageSeo): Metadata {
+  const url = absoluteUrl(path);
   const images = image
     ? [{ url: absoluteUrl(image.src), width: image.width, height: image.height, alt: image.alt || title }]
     : undefined;
@@ -33,15 +27,14 @@ export function pageMetadata({ lang, pathFor, title, description, image, siteNam
     metadataBase: new URL(SITE_URL),
     title,
     description,
-    alternates: { canonical: url, languages },
+    alternates: { canonical: url },
     openGraph: {
       title,
       description,
       url,
       type: "website",
       siteName,
-      locale: OG_LOCALES[lang],
-      alternateLocale: LOCALES.filter((l) => l !== lang).map((l) => OG_LOCALES[l]),
+      locale: "en_IN",
       images,
     },
     twitter: {
@@ -94,7 +87,7 @@ export function organizationJsonLd(chrome: SiteChrome) {
         url: `${SITE_URL}/`,
         name: chrome.brand.name,
         publisher: { "@id": ORG_ID },
-        inLanguage: ["en", "bn", "hi"],
+        inLanguage: "en",
       },
     ],
   };

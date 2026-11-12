@@ -52,11 +52,11 @@ export async function fetchPreview(token: string, query: string): Promise<{ rev:
 
 /**
  * The editor's unsaved draft for this request, or null (not previewing, or
- * the preview expired). `locale` only matters for homepage drafts.
+ * the preview expired).
  * Deduped per request.
  */
-export const getPreviewDraft = cache(async (locale: string = "en"): Promise<PreviewDraft | null> => {
+export const getPreviewDraft = cache(async (): Promise<PreviewDraft | null> => {
   const token = await getPreviewToken();
   if (!token) return null;
-  return (await fetchPreview(token, `locale=${encodeURIComponent(locale)}`)).draft;
+  return (await fetchPreview(token, "locale=en")).draft;
 });

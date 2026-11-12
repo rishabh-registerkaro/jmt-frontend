@@ -1,26 +1,26 @@
 import Image from "next/image";
+import { FileText, MapPin, MapPinCheck, ShieldCheck, User, UserCheck, type LucideIcon } from "lucide-react";
 import type { ProcessCopy, ProcessIcon, ProcessStep } from "@/types/homepage";
-import type { Dictionary } from "@/lib/i18n";
+import { UI_TEXT as t } from "@/lib/uiText";
 
 interface HowToProps {
   steps: ProcessStep[];
   copy: ProcessCopy;
-  t: Dictionary;
 }
 
-const STEP_ICONS: Record<ProcessIcon, string> = {
-  requirement: "/homepage/icon-step-requirement.svg",
-  "site-visit": "/homepage/icon-step-site-visit.svg",
-  crew: "/homepage/icon-step-crew.svg",
-  records: "/homepage/icon-step-records.svg",
+const STEP_ICONS: Record<ProcessIcon, LucideIcon> = {
+  requirement: FileText,
+  "site-visit": MapPinCheck,
+  crew: UserCheck,
+  records: ShieldCheck,
 };
 
 // 16px outline icons beside the step title on phones (Figma "Homepage — Mobile 390").
-const STEP_ICONS_MOBILE: Record<ProcessIcon, string> = {
-  requirement: "/homepage/m/step-file.svg",
-  "site-visit": "/homepage/m/step-pin.svg",
-  crew: "/homepage/m/step-user.svg",
-  records: "/homepage/m/step-shield.svg",
+const STEP_ICONS_MOBILE: Record<ProcessIcon, LucideIcon> = {
+  requirement: FileText,
+  "site-visit": MapPin,
+  crew: User,
+  records: ShieldCheck,
 };
 
 // ≥ 1024px each step's rail/body/outcome is pinned to the step's column of the
@@ -77,7 +77,7 @@ const cls = {
   outcomeText: "m-0 text-[14px] leading-[20px] font-semibold text-white md:text-[16px] md:leading-[24px]",
 };
 
-export default function HowTo({ steps, copy, t }: HowToProps) {
+export default function HowTo({ steps, copy }: HowToProps) {
   return (
     <section id="how-we-work" className={cls.process} aria-labelledby="process-title">
       <div className={cls.inner}>
@@ -98,6 +98,8 @@ export default function HowTo({ steps, copy, t }: HowToProps) {
             const col = STEP_COL[index] ?? "";
             const isFirst = index === 0;
             const isLast = index === steps.length - 1;
+            const StepIcon = STEP_ICONS[step.icon];
+            const StepIconMobile = STEP_ICONS_MOBILE[step.icon];
             return (
               <li key={step.number} className={cls.step}>
                 <div className={`${cls.rail} ${col}`} aria-hidden="true">
@@ -111,17 +113,11 @@ export default function HowTo({ steps, copy, t }: HowToProps) {
                 {/* Column dividers on every step but the last (≥ 1024px). */}
                 <div className={`${cls.body} ${col} ${isLast ? "" : cls.bodyDivider}`}>
                   <span className={cls.icon}>
-                    <Image src={STEP_ICONS[step.icon]} alt="" width={30} height={30} />
+                    <StepIcon size={30} strokeWidth={1.75} className="text-brown" aria-hidden="true" />
                   </span>
                   <div className={cls.text}>
                     <h3 className={cls.title3}>
-                      <Image
-                        src={STEP_ICONS_MOBILE[step.icon]}
-                        alt=""
-                        width={16}
-                        height={16}
-                        className="flex-none md:hidden"
-                      />
+                      <StepIconMobile size={16} className="flex-none text-orange md:hidden" aria-hidden="true" />
                       <span>
                         <span className="sr-only">Step {step.number}: </span>
                         {step.title}

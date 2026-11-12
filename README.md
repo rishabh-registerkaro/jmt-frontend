@@ -1,6 +1,6 @@
 # jmt-frontend
 
-The public **Joy Maa Tara** website, in English, Bengali and Hindi. Built with Next.js 16 (App Router) and Tailwind CSS 4.
+The public **Joy Maa Tara** website (English only). Built with Next.js 16 (App Router) and Tailwind CSS 4.
 
 This is a UI-only app with **no database**. All content and form submissions go through the [`jmt-admin`](https://github.com/rishabh-registerkaro/jmt-admin) API, which is its backend.
 
@@ -16,24 +16,24 @@ Every page's content is edited in jmt-admin. Each page also ships with bundled d
 | `/contact` | Contact | `GET /api/site-pages/client/contact` | Contact | `data/contactPage.ts` |
 | `/join-our-crew` | Join our crew | `GET /api/site-pages/client/join-our-crew` | Join Our Crew | `data/joinPage.ts` |
 
-The navbar, footer and contact details (phone, WhatsApp, email, hours) on every page come from the homepage document (`getSiteChrome`). Every page also exists at `/bn/…` and `/hi/…`. About, Contact and Join our crew are English only for now, so their `/bn` and `/hi` versions show the English copy.
+The navbar, footer and contact details (phone, WhatsApp, email, hours) on every page come from the homepage document (`getSiteChrome`).
 
-Friendly aliases redirect permanently (308) to the real pages (`proxy.ts`): `/about-us` → `/about`, `/contact-us` → `/contact`, `/join`, `/careers`, `/jobs` → `/join-our-crew`, and `/site-labour-supply`, `/labour-supply` → `/service/site-service-supply`. Section names such as `/services`, `/service` or `/faq` redirect to that homepage section. `/en/*` redirects permanently to the unprefixed English URL.
+Friendly aliases redirect permanently (308) to the real pages (`proxy.ts`): `/about-us` → `/about`, `/contact-us` → `/contact`, `/join`, `/careers`, `/jobs` → `/join-our-crew`, and `/site-labour-supply`, `/labour-supply` → `/service/site-service-supply`. Section names such as `/services`, `/service` or `/faq` redirect to that homepage section. The site used to be served in English, Bengali and Hindi; old `/en/*`, `/bn/*` and `/hi/*` URLs redirect permanently to the unprefixed English URL.
 
 ## How it works
 
 | What | How it works |
 |---|---|
-| Homepage content | `server/homepage.ts` calls `GET {ADMIN_API_URL}/api/homepage/client` once per language and caches the result. If jmt-admin is unreachable, the page shows the bundled default content, so it never breaks. |
+| Homepage content | `server/homepage.ts` calls `GET {ADMIN_API_URL}/api/homepage/client` and caches the result. If jmt-admin is unreachable, the page shows the bundled default content, so it never breaks. |
 | Service pages | `server/service.ts` reads published pages from `/api/jmt-services/client/<slug>`. Pages published after the build render on their first visit. |
 | About, Contact, Join our crew | `server/sitePages.ts` reads the saved document and merges it over the bundled copy, field by field (`lib/sitePages/mergeContent.ts`). Missing fields, values of the wrong type and unsafe image URLs fall back to the bundled value. |
-| Languages | `/` is English, `/bn` is Bengali, `/hi` is Hindi. Translated page copy comes from the CMS. The few UI strings that live in components are in `locales/*.json`. |
-| Edits going live | After every save, jmt-admin calls this app's `POST /api/revalidate`, which checks `REVALIDATE_SECRET`. All three languages refresh, and the next visit gets the new content. |
+| UI strings | The site is English only. The few UI strings that live in components (screen-reader labels, placeholders) are in `lib/uiText.ts`. |
+| Edits going live | After every save, jmt-admin calls this app's `POST /api/revalidate`, which checks `REVALIDATE_SECRET`. Every page refreshes, and the next visit gets the new content. |
 | Open tabs auto-refresh | `components/homepage/LiveRefresh.tsx` polls `/api/homepage/version`, which forwards to jmt-admin. |
 | Forms | Server Actions send each form to jmt-admin, which saves the lead, emails the admin and rate-limits each visitor (per IP, and per email/phone number). The "Request workers" form (homepage and service pages) goes through `app/actions/leads.ts` to `/api/lead/homepage`, the Contact enquiry form through `app/actions/contactLead.ts` to `/api/lead/contact`, and the Join our crew application through `app/actions/joinApplication.ts` to `/api/lead/join`. All of them appear in jmt-admin → Leads. |
 | Lead source | The "Request workers" form sends the page path and title it was filled on, so jmt-admin's **Source** column shows the page. On a service page it also sends the roles ticked in "Roles we supply" (`components/service/RoleSelection.tsx`). |
 | Preview of unsaved edits | jmt-admin's **Preview** button opens `/api/preview?token=…&path=…` here. That turns on Next.js Draft Mode for that browser only and stores the token in the `jmt-preview` cookie. While it's on, `server/*` renders the draft (read from jmt-admin's `/api/preview/<token>` with `REVALIDATE_SECRET`) instead of the published content, and `components/preview/PreviewBar.tsx` shows a bar, polls `/api/preview/version` and re-renders as the editor types. "Exit preview" goes to `/api/preview?exit=1`. Every other visitor keeps getting the cached, published pages. See `lib/preview.ts`. |
-| SEO | `lib/seo.ts` gives every page an absolute canonical, hreflang links for en/bn/hi plus `x-default`, Open Graph and Twitter tags, and JSON-LD (Organization and WebSite in the layout, a BreadcrumbList on the service, Contact and Join pages, and a Service on each service page). `app/sitemap.ts` lists every page in every language, with `<lastmod>` from the CMS. `app/robots.ts` allows everything except `/api/`. |
+| SEO | `lib/seo.ts` gives every page an absolute canonical, Open Graph and Twitter tags, and JSON-LD (Organization and WebSite in the layout, a BreadcrumbList on the service, Contact and Join pages, and a Service on each service page). `app/sitemap.ts` lists every page, with `<lastmod>` from the CMS. `app/robots.ts` allows everything except `/api/`. |
 | Analytics | Vercel Web Analytics and Speed Insights load only when the site runs on Vercel. |
 
 ---
@@ -84,15 +84,15 @@ For edits to show up immediately, jmt-admin's `JMT_FRONTEND_URL` must point at t
 ## Project structure
 
 ```
-proxy.ts                  language routing: "/" → English, /bn, /hi; /en/* redirects to /*
+proxy.ts                  redirects: friendly aliases, old /en /bn /hi URLs → English
 app/
-  [lang]/layout.tsx       root <html lang>/<body>, fonts, navbar, footer, LiveRefresh, PreviewBar, JSON-LD
-  [lang]/page.tsx         the homepage sections and metadata
-  [lang]/service/[slug]/  service pages
-  [lang]/about/           About page
-  [lang]/contact/         Contact page
-  [lang]/join-our-crew/   Join our crew page
-  global-not-found.tsx    404 page for any other URL
+  layout.tsx              root <html>/<body>, fonts, navbar, footer, LiveRefresh, PreviewBar, JSON-LD
+  page.tsx                the homepage sections and metadata
+  service/[slug]/         service pages
+  about/                  About page
+  contact/                Contact page
+  join-our-crew/          Join our crew page
+  not-found.tsx           404 page
   actions/                Server Actions for the forms → jmt-admin (leads, contactLead, joinApplication)
   api/revalidate/         cache refresh, called by jmt-admin after each save
   api/homepage/version/   version check for LiveRefresh (proxied to jmt-admin)
@@ -102,21 +102,19 @@ app/
 components/
   homepage/               one folder per homepage section (Hero, Services, Faq, …)
   service/ about/ contact/ join/   sections of the other pages
-  i18n/                   LanguageProvider (current language + UI strings)
   common/Photo.tsx        cover-cropped image used by the sections
   preview/PreviewBar.tsx  bar shown while previewing unsaved dashboard edits
 lib/
   adminApi.ts             jmt-admin URL and shared-secret helpers
-  i18n.ts                 locale list, dictionaries, cookie names
   preview.ts              Draft Mode preview: token cookie, draft fetch from jmt-admin
-  seo.ts                  page metadata (canonical, hreflang, OG) and JSON-LD builders
+  seo.ts                  page metadata (canonical, OG) and JSON-LD builders
   site.ts                 SITE_URL, absoluteUrl, "is this a Vercel preview deploy"
   homepage/               view-model builder (shared with jmt-admin)
   service/                service page normalizer (shared with jmt-admin)
   sitePages/              CMS-driven pages: registry.ts (which pages, locked fields, cache tags)
                           and mergeContent.ts (shared with jmt-admin)
-  siteLinks.ts            page URLs in each language
-locales/                  en / bn / hi UI strings (bn and hi must have every key in en)
+  siteLinks.ts            page URLs and navbar/footer link mapping
+  uiText.ts               UI strings used in components
 server/                   cached data fetching from jmt-admin, with fallback
                           (homepage.ts, service.ts, sitePages.ts)
 types/ data/ utils/       types, bundled default content and translations, form rules
@@ -128,9 +126,7 @@ next.config.ts            security headers, noindex on Vercel previews, image op
 
 ### Languages
 
-- The supported languages are listed in **two places that must match**: `SWITCHER_LANGUAGES` in `types/homepage.ts` and `TRANSLATED` in `proxy.ts`. The proxy is kept free of app imports on purpose.
-- The navbar switcher saves the visitor's choice in the `jmt-locale` cookie. After that, visiting `/` redirects them to `/bn` or `/hi`.
-- If a key is missing from `locales/bn.json` or `locales/hi.json`, `npm run typecheck` fails.
+The site is English only. The shared files below still contain the Bengali/Hindi translation model (`translations`, `site.languages`, `data/homepageTranslations.ts`) because jmt-admin still uses it; this app never asks for a translated bundle and ignores those fields.
 
 ### Files shared with jmt-admin
 
@@ -171,7 +167,7 @@ The bundled copy in `data/` is both the fallback and the **schema** for the admi
 1. `npm run lint && npm run typecheck && npm run build` all pass.
 2. Set `ADMIN_API_URL`, `REVALIDATE_SECRET` and `SITE_URL`, plus `PRODUCTION_URL` and `MEDIA_HOSTNAMES` if they're needed, on the host.
 3. In **jmt-admin**, set `JMT_FRONTEND_URL` and `NEXT_PUBLIC_JMT_FRONTEND_URL` to this site's public URL and `REVALIDATE_SECRET` to the same value.
-4. After the deploy, check that `/`, `/bn` and `/hi` load, that `/en` redirects to `/`, and that an unknown URL shows the 404 page. Open `/about`, `/contact`, `/join-our-crew` and a `/service/<slug>` page. Save something in the CMS and confirm it appears on the site. Click **Preview** in a jmt-admin editor and confirm the preview bar appears.
+4. After the deploy, check that `/` loads, that `/en`, `/bn` and `/hi` redirect to `/`, and that an unknown URL shows the 404 page. Open `/about`, `/contact`, `/join-our-crew` and a `/service/<slug>` page. Save something in the CMS and confirm it appears on the site. Click **Preview** in a jmt-admin editor and confirm the preview bar appears.
 5. Check that `/sitemap.xml` lists the pages with your real domain (not localhost) and that `/robots.txt` points at it.
 
 ### Vercel
@@ -219,4 +215,3 @@ The site needs a long-running Node server. It uses a proxy, Server Actions and o
 - **The sitemap or canonical links show `localhost`.** `SITE_URL` wasn't set on the host.
 - **About, Contact or Join edits don't show, and jmt-admin returns 500 for `/api/site-pages/client/…`.** The `jmt_site_pages` table doesn't exist yet. Run `npx prisma db push` in jmt-admin and restart it. Until then, the pages show their bundled copy.
 - **CMS links to pages such as `/blog/…` are missing.** Set `PRODUCTION_URL`.
-- **`/` keeps opening in Bengali or Hindi.** That's the `jmt-locale` cookie from the language switcher. Pick English in the switcher, or clear the cookie.

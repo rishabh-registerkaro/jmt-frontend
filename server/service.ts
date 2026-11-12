@@ -1,4 +1,4 @@
-// Server-side data layer for the service pages (app/[lang]/service/[slug]).
+// Server-side data layer for the service pages (app/service/[slug]).
 //
 // Content is edited in jmt-admin (Dashboard → JMT Service Pages) and read
 // through its public API, the same way as the homepage (server/homepage.ts):

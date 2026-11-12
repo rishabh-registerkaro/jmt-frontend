@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { Star } from "lucide-react";
 import Photo from "@/components/common/Photo";
 import type { PlansContent } from "@/types/service";
 import SectionHeader, { SECTION_INNER } from "./SectionHeader";
@@ -57,8 +57,7 @@ export default function Plans({ id, content }: PlansProps) {
                 <span className={`${cls.pill} ${cls.duration}`}>{plan.duration}</span>
                 {plan.highlight && (
                   <span className={`${cls.pill} ${cls.star}`}>
-                    <Image src="/service/m/star-11.svg" alt="" width={11} height={11} className="md:hidden" />
-                    <Image src="/service/icon-star.svg" alt="" width={13} height={13} className="hidden md:block" />
+                    <Star strokeWidth={2.4} className="size-[11px] text-white md:size-[13px]" aria-hidden="true" />
                     {plan.highlight}
                   </span>
                 )}

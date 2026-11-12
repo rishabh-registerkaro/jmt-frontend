@@ -1,8 +1,8 @@
-import Image from "next/image";
+import { MessageCircle, Phone } from "lucide-react";
 import Photo from "@/components/common/Photo";
 import type { ContactInfo } from "@/types/homepage";
 import type { ServiceFaqContent } from "@/types/service";
-import type { Dictionary } from "@/lib/i18n";
+import { UI_TEXT as t } from "@/lib/uiText";
 import { AccentTitle, Eyebrow, SECTION_TITLE } from "./SectionHeader";
 import ServiceFaqList from "./ServiceFaqList";
 
@@ -10,7 +10,6 @@ interface ServiceFaqProps {
   id: string;
   content: ServiceFaqContent;
   contact: ContactInfo;
-  t: Dictionary;
 }
 
 // Figma "Service FAQ" 237:700 — founder photo card 440 | questions 792, gap 48.
@@ -32,7 +31,7 @@ const cls = {
   ].join(" "),
 };
 
-export default function ServiceFaq({ id, content, contact, t }: ServiceFaqProps) {
+export default function ServiceFaq({ id, content, contact }: ServiceFaqProps) {
   const { card } = content;
   const whatsappHref = contact.whatsappHref ?? "#contact";
   const whatsappIsExternal = whatsappHref.startsWith("http");
@@ -62,8 +61,7 @@ export default function ServiceFaq({ id, content, contact, t }: ServiceFaqProps)
               <p className={cls.role}>{card.role}</p>
               <div className="flex flex-wrap gap-[10px]">
                 <a href={contact.phoneHref ?? "#contact"} className={cls.call}>
-                  <Image src="/service/m/phone-15.svg" alt="" width={15} height={15} className="md:hidden" />
-                  <Image src="/service/icon-phone-17.svg" alt="" width={17} height={17} className="hidden md:block" />
+                  <Phone className="size-[15px] text-white md:size-[17px]" aria-hidden="true" />
                   {card.call}
                 </a>
                 <a
@@ -71,8 +69,7 @@ export default function ServiceFaq({ id, content, contact, t }: ServiceFaqProps)
                   className={cls.whatsapp}
                   {...(whatsappIsExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                 >
-                  <Image src="/service/m/msg-15.svg" alt="" width={15} height={15} className="md:hidden" />
-                  <Image src="/service/icon-msg-white-17.svg" alt="" width={17} height={17} className="hidden md:block" />
+                  <MessageCircle className="size-[15px] text-white md:size-[17px]" aria-hidden="true" />
                   {card.whatsapp}
                   {whatsappIsExternal && <span className="sr-only"> {t.opensWhatsApp}</span>}
                 </a>

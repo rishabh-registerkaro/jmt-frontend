@@ -1,15 +1,16 @@
-import { DualIcon, Responsive } from "@/components/about/shared";
+import { BookOpen, HardHat, House, ShieldCheck, User, Wallet, type LucideIcon } from "lucide-react";
+import { Responsive } from "@/components/about/shared";
 import type { BenefitIcon } from "@/data/joinPage";
 import { JOIN_PAGE } from "@/data/joinPage";
 import { JOIN_INNER, JoinSectionHeader } from "./shared";
 
-const ICONS: Record<BenefitIcon, string> = {
-  wallet: "wallet",
-  shield: "shield",
-  hat: "hat",
-  book: "book",
-  user: "user",
-  home: "home",
+const ICONS: Record<BenefitIcon, LucideIcon> = {
+  wallet: Wallet,
+  shield: ShieldCheck,
+  hat: HardHat,
+  book: BookOpen,
+  user: User,
+  home: House,
 };
 
 // Figma "2 · What you get" — desktop 311:106 (3×2 peach cards, brown "No
@@ -31,17 +32,20 @@ export default function JoinBenefits({ content }: { content: (typeof JOIN_PAGE)[
       <div className={cls.inner}>
         <JoinSectionHeader id="join-benefits-title" copy={content.copy} />
         <ul className={cls.grid} data-reveal-stagger>
-          {content.items.map((item, index) => (
+          {content.items.map((item, index) => {
+            const Icon = ICONS[item.icon];
+            return (
             <li key={item.title} className={cls.card} style={{ "--i": index } as React.CSSProperties}>
               <span className={cls.badge} aria-hidden="true">
-                <DualIcon sm={[`/join/m/${ICONS[item.icon]}-21.svg`, 21]} lg={[`/join/${ICONS[item.icon]}-24.svg`, 24]} />
+                <Icon className="size-[21px] flex-none text-white md:size-[24px]" aria-hidden="true" />
               </span>
               <span className="flex min-w-0 flex-1 flex-col gap-[3px] md:gap-[6px]">
                 <span className={cls.title}>{item.title}</span>
                 <span className={cls.text}>{item.text}</span>
               </span>
             </li>
-          ))}
+            );
+          })}
         </ul>
         <div className={cls.banner} data-reveal>
           <span className={cls.coin} aria-hidden="true">

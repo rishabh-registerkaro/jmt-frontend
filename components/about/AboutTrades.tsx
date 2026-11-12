@@ -1,6 +1,6 @@
-import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import type { AboutRole, AboutTradesContent } from "@/types/about";
-import { ABOUT_H2, ABOUT_INNER, AccentText, BTN_OUTLINE, DualIcon, Responsive, reveal } from "./shared";
+import { ABOUT_H2, ABOUT_INNER, AccentText, BTN_OUTLINE, Responsive, reveal } from "./shared";
 
 interface AboutTradesProps {
   content: AboutTradesContent;
@@ -34,12 +34,9 @@ const cls = {
 };
 
 function Dot({ role, size }: { role: AboutRole; size: "sm" | "lg" }) {
-  const src =
-    size === "sm"
-      ? role.lead ? "/service/dot-brown.svg" : "/about/m/dot-orange.svg"
-      : role.lead ? "/service/m/dot-brown-7.svg" : "/about/dot-orange.svg";
-  const px = size === "sm" ? 6 : 7;
-  return <Image src={src} alt="" width={px} height={px} className="block flex-none" />;
+  const tone = role.lead ? "bg-brown" : "bg-orange";
+  const px = size === "sm" ? "size-[6px]" : "size-[7px]";
+  return <span aria-hidden="true" className={`block flex-none rounded-full ${px} ${tone}`} />;
 }
 
 // Seconds for one loop of each row (rows differ in length, so the drift varies slightly).
@@ -91,7 +88,7 @@ export default function AboutTrades({ content, rolesHref }: AboutTradesProps) {
 
         <a href={rolesHref} className={BTN_OUTLINE} data-reveal style={reveal(220)}>
           {content.cta}
-          <DualIcon sm={["/about/m/arrow-brown-17.svg", 17]} lg={["/about/icon-arrow-brown-18.svg", 18]} />
+          <ArrowRight aria-hidden="true" className="size-[17px] flex-none text-brown md:size-[18px]" />
         </a>
       </div>
     </section>

@@ -1,9 +1,9 @@
 "use client";
 
+import { ArrowRight, Check, Clock, MapPin, Phone, User } from "lucide-react";
 import Image from "next/image";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { submitJoinApplication } from "@/app/actions/joinApplication";
-import { DualIcon } from "@/components/about/shared";
 import { JOIN_PAGE } from "@/data/joinPage";
 import { HONEYPOT_FIELD, INITIAL_JOIN_STATE, type JoinField, type JoinFormValues } from "@/utils/joinForm";
 
@@ -11,8 +11,10 @@ type FormCopy = (typeof JOIN_PAGE)["form"];
 
 interface ApplicationFormProps {
   copy: FormCopy;
-  /** Pre-ticked language (the page language); the visitor can change it. */
-  defaultLanguage: string;
+  /** WhatsApp link from the admin's contact details (falls back to the section anchor). */
+  whatsappHref: string;
+  /** Screen-reader note for links that open WhatsApp in a new tab. */
+  opensWhatsApp: string;
 }
 
 // Figma "Application form" — desktop 312:105 (white card, 32px padding, name
@@ -38,7 +40,7 @@ const cls = {
     "focus-within:border-orange focus-within:[box-shadow:0_0_0_3px_rgba(242,105,33,0.18)]",
   ].join(" "),
   input: [
-    "h-[48.5px] min-w-0 flex-1 border-0 bg-transparent p-0 text-[15px] text-ink outline-none",
+    "h-[48.5px] min-w-0 flex-1 border-0 bg-transparent p-0 text-[16px] text-ink md:text-[15px] outline-none",
     "placeholder:text-[rgba(90,107,128,0.8)]",
   ].join(" "),
   chips: "flex flex-wrap gap-[8px]",
@@ -65,6 +67,17 @@ const cls = {
   ].join(" "),
   note: "m-0 flex items-center justify-center gap-[6px] text-center text-[13px] leading-[normal] font-medium text-brown md:gap-[8px] md:text-[14px]",
   banner: "m-0 rounded-[12px] px-[14px] py-[12px] text-[14px] leading-[20px] font-medium",
+  // Figma "State — Application sent" 312:293: the card keeps its frame, the
+  // form is replaced by a centred check badge, heading, note and WhatsApp link.
+  sent: [
+    "flex min-w-0 flex-col items-center gap-[14px] rounded-[20px] border border-sand bg-white px-[20px] py-[32px] text-center outline-none",
+    "shadow-[0_12px_30px_0_rgba(99,36,0,0.08)]",
+    "md:gap-[16px] md:rounded-[24px] md:p-[40px] md:shadow-[0_16px_40px_0_rgba(99,36,0,0.08)] lg:flex-1",
+  ].join(" "),
+  sentBadge: "lead-success-pop flex size-[60px] flex-none items-center justify-center rounded-full bg-orange md:size-[72px]",
+  sentTitle: "m-0 text-[26px] leading-[normal] font-bold text-ink md:text-[30px]",
+  sentText: "m-0 max-w-[480px] text-[15.5px] leading-[24px] text-slate md:text-[16.5px] md:leading-[26px]",
+  sentWhatsApp: "btn-outline gap-[8px] border-[1.2px] pr-[20px] pl-[18px] text-[14.5px] font-semibold [--btn-h:46px] md:text-[15px]",
 };
 
 function Label({ htmlFor, children, required = true }: { htmlFor?: string; children: React.ReactNode; required?: boolean }) {
@@ -118,7 +131,7 @@ function Chip({
         className="peer sr-only"
       />
       <span className={cls.chipCheck} aria-hidden="true">
-        <Image src="/about/icon-check-white-10.svg" alt="" width={10} height={10} />
+        <Check size={10} strokeWidth={3} className="text-white" aria-hidden="true" />
       </span>
       {label}
     </label>
@@ -127,17 +140,13 @@ function Chip({
 
 const LANGUAGE_TAGS: Record<string, string> = { Bengali: "bn", Hindi: "hi", English: "en" };
 
-export default function ApplicationForm({ copy, defaultLanguage }: ApplicationFormProps) {
+export default function ApplicationForm({ copy, whatsappHref, opensWhatsApp }: ApplicationFormProps) {
   const [state, formAction, pending] = useActionState(submitJoinApplication, INITIAL_JOIN_STATE);
-  // Bumped by "Send another application" to remount a fresh, empty form.
-  const [round, setRound] = useState(0);
-  const [dismissedSuccess, setDismissedSuccess] = useState<typeof state | null>(null);
-
-  const showSuccess = state.status === "success" && dismissedSuccess !== state;
+  const showSuccess = state.status === "success";
   const errors = state.fieldErrors;
   // After an error the form remounts (key) with what the visitor sent.
   const values: JoinFormValues =
-    state.status === "error" ? state.values : { ...INITIAL_JOIN_STATE.values, languages: defaultLanguage };
+    state.status === "error" ? state.values : INITIAL_JOIN_STATE.values;
   const chosenLanguages = new Set(values.languages.split(", ").filter(Boolean));
   const describe = (field: JoinField) => (errors[field] ? { "aria-invalid": true, "aria-describedby": `join-${field}-error` } : {});
 
@@ -160,24 +169,19 @@ export default function ApplicationForm({ copy, defaultLanguage }: ApplicationFo
   }, [state]);
 
   if (showSuccess) {
+    const external = whatsappHref.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {};
     return (
-      <div ref={successRef} className={cls.card} role="status" tabIndex={-1}>
-        <div className="flex flex-col items-center gap-[14px] py-[24px] text-center">
-          <span className="lead-success-pop flex size-[56px] items-center justify-center rounded-full bg-orange" aria-hidden="true">
-            <Image src="/service/icon-check-white-13.svg" alt="" width={26} height={26} />
-          </span>
-          <p className="m-0 max-w-[420px] text-[18px] leading-[27px] font-bold text-ink">{state.message}</p>
-          <button
-            type="button"
-            className="btn-outline border-[1.2px] text-[15px] [--btn-h:48px]"
-            onClick={() => {
-              setDismissedSuccess(state);
-              setRound((n) => n + 1);
-            }}
-          >
-            {copy.messages.again}
-          </button>
-        </div>
+      <div ref={successRef} className={cls.sent} role="status" tabIndex={-1}>
+        <span className={cls.sentBadge} aria-hidden="true">
+          <Image src="/join/icon-check.svg" alt="" width={36} height={36} className="size-[30px] md:size-[36px]" />
+        </span>
+        <h3 className={cls.sentTitle}>{copy.messages.successTitle}</h3>
+        <p className={cls.sentText}>{state.message}</p>
+        <a href={whatsappHref} className={cls.sentWhatsApp} {...external}>
+          <Image src="/join/icon-msg.svg" alt="" width={17} height={17} className="size-[17px] flex-none" aria-hidden="true" />
+          {copy.messages.whatsapp}
+          {"target" in external && <span className="sr-only"> {opensWhatsApp}</span>}
+        </a>
       </div>
     );
   }
@@ -185,7 +189,7 @@ export default function ApplicationForm({ copy, defaultLanguage }: ApplicationFo
   return (
     <form
       ref={formRef}
-      key={`${round}-${state.status === "error" ? JSON.stringify(state.values) : "fresh"}`}
+      key={state.status === "error" ? JSON.stringify(state.values) : "fresh"}
       action={formAction}
       className={cls.card}
       noValidate
@@ -212,7 +216,7 @@ export default function ApplicationForm({ copy, defaultLanguage }: ApplicationFo
         <div className={cls.field}>
           <Label htmlFor="join-name">{copy.labels.name}</Label>
           <div className={cls.inputWrap}>
-            <Image src="/join/field-user-17.svg" alt="" width={17} height={17} className="flex-none" />
+            <User size={17} className="flex-none text-slate" aria-hidden="true" />
             <input
               id="join-name"
               name="name"
@@ -231,7 +235,7 @@ export default function ApplicationForm({ copy, defaultLanguage }: ApplicationFo
         <div className={cls.field}>
           <Label htmlFor="join-phone">{copy.labels.phone}</Label>
           <div className={cls.inputWrap}>
-            <DualIcon sm={["/join/m/field-phone-17.svg", 17]} lg={["/join/field-phone-17.svg", 17]} />
+            <Phone size={17} className="flex-none text-slate" aria-hidden="true" />
             <input
               id="join-phone"
               name="phone"
@@ -278,7 +282,7 @@ export default function ApplicationForm({ copy, defaultLanguage }: ApplicationFo
         <div className={cls.field}>
           <Label htmlFor="join-location">{copy.labels.location}</Label>
           <div className={cls.inputWrap}>
-            <Image src="/join/field-pin-17.svg" alt="" width={17} height={17} className="flex-none" />
+            <MapPin size={17} className="flex-none text-slate" aria-hidden="true" />
             <input
               id="join-location"
               name="location"
@@ -339,7 +343,7 @@ export default function ApplicationForm({ copy, defaultLanguage }: ApplicationFo
             {...describe("consent")}
           />
           <span className={cls.box} aria-hidden="true">
-            <Image src="/service/icon-check-white-13.svg" alt="" width={13} height={13} />
+            <Check size={13} strokeWidth={3} className="text-white" aria-hidden="true" />
           </span>
           <span className="text-[14px] leading-[normal] font-medium text-ink md:text-[14.5px]">
             {copy.labels.consent}{" "}
@@ -353,11 +357,11 @@ export default function ApplicationForm({ copy, defaultLanguage }: ApplicationFo
 
       <button type="submit" className={cls.submit} disabled={pending} aria-disabled={pending}>
         {pending ? copy.sending : copy.submit}
-        <DualIcon sm={["/service/icon-arrow-white.svg", 18]} lg={["/join/arrow-white-19.svg", 19]} />
+        <ArrowRight className="size-[18px] flex-none text-white md:size-[19px]" aria-hidden="true" />
       </button>
 
       <p className={cls.note}>
-        <DualIcon sm={["/join/m/clock-14.svg", 14]} lg={["/join/clock-15.svg", 15]} />
+        <Clock className="size-[14px] flex-none text-orange md:size-[15px]" aria-hidden="true" />
         {copy.note}
       </p>
     </form>
