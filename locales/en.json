@@ -16,13 +16,30 @@
   },
   "faq": {
     "tabs": "Questions by audience",
-    "questionsSuffix": "questions"
+    "questionsSuffix": "questions",
+    "eyebrow": "FAQs"
   },
   "founder": {
     "assurances": "What every crew comes with"
   },
   "form": {
     "honeypot": "Leave this field empty",
-    "resetIn": "This form will reset in {s}s"
+    "resetIn": "This form will reset in {s}s",
+    "placeholders": {
+      "companyName": "e.g. ABC Infra",
+      "name": "Full name",
+      "phone": "+91",
+      "email": "name@company.com",
+      "siteLocation": "City or site name",
+      "headcount": "e.g. 12"
+    }
+  },
+  "process": {
+    "eyebrow": "How we work"
+  },
+  "bar": {
+    "call": "Call",
+    "whatsapp": "WhatsApp",
+    "label": "Quick contact"
   }
 }

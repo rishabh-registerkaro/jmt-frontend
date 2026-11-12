@@ -16,13 +16,30 @@
   },
   "faq": {
     "tabs": "किसके लिए सवाल",
-    "questionsSuffix": "सवाल"
+    "questionsSuffix": "सवाल",
+    "eyebrow": "सवाल-जवाब"
   },
   "founder": {
     "assurances": "हर क्रू के साथ क्या मिलता है"
   },
   "form": {
     "honeypot": "यह फ़ील्ड खाली छोड़ें",
-    "resetIn": "यह फ़ॉर्म {s} सेकंड में रीसेट होगा"
+    "resetIn": "यह फ़ॉर्म {s} सेकंड में रीसेट होगा",
+    "placeholders": {
+      "companyName": "जैसे ABC Infra",
+      "name": "पूरा नाम",
+      "phone": "+91",
+      "email": "name@company.com",
+      "siteLocation": "शहर या साइट का नाम",
+      "headcount": "जैसे 12"
+    }
+  },
+  "process": {
+    "eyebrow": "हम कैसे काम करते हैं"
+  },
+  "bar": {
+    "call": "कॉल",
+    "whatsapp": "व्हाट्सऐप",
+    "label": "तुरंत संपर्क"
   }
 }

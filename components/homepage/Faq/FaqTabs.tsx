@@ -16,49 +16,61 @@ const ICON_CLASS: Record<FaqAudience, string> = {
 };
 
 const cls = {
+  // Mobile (<768, Figma "Homepage — Mobile 390"): grey pill track, no icons,
+  // question count in a small badge.
   list: [
-    "flex max-w-full self-stretch xs:inline-flex xs:self-start",
-    "h-[54px] p-[5px] rounded-full border border-card-line bg-white",
+    "inline-flex max-w-full self-start gap-[6px] p-[4px] rounded-full bg-input-bg max-[374px]:gap-[2px]",
+    "md:h-[54px] md:gap-0 md:p-[5px] md:border md:border-card-line md:bg-white",
   ].join(" "),
   tab: [
-    "inline-flex min-w-0 flex-[1_1_0] items-center justify-center gap-[6px] px-[10px]",
-    "xs:flex-none xs:gap-[8px] xs:px-[18px]",
+    "inline-flex min-w-0 flex-none items-center justify-center gap-[6px] px-[14px] py-[9px]",
+    // Under 375px the Bengali/Hindi labels are too long for 14px padding.
+    "max-[374px]:gap-[4px] max-[374px]:px-[9px] max-[374px]:text-[13.5px]",
+    "md:gap-[8px] md:px-[18px] md:py-0",
     "cursor-pointer appearance-none rounded-full whitespace-nowrap",
     "transition-[background-color,color] duration-160 ease-[ease]",
     "focus-ring [--focus-offset:1px]",
   ].join(" "),
-  tabIdle: "text-orange hover:bg-peach-100",
+  tabIdle: "text-ink md:text-orange hover:bg-peach-100",
   tabActive: "bg-orange text-white",
+  count:
+    "rounded-full px-[7px] py-px text-[11.5px] leading-[16px] font-bold md:rounded-none md:bg-transparent md:p-0 md:text-[12.5px] md:leading-[20px] md:font-semibold",
+  countIdle: "bg-white text-slate md:text-inherit",
+  countActive: "bg-white/25 text-white",
   // The design ships white/orange variants of each icon; masking one shape with
   // currentColor keeps a single asset per icon and follows the tab state.
   // Both tab labels only fit side by side on the smallest phones without icons
   // (hidden below 375px).
   icon: [
-    "size-[17px] flex-none bg-current max-[375px]:hidden",
+    "hidden size-[17px] flex-none bg-current md:block",
     "[mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]",
   ].join(" "),
   item: [
-    "rounded-[20px] border",
+    "rounded-[12px] border md:rounded-[20px]",
     "transition-[background-color,border-color,filter] duration-240 ease-[ease] motion-reduce:transition-none",
   ].join(" "),
-  itemClosed: "border-card-line-soft bg-white [filter:drop-shadow(0_6px_9px_rgba(19,53,90,0.18))]", // $shadow-faq
-  itemOpen: "border-sand-gold bg-peach-50 [filter:drop-shadow(0_20px_20px_rgba(19,53,90,0.3))]", // $shadow-faq-open
+  // $shadow-faq / $shadow-faq-open from md up; flat cards on phones.
+  itemClosed: "border-sand bg-white md:border-card-line-soft md:[filter:drop-shadow(0_6px_9px_rgba(19,53,90,0.18))]",
+  itemOpen:
+    "border-transparent bg-peach-100 md:border-sand-gold md:bg-peach-50 md:[filter:drop-shadow(0_20px_20px_rgba(19,53,90,0.3))]",
   toggle: [
-    "flex w-full min-h-[72px] items-center justify-between gap-[16px]",
-    "p-[20px] md:px-[26px] rounded-[20px] text-left cursor-pointer appearance-none",
+    "flex w-full items-center justify-between gap-[16px] md:min-h-[72px]",
+    "p-[16px] md:p-[20px] md:px-[26px] rounded-[12px] md:rounded-[20px] text-left cursor-pointer appearance-none",
     "focus-ring [--focus-offset:-2px]",
   ].join(" "),
   question: [
-    "text-navy font-medium tracking-[0px]",
-    "text-[clamp(16.5px,15.6197183099px+0.234741784vw,19px)] leading-[1.3526315789]",
+    "text-ink font-semibold tracking-[0px] text-[15.5px] leading-[21px]",
+    "md:text-navy md:font-medium md:text-[clamp(16.5px,15.6197183099px+0.234741784vw,19px)] md:leading-[1.3526315789]",
   ].join(" "),
+  badge: "flex size-[28px] flex-none items-center justify-center rounded-full md:hidden",
   // Height animation via grid rows (0fr → 1fr); visibility removes the closed
   // answer from the accessibility tree and tab order.
   answerClosed:
     "grid grid-rows-[0fr] invisible [transition:grid-template-rows_240ms_cubic-bezier(0.22,1,0.36,1),visibility_0s_linear_240ms] motion-reduce:[transition:none]",
   answerOpen:
     "grid grid-rows-[1fr] visible [transition:grid-template-rows_240ms_cubic-bezier(0.22,1,0.36,1)] motion-reduce:[transition:none]",
-  answerText: "body-lg px-[20px] pt-0 pb-[24px] md:pr-[64px] md:pl-[26px]",
+  answerText:
+    "body-lg px-[16px] pt-0 pb-[16px] max-md:text-[14px] max-md:leading-[22px] md:px-[20px] md:pb-[24px] md:pr-[64px] md:pl-[26px]",
 };
 
 export default function FaqTabs({ groups }: FaqTabsProps) {
@@ -82,7 +94,8 @@ export default function FaqTabs({ groups }: FaqTabsProps) {
     };
     const onClick = (event: MouseEvent) => {
       const link = (event.target as Element | null)?.closest?.("a[href]");
-      if (link?.getAttribute("href") === hash) showWorkers();
+      // Navbar links may carry the home path ("/#join-our-crew", "/bn#…").
+      if (link?.getAttribute("href")?.endsWith(hash)) showWorkers();
     };
 
     onHashChange();
@@ -132,7 +145,7 @@ export default function FaqTabs({ groups }: FaqTabsProps) {
   const panelId = `${idPrefix}-panel`;
 
   return (
-    <div className="flex flex-col gap-[20px]">
+    <div className="flex flex-col gap-[18px] md:gap-[20px]">
       <div className={cls.list} role="tablist" aria-label={t.faq.tabs}>
         {groups.map((group, index) => {
           const selected = index === activeIndex;
@@ -153,8 +166,10 @@ export default function FaqTabs({ groups }: FaqTabsProps) {
               onKeyDown={onTabKeyDown}
             >
               <span className={`${cls.icon} ${ICON_CLASS[group.audience]}`} aria-hidden="true" />
-              <span className="text-[14.5px] leading-[23.2px] font-semibold">{group.label}</span>
-              <span className="text-[12.5px] leading-[20px] font-semibold">
+              <span className="text-[13.5px] leading-[18px] font-semibold md:text-[14.5px] md:leading-[23.2px]">
+                {group.label}
+              </span>
+              <span className={`${cls.count} ${selected ? cls.countActive : cls.countIdle}`}>
                 {group.items.length}
                 <span className="sr-only"> {t.faq.questionsSuffix}</span>
               </span>
@@ -168,7 +183,7 @@ export default function FaqTabs({ groups }: FaqTabsProps) {
         role="tabpanel"
         aria-labelledby={`${idPrefix}-tab-${activeGroup.audience}`}
       >
-        <ul className="flex flex-col gap-[14px]">
+        <ul className="flex flex-col gap-[10px] md:gap-[14px]">
           {activeGroup.items.map((item) => {
             const open = item.id === openId;
             const buttonId = `${idPrefix}-q-${activeGroup.audience}-${item.id}`;
@@ -179,18 +194,26 @@ export default function FaqTabs({ groups }: FaqTabsProps) {
                   <button
                     id={buttonId}
                     type="button"
-                    className={cls.toggle}
+                    className={`${cls.toggle} ${open ? "max-md:pb-2" : ""}`}
                     aria-expanded={open}
                     aria-controls={answerId}
                     onClick={() => toggle(item.id)}
                   >
                     <span className={cls.question}>{item.question}</span>
+                    <span className={`${cls.badge} ${open ? "bg-orange" : "bg-input-bg"}`} aria-hidden="true">
+                      <Image
+                        src={open ? "/homepage/m/x-white.svg" : "/homepage/m/plus.svg"}
+                        alt=""
+                        width={13}
+                        height={13}
+                      />
+                    </span>
                     <Image
                       src={open ? "/homepage/icon-close.svg" : "/homepage/icon-plus.svg"}
                       alt=""
                       width={20}
                       height={20}
-                      className="flex-none"
+                      className="hidden flex-none md:block"
                     />
                   </button>
                 </h3>

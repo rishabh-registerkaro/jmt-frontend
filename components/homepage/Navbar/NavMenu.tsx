@@ -26,7 +26,7 @@ const DESKTOP_QUERY = "(min-width: 1024px)";
 
 // Shared transition strings (SCSS used plain `ease`, not Tailwind's default curve).
 const burgerLine =
-  "block h-[2px] w-[22px] rounded-[2px] [transition:transform_240ms_cubic-bezier(0.22,1,0.36,1),background-color_160ms_ease] motion-reduce:transition-none";
+  "block h-[1.67px] w-[13.33px] rounded-[2px] [transition:transform_240ms_cubic-bezier(0.22,1,0.36,1),background-color_160ms_ease] motion-reduce:transition-none";
 
 const cls = {
   menuLink: [
@@ -44,6 +44,10 @@ const cls = {
     "block rounded-[8px] px-3 py-2.5 text-[15px] leading-[22px] font-medium text-ink no-underline",
     "hover:bg-peach-100 hover:text-brown focus-ring [--focus-offset:0px]",
   ].join(" "),
+  langOptionCompact: [
+    "inline-flex cursor-pointer appearance-none items-center rounded-full px-[8px] py-[5px]",
+    "text-[11.5px] leading-[16px] font-semibold focus-ring [--focus-offset:1px] aria-disabled:cursor-not-allowed",
+  ].join(" "),
   langOption: [
     "inline-flex cursor-pointer appearance-none items-center rounded-full px-[11px]",
     "text-[12px] leading-[19.2px] font-semibold focus-ring [--focus-offset:1px] aria-disabled:cursor-not-allowed",
@@ -59,11 +63,11 @@ const cls = {
     closed: "bg-brown before:bg-brown after:bg-brown",
     open: [
       "bg-transparent before:bg-brown after:bg-brown",
-      "before:[transform:translateY(7px)_rotate(45deg)] after:[transform:translateY(-7px)_rotate(-45deg)]",
+      "before:[transform:translateY(5px)_rotate(45deg)] after:[transform:translateY(-5px)_rotate(-45deg)]",
     ].join(" "),
     pseudo: [
-      "before:absolute before:left-0 before:top-[-7px] before:block before:h-[2px] before:w-[22px] before:rounded-[2px] before:content-['']",
-      "after:absolute after:left-0 after:top-[7px] after:block after:h-[2px] after:w-[22px] after:rounded-[2px] after:content-['']",
+      "before:absolute before:left-0 before:top-[-5px] before:block before:h-[1.67px] before:w-[13.33px] before:rounded-[2px] before:content-['']",
+      "after:absolute after:left-0 after:top-[5px] after:block after:h-[1.67px] after:w-[13.33px] after:rounded-[2px] after:content-['']",
       "before:[transition:transform_240ms_cubic-bezier(0.22,1,0.36,1),background-color_160ms_ease]",
       "after:[transition:transform_240ms_cubic-bezier(0.22,1,0.36,1),background-color_160ms_ease]",
       "motion-reduce:before:transition-none motion-reduce:after:transition-none",
@@ -139,9 +143,14 @@ export default function NavMenu({ links, callHref, callLabel, languages }: NavMe
 
   // A single language has nothing to switch to. Labels never change with the
   // page language, and translate="no" keeps browser translators off them.
-  const languageToggle = languages.length > 1 && (
+  // compact: the mobile header pill (Figma "Homepage — Mobile 390" → Language).
+  const renderLanguageToggle = (compact: boolean) => languages.length > 1 && (
     <div
-      className="notranslate inline-flex h-[39.2px] flex-none items-stretch rounded-full border border-input-line bg-input-bg p-1"
+      className={
+        compact
+          ? "notranslate inline-flex flex-none items-stretch gap-[2px] rounded-full border border-sand p-[3px]"
+          : "notranslate inline-flex h-[39.2px] flex-none items-stretch rounded-full border border-input-line bg-input-bg p-1"
+      }
       role="group"
       aria-label={t.nav.language}
       translate="no"
@@ -155,10 +164,10 @@ export default function NavMenu({ links, callHref, callLabel, languages }: NavMe
             lang={lang.code}
             translate="no"
             className={[
-              cls.langOption,
+              compact ? cls.langOptionCompact : cls.langOption,
               "notranslate",
               "flex-none whitespace-nowrap",
-              selected ? "bg-orange-nav text-white" : "text-slate-strong hover:text-orange",
+              selected ? `${compact ? "bg-orange" : "bg-orange-nav"} text-white` : `${compact ? "text-ink" : "text-slate-strong"} hover:text-orange`,
               LANGUAGE_FONT[lang.code],
             ]
               .filter(Boolean)
@@ -257,15 +266,16 @@ export default function NavMenu({ links, callHref, callLabel, languages }: NavMe
         </nav>
 
         <div className="hidden flex-none items-center gap-2.5 lg:flex">
-          {languageToggle}
+          {renderLanguageToggle(false)}
           {callButton}
         </div>
       </div>
 
+      <div className="ml-auto lg:hidden">{renderLanguageToggle(true)}</div>
       <button
         ref={toggleRef}
         type="button"
-        className="ml-auto flex size-[44px] cursor-pointer appearance-none items-center justify-center rounded-[12px] focus-ring lg:hidden"
+        className="flex size-[40px] flex-none cursor-pointer appearance-none items-center justify-center rounded-full bg-peach-100 focus-ring lg:hidden"
         aria-expanded={drawerOpen}
         aria-controls={drawerId}
         aria-label={drawerOpen ? t.nav.closeMenu : t.nav.openMenu}
@@ -283,7 +293,7 @@ export default function NavMenu({ links, callHref, callLabel, languages }: NavMe
       <div
         id={drawerId}
         className={[
-          "fixed inset-x-0 top-[68px] bottom-0 z-60 flex flex-col gap-6 overflow-y-auto",
+          "fixed inset-x-0 top-[64px] md:top-[68px] bottom-0 z-60 flex flex-col gap-6 overflow-y-auto",
           "border-t border-brown/20 bg-white px-4 pt-4 pb-8 md:px-8 lg:hidden [&[hidden]]:hidden",
         ].join(" ")}
         hidden={!drawerOpen}
@@ -325,7 +335,6 @@ export default function NavMenu({ links, callHref, callLabel, languages }: NavMe
           </ul>
         </nav>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          {languageToggle}
           {callButton}
         </div>
       </div>
