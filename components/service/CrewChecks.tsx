@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { Check, Flag, HardHat, Hammer, IdCard, Info, List, User, type LucideIcon } from "lucide-react";
 import Photo from "@/components/common/Photo";
 import type { CheckIcon, CrewContent } from "@/types/service";
 import SectionHeader from "./SectionHeader";
@@ -9,12 +9,12 @@ interface CrewChecksProps {
 }
 
 // 24px icons in 56px badges (md+), 20px in 44px badges on phones.
-const CHECK_ICONS: Record<CheckIcon, { lg: string; sm: string }> = {
-  hammer: { lg: "/service/icon-hammer.svg", sm: "/service/m/hammer-20.svg" },
-  id: { lg: "/service/icon-id.svg", sm: "/service/m/id-20.svg" },
-  info: { lg: "/service/icon-info.svg", sm: "/service/m/info-20.svg" },
-  hat: { lg: "/service/icon-hat.svg", sm: "/service/m/hat-20.svg" },
-  user: { lg: "/service/icon-user-24.svg", sm: "/service/m/user-20.svg" },
+const CHECK_ICONS: Record<CheckIcon, LucideIcon> = {
+  hammer: Hammer,
+  id: IdCard,
+  info: Info,
+  hat: HardHat,
+  user: User,
 };
 
 // Figma "Your crew (light band)" 237:384 — five checkpoints on an orange rail
@@ -27,19 +27,19 @@ const cls = {
   inner: "site-container section-pad flex flex-col gap-[20px] max-md:px-[20px] md:gap-[40px] lg:gap-[56px]",
   intro: "m-0 text-[15px] leading-[24px] text-slate md:text-[18px] md:leading-[29px] lg:w-[440px] lg:flex-none",
 
-  // The vertical timeline runs up to lg (five cards never split unevenly).
-  track: "m-0 grid list-none grid-cols-1 p-0 lg:grid-cols-5 lg:gap-[20px]",
+  // The vertical timeline runs up to xl (at 1024 five columns were ~115px wide) (five cards never split unevenly).
+  track: "m-0 grid list-none grid-cols-1 p-0 xl:grid-cols-5 xl:gap-[20px]",
   rail: [
-    "pointer-events-none absolute top-[27px] right-[calc(20%-52px)] left-[52px] hidden h-[2px] lg:block",
+    "pointer-events-none absolute top-[27px] right-[calc(20%-52px)] left-[52px] hidden h-[2px] xl:block",
     "bg-[linear-gradient(90deg,rgba(242,105,33,0.9),rgba(242,105,33,0.35))]",
   ].join(" "),
-  step: "relative flex gap-[14px] not-last:pb-[12px] md:gap-[20px] md:not-last:pb-[16px] lg:flex-col lg:not-last:pb-0",
-  badgeRow: "flex flex-col items-center self-stretch lg:flex-row lg:gap-[8px] lg:self-auto lg:pl-[24px]",
+  step: "relative flex gap-[14px] not-last:pb-[12px] md:gap-[20px] md:not-last:pb-[16px] xl:flex-col xl:not-last:pb-0",
+  badgeRow: "flex flex-col items-center self-stretch xl:flex-row xl:gap-[8px] xl:self-auto xl:pl-[24px]",
   badge: [
     "flex size-[44px] flex-none items-center justify-center rounded-full bg-orange",
     "md:size-[56px] md:border-6 md:border-[#fef0e5]",
   ].join(" "),
-  line: "w-[2px] flex-1 bg-[rgba(242,105,33,0.35)] lg:hidden",
+  line: "w-[2px] flex-1 bg-[rgba(242,105,33,0.35)] xl:hidden",
   cleared: [
     "items-center gap-[8px] rounded-full bg-orange py-[8px] pr-[14px] pl-[10px] md:pr-[12px]",
     "text-[13px] leading-[normal] font-bold whitespace-nowrap text-white md:text-[13.5px]",
@@ -48,7 +48,7 @@ const cls = {
   card: [
     "flex min-w-0 flex-1 flex-col gap-[4px] rounded-[14px] border border-sand bg-white px-[16px] py-[14px]",
     "shadow-[0_10px_24px_rgba(99,36,0,0.07)]",
-    "md:gap-[10px] md:rounded-[18px] md:px-[24px] md:pt-[24px] md:pb-[26px] md:shadow-[0_10px_28px_rgba(99,36,0,0.06)] lg:min-h-[229px]",
+    "md:gap-[10px] md:rounded-[18px] md:px-[24px] md:pt-[24px] md:pb-[26px] md:shadow-[0_10px_28px_rgba(99,36,0,0.06)] xl:min-h-[229px]",
   ].join(" "),
   checkLabel: "m-0 text-[10.5px] leading-[normal] font-bold tracking-[1.05px] text-orange uppercase md:text-[12px] md:tracking-[1.44px]",
   checkTitle: "m-0 text-[16px] leading-[normal] font-bold text-ink md:text-[20px] md:leading-[26px]",
@@ -56,9 +56,9 @@ const cls = {
 
   sample: [
     "flex flex-col overflow-hidden rounded-[18px] border border-sand bg-white shadow-[0_10px_24px_rgba(99,36,0,0.07)]",
-    "md:rounded-[24px] md:shadow-[0_16px_40px_rgba(99,36,0,0.08)] lg:flex-row",
+    "md:rounded-[24px] md:shadow-[0_16px_40px_rgba(99,36,0,0.08)] xl:flex-row",
   ].join(" "),
-  sampleMedia: "relative h-[170px] flex-none bg-navy-card md:h-[340px] lg:h-auto lg:w-[33%] lg:max-w-[420px]",
+  sampleMedia: "relative h-[170px] flex-none bg-navy-card md:h-[340px] xl:h-auto xl:w-[33%] xl:max-w-[420px]",
   caption: [
     "absolute top-[12px] left-[12px] z-1 m-0 flex items-center gap-[6px] rounded-full bg-white/92 py-[6px] pr-[12px] pl-[8px]",
     "text-[12px] leading-[normal] font-semibold text-brown",
@@ -109,8 +109,7 @@ export default function CrewChecks({ id, content }: CrewChecksProps) {
   const cleared = (className: string) => (
     <span className={`${cls.cleared} ${className}`}>
       <span className={cls.clearedTick} aria-hidden="true">
-        <Image src="/service/m/check-orange-11.svg" alt="" width={11} height={11} className="md:hidden" />
-        <Image src="/service/icon-check-green-12.svg" alt="" width={12} height={12} className="hidden md:block" />
+        <Check strokeWidth={3} className="size-[11px] text-orange md:size-[12px] md:text-online" aria-hidden="true" />
       </span>
       {content.clearedLabel}
     </span>
@@ -125,23 +124,25 @@ export default function CrewChecks({ id, content }: CrewChecksProps) {
           <div className="relative">
             <span className={cls.rail} aria-hidden="true" />
             <ol className={cls.track} data-reveal-stagger>
-              {content.checks.map((check, index) => (
-                <li key={check.title} className={cls.step} style={{ "--i": index } as React.CSSProperties}>
-                  <div className={`${cls.badgeRow} ${index === last ? "lg:pl-[20px]" : ""}`}>
-                    <span className={cls.badge} aria-hidden="true">
-                      <Image src={CHECK_ICONS[check.icon].sm} alt="" width={20} height={20} className="md:hidden" />
-                      <Image src={CHECK_ICONS[check.icon].lg} alt="" width={24} height={24} className="hidden md:block" />
-                    </span>
-                    <span className={cls.line} aria-hidden="true" />
-                    {index === last && cleared("hidden xl:flex")}
-                  </div>
-                  <div className={cls.card}>
-                    <p className={cls.checkLabel}>{check.label}</p>
-                    <h3 className={cls.checkTitle}>{check.title}</h3>
-                    <p className={cls.checkText}>{check.text}</p>
-                  </div>
-                </li>
-              ))}
+              {content.checks.map((check, index) => {
+                const CheckIconGlyph = CHECK_ICONS[check.icon];
+                return (
+                  <li key={check.title} className={cls.step} style={{ "--i": index } as React.CSSProperties}>
+                    <div className={`${cls.badgeRow} ${index === last ? "xl:pl-[20px]" : ""}`}>
+                      <span className={cls.badge} aria-hidden="true">
+                        <CheckIconGlyph strokeWidth={1.9} className="size-[20px] text-white md:size-[24px]" aria-hidden="true" />
+                      </span>
+                      <span className={cls.line} aria-hidden="true" />
+                      {index === last && cleared("hidden xl:flex")}
+                    </div>
+                    <div className={cls.card}>
+                      <p className={cls.checkLabel}>{check.label}</p>
+                      <h3 className={cls.checkTitle}>{check.title}</h3>
+                      <p className={cls.checkText}>{check.text}</p>
+                    </div>
+                  </li>
+                );
+              })}
             </ol>
           </div>
           {cleared("flex self-start xl:hidden")}
@@ -149,11 +150,10 @@ export default function CrewChecks({ id, content }: CrewChecksProps) {
 
         <div className={cls.sample} data-reveal>
           <div className={cls.sampleMedia}>
-            <Photo image={sample.image} sizes="(min-width: 1024px) 420px, 100vw" />
+            <Photo image={sample.image} sizes="(min-width: 1280px) 420px, 100vw" />
             <p className={cls.caption}>
               <span className={cls.smallBadge} aria-hidden="true">
-                <Image src="/service/m/user-11.svg" alt="" width={11} height={11} className="md:hidden" />
-                <Image src="/service/icon-user-12.svg" alt="" width={12} height={12} className="hidden md:block" />
+                <User strokeWidth={2.4} className="size-[11px] text-white md:size-[12px]" aria-hidden="true" />
               </span>
               {sample.caption}
             </p>
@@ -184,7 +184,7 @@ export default function CrewChecks({ id, content }: CrewChecksProps) {
                     <span className="flex gap-[8px]" role="img" aria-label={ticksLabel}>
                       {sample.columns.checks.map((label) => (
                         <span key={label} className={cls.mTick}>
-                          <Image src="/service/m/check-white-11.svg" alt="" width={11} height={11} />
+                          <Check size={11} strokeWidth={3} className="text-white" aria-hidden="true" />
                         </span>
                       ))}
                     </span>
@@ -193,7 +193,7 @@ export default function CrewChecks({ id, content }: CrewChecksProps) {
               </ul>
               <div className="flex items-center gap-[10px] bg-peach-100 px-[12px] py-[11px]">
                 <span className="flex size-[26px] flex-none items-center justify-center rounded-full bg-orange" aria-hidden="true">
-                  <Image src="/service/m/flag-13.svg" alt="" width={13} height={13} />
+                  <Flag size={13} className="text-white" aria-hidden="true" />
                 </span>
                 <span className="flex min-w-0 flex-col gap-px leading-[normal]">
                   <span className="text-[13px] font-semibold text-brown">{sample.lead.title}</span>
@@ -235,7 +235,7 @@ export default function CrewChecks({ id, content }: CrewChecksProps) {
                       {sample.columns.checks.map((label) => (
                         <td key={label} className={cls.td}>
                           <span className={cls.tick}>
-                            <Image src="/service/icon-check-white-12.svg" alt={`${label} done`} width={12} height={12} />
+                            <Check size={12} strokeWidth={3} className="text-white" role="img" aria-label={`${label} done`} />
                           </span>
                         </td>
                       ))}
@@ -247,7 +247,7 @@ export default function CrewChecks({ id, content }: CrewChecksProps) {
                     <td colSpan={2 + sample.columns.checks.length} className="p-0">
                       <div className={cls.lead}>
                         <span className="flex size-[30px] flex-none items-center justify-center rounded-full bg-orange" aria-hidden="true">
-                          <Image src="/service/icon-flag.svg" alt="" width={15} height={15} />
+                          <Flag size={15} className="text-white" aria-hidden="true" />
                         </span>
                         <span className="text-[14.5px] leading-[normal] font-semibold text-brown">{sample.lead.title}</span>
                         <span className="ml-auto text-[13.5px] leading-[normal] text-slate">{sample.lead.duties}</span>
@@ -260,8 +260,7 @@ export default function CrewChecks({ id, content }: CrewChecksProps) {
 
             <div className={cls.footer}>
               <a href="#contact" className={cls.cta}>
-                <Image src="/service/m/list-16.svg" alt="" width={16} height={16} className="md:hidden" />
-                <Image src="/service/icon-list.svg" alt="" width={17} height={17} className="hidden md:block" />
+                <List className="size-[16px] text-white md:size-[17px]" aria-hidden="true" />
                 {sample.cta}
               </a>
               <p className={cls.note}>{sample.note}</p>

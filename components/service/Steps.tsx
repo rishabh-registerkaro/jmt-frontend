@@ -16,6 +16,9 @@ const cls = {
   item: [
     "flex items-center gap-[14px] rounded-[16px] border border-sand py-[10px] pr-[14px] pl-[10px]",
     "sm:flex-col sm:items-stretch sm:gap-[18px] sm:rounded-none sm:border-0 sm:p-0",
+    // Same photo zoom as the homepage service cards.
+    "[&_img]:transition-[transform] [&_img]:duration-[600ms] [&_img]:ease-site motion-reduce:[&_img]:transition-none",
+    "hover:[&_img]:[transform:scale(1.03)]",
   ].join(" "),
   photo: "relative size-[96px] flex-none overflow-hidden rounded-[12px] bg-navy-card sm:h-[240px] sm:w-auto sm:rounded-[20px]",
   shade: "absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(8,27,48,0)_45%,rgba(8,27,48,0.6)_100%)] sm:block",

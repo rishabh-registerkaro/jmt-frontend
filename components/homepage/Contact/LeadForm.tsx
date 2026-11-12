@@ -1,18 +1,22 @@
 "use client";
 
-import Image from "next/image";
+import { ArrowRight, Calendar, Check, MapPin, Phone, X, type LucideIcon } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useActionState, useEffect, useId, useRef, useState, type RefObject } from "react";
 import { submitLead } from "@/app/actions/leads";
 import {
   HONEYPOT_FIELD,
   INITIAL_LEAD_STATE,
-  LOCALE_FIELD,
   MAX_HEADCOUNT,
+  PAGE_PATH_FIELD,
+  PAGE_TITLE_FIELD,
+  SERVICES_FIELD,
   readLeadValues,
   validateLead,
 } from "@/utils/leadForm";
 import type { LeadField, LeadFormCopy, LeadFormState } from "@/types/homepage";
-import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { UI_TEXT as t } from "@/lib/uiText";
+import { useRoleSelection } from "@/components/service/RoleSelection";
 
 const cls = {
   // Mobile (<768, Figma "Homepage — Mobile 390"): 45px rounded-rect fields, sand border.
@@ -46,7 +50,7 @@ const cls = {
   error:
     "m-0 flex h-[18px] min-w-0 items-center gap-[5px] pl-[14px] text-[12.5px] leading-[18px] text-error max-md:empty:hidden",
   // Leading 16px icon inside phone / location / date fields (phones only).
-  fieldIcon: "pointer-events-none absolute top-1/2 left-[14px] z-1 size-4 -translate-y-1/2 md:hidden",
+  fieldIcon: "pointer-events-none absolute top-1/2 left-[14px] z-1 size-4 -translate-y-1/2 text-slate md:hidden",
   inputWithIcon: "max-md:pl-[38px]",
   status:
     "absolute top-full right-0 left-0 m-0 mt-[8px] truncate text-center text-[13px] leading-[18px] text-error empty:hidden focus:outline-none",
@@ -101,9 +105,7 @@ function SuccessPanel({
         aria-hidden="true"
         className="lead-success-pop flex size-[56px] xs:size-[64px] items-center justify-center rounded-full bg-success text-white shadow-[0_0_0_7px_rgba(46,125,79,0.12)] xs:shadow-[0_0_0_8px_rgba(46,125,79,0.12)]"
       >
-        <svg className="size-[26px] xs:size-[30px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M5 12.5l4.5 4.5L19 7.5" />
-        </svg>
+        <Check className="size-[26px] xs:size-[30px]" strokeWidth={2.6} aria-hidden="true" />
       </span>
       <p className="m-0 mt-[8px] text-[20px] xs:text-[24px] leading-[1.25] font-bold tracking-[-0.3px] text-ink text-balance">
         {title}
@@ -131,6 +133,70 @@ function SuccessPanel({
   );
 }
 
+/**
+ * Service pages: the roles ticked in "Roles we supply", as removable chips,
+ * with a link back up to the picker to add more. Sent as hidden fields
+ * (one SERVICES_FIELD per role) and saved on the lead as "Services requested".
+ */
+function RequestedRoles({
+  selection,
+  copy,
+}: {
+  selection: NonNullable<ReturnType<typeof useRoleSelection>>;
+  copy: { title: string; edit: string; add: string; empty: string; remove: string };
+}) {
+  const { selectedRoles, remove, rolesSectionId } = selection;
+  // Nothing to pick from (roles section hidden) and nothing picked: no block.
+  if (!rolesSectionId && selectedRoles.length === 0) return null;
+  const none = selectedRoles.length === 0;
+
+  return (
+    <div className="flex flex-col gap-[8px]">
+      {selectedRoles.map((role) => (
+        <input key={role.id} type="hidden" name={SERVICES_FIELD} value={role.name} />
+      ))}
+      <div className="flex items-center justify-between gap-[12px]">
+        <span className="text-[13px] leading-[18px] font-semibold text-ink md:text-[14px] md:leading-[22.4px]">
+          {copy.title}
+          {!none && <span className="font-normal text-slate"> ({selectedRoles.length})</span>}
+        </span>
+        {rolesSectionId && (
+          <a
+            href={`#${rolesSectionId}`}
+            className="focus-ring rounded-[6px] text-[13px] leading-[18px] font-semibold text-orange underline-offset-[3px] hover:underline"
+          >
+            {none ? copy.add : copy.edit}
+          </a>
+        )}
+      </div>
+      {none ? (
+        <p className="m-0 rounded-[12px] border border-dashed border-sand px-[14px] py-[10px] text-[13px] leading-[19px] text-slate">
+          {copy.empty}
+        </p>
+      ) : (
+        <ul className="m-0 flex list-none flex-wrap gap-[6px] p-0" aria-label={copy.title}>
+          {selectedRoles.map((role) => (
+            <li
+              key={role.id}
+              className="flex items-center gap-[4px] rounded-full border border-orange bg-peach-100 py-[4px] pr-[4px] pl-[12px] text-[13px] leading-[18px] font-semibold text-ink"
+            >
+              {role.name}
+              <button
+                type="button"
+                onClick={() => remove(role.id)}
+                aria-label={copy.remove.replace("{name}", role.name)}
+                className="focus-ring flex size-[22px] cursor-pointer items-center justify-center rounded-full text-slate transition-colors hover:bg-white hover:text-ink"
+              >
+                <X className="size-[12px]" strokeWidth={3} aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 interface FieldConfig {
   name: LeadField;
   type: "text" | "tel" | "email" | "number" | "date";
@@ -140,31 +206,36 @@ interface FieldConfig {
   maxLength?: number;
   /** Spans both columns (keeps the grid even with an odd field count). */
   wide?: boolean;
-  /** Phones: shares a row with the other half field (headcount + start date). */
+  /** Phones ≥420px: shares a row with the other half field (headcount + start date); narrower phones stack them so the date isn't clipped. */
   half?: boolean;
   /** Phones: leading icon inside the field. */
-  icon?: string;
+  icon?: LucideIcon;
 }
 
 // Two per row, in the design's order. Labels come from the admin (copy.labels).
 const FIELDS: FieldConfig[] = [
   { name: "companyName", type: "text", autoComplete: "organization", required: false },
   { name: "name", type: "text", autoComplete: "name", required: true },
-  { name: "phone", type: "tel", autoComplete: "tel", required: true, inputMode: "tel", maxLength: 20, icon: "/homepage/m/field-phone.svg" },
+  { name: "phone", type: "tel", autoComplete: "tel", required: true, inputMode: "tel", maxLength: 20, icon: Phone },
   { name: "email", type: "email", autoComplete: "email", required: true, inputMode: "email", maxLength: 254 },
-  { name: "siteLocation", type: "text", autoComplete: "address-level2", required: true, icon: "/homepage/m/field-pin.svg" },
+  { name: "siteLocation", type: "text", autoComplete: "address-level2", required: true, icon: MapPin },
   { name: "headcount", type: "number", autoComplete: "off", required: true, inputMode: "numeric", half: true },
-  { name: "startDate", type: "date", autoComplete: "off", required: false, wide: true, half: true, icon: "/homepage/m/field-cal.svg" },
+  { name: "startDate", type: "date", autoComplete: "off", required: false, wide: true, half: true, icon: Calendar },
 ];
 
 export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
-  const { locale, t } = useLanguage();
+  // Service pages only: the roles ticked in "Roles we supply" (null on the homepage).
+  const selection = useRoleSelection();
   const [state, formAction, isPending] = useActionState(submitLead, INITIAL_LEAD_STATE);
   const [dismissed, setDismissed] = useState<LeadFormState | null>(null);
   const idPrefix = useId();
   const formRef = useRef<HTMLFormElement>(null);
   const statusRef = useRef<HTMLParagraphElement>(null);
   const successRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  // document.title only exists in the browser; it is written into this hidden
+  // field at submit time, so it always matches the page the form was sent from.
+  const pageTitleRef = useRef<HTMLInputElement>(null);
 
   const showSuccess = state.status === "success" && dismissed !== state;
 
@@ -197,6 +268,7 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
 
   // Submitting runs every check first; invalid → stay here and focus the first problem.
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    if (pageTitleRef.current) pageTitleRef.current.value = document.title;
     const errors = checkFields(FIELDS.map((f) => f.name));
     const first = FIELDS.find((f) => errors[f.name]);
     if (first) {
@@ -252,7 +324,9 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
       onSubmit={onSubmit}
       aria-describedby={`${idPrefix}-status`}
     >
-      <input type="hidden" name={LOCALE_FIELD} value={locale} />
+      {/* Which page the form was sent from, shown as the lead's Source in the admin. */}
+      <input type="hidden" name={PAGE_PATH_FIELD} value={pathname ?? ""} />
+      <input ref={pageTitleRef} type="hidden" name={PAGE_TITLE_FIELD} defaultValue="" />
       <div className="grid grid-cols-2 gap-x-[10px] gap-y-[16px] md:gap-x-[16px] md:gap-y-[4px]">
         {FIELDS.map((field) => {
           const inputId = `${idPrefix}-${field.name}`;
@@ -265,7 +339,7 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
               key={field.name}
               className={[
                 "flex min-w-0 flex-col gap-[6px]",
-                field.half ? "col-span-1" : "col-span-2",
+                field.half ? "col-span-2 min-[420px]:col-span-1" : "col-span-2",
                 field.wide ? "md:col-span-2" : "md:col-span-1",
               ].join(" ")}
             >
@@ -279,7 +353,7 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
                 )}
               </label>
               <div className="relative">
-                {field.icon && <Image src={field.icon} alt="" width={16} height={16} className={cls.fieldIcon} />}
+                {field.icon && <field.icon className={cls.fieldIcon} aria-hidden="true" />}
                 <input
                   id={inputId}
                   name={field.name}
@@ -313,9 +387,7 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
                         <circle cx="10.2" cy="15.2" r="1.4" />
                       </svg>
                     ) : (
-                      <svg viewBox="0 0 24 24" className="size-[12px]" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 12.5l4.5 4.5L19 7.5" />
-                      </svg>
+                      <Check className="size-[12px]" strokeWidth={3.2} />
                     )}
                   </span>
                 )}
@@ -332,6 +404,8 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
           );
         })}
       </div>
+
+      {selection && <RequestedRoles selection={selection} copy={t.form.roles} />}
 
       {/* Honeypot: hidden from people and assistive tech, tempting to bots. */}
       <div className="sr-only" aria-hidden="true">
@@ -356,7 +430,7 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
             />
           )}
           {isPending ? copy.submitting : copy.submit}
-          {!isPending && <Image src="/homepage/icon-arrow-right-white-form.svg" alt="" width={18} height={18} />}
+          {!isPending && <ArrowRight size={18} className="text-white" aria-hidden="true" />}
         </button>
         <p
           id={`${idPrefix}-status`}

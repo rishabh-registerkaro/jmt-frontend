@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import Photo from "@/components/common/Photo";
 import type { RelatedService, ServiceSectionCopy } from "@/types/service";
 import SectionHeader from "./SectionHeader";
@@ -47,8 +47,7 @@ export default function RelatedServices({ id, copy, services }: RelatedServicesP
                 <a href={service.href} className={cls.link}>
                   {service.cta}
                   <span className="sr-only">: {service.title}</span>
-                  <Image src="/service/m/arrow-white-14.svg" alt="" width={14} height={14} className="md:hidden" />
-                  <Image src="/service/icon-arrow-brown-16.svg" alt="" width={16} height={16} className="hidden md:block" />
+                  <ArrowRight className="size-[14px] text-white md:size-[16px] md:text-brown" aria-hidden="true" />
                 </a>
               </div>
             </li>

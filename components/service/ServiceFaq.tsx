@@ -1,8 +1,8 @@
-import Image from "next/image";
+import { MessageCircle, Phone } from "lucide-react";
 import Photo from "@/components/common/Photo";
 import type { ContactInfo } from "@/types/homepage";
 import type { ServiceFaqContent } from "@/types/service";
-import type { Dictionary } from "@/lib/i18n";
+import { UI_TEXT as t } from "@/lib/uiText";
 import { AccentTitle, Eyebrow, SECTION_TITLE } from "./SectionHeader";
 import ServiceFaqList from "./ServiceFaqList";
 
@@ -10,13 +10,14 @@ interface ServiceFaqProps {
   id: string;
   content: ServiceFaqContent;
   contact: ContactInfo;
-  t: Dictionary;
 }
 
 // Figma "Service FAQ" 237:700 — founder photo card 440 | questions 792, gap 48.
 const cls = {
   split: "grid grid-cols-1 gap-[20px] md:gap-[32px] lg:grid-cols-[minmax(0,440fr)_minmax(0,792fr)] lg:gap-[48px]",
-  card: "relative isolate flex min-h-[300px] flex-col justify-end overflow-hidden rounded-[18px] bg-navy-card md:min-h-[520px] md:rounded-[20px] lg:order-first lg:min-h-[774px]",
+  // lg: fixed height, pinned to the top of the row. As a stretched grid item it
+  // grew whenever an answer opened, re-cropping the photo; now it never moves.
+  card: "relative isolate flex min-h-[300px] flex-col justify-end overflow-hidden rounded-[18px] bg-navy-card md:min-h-[520px] md:rounded-[20px] lg:order-first lg:h-[774px] lg:min-h-0 lg:self-start",
   shade: "absolute inset-0 bg-[linear-gradient(180deg,rgba(8,27,48,0)_30%,rgba(8,27,48,0.9)_100%)] md:bg-[linear-gradient(180deg,rgba(8,27,48,0)_45%,rgba(8,27,48,0.9)_100%)]",
   caption: "relative z-1 flex flex-col items-start gap-[10px] px-[18px] pb-[18px] md:gap-[14px] md:px-[28px] md:pb-[28px]",
   kicker: "m-0 text-[11px] leading-[normal] font-bold tracking-[1.32px] text-peach-200 uppercase md:text-[12px] md:tracking-[1.44px]",
@@ -30,7 +31,7 @@ const cls = {
   ].join(" "),
 };
 
-export default function ServiceFaq({ id, content, contact, t }: ServiceFaqProps) {
+export default function ServiceFaq({ id, content, contact }: ServiceFaqProps) {
   const { card } = content;
   const whatsappHref = contact.whatsappHref ?? "#contact";
   const whatsappIsExternal = whatsappHref.startsWith("http");
@@ -60,8 +61,7 @@ export default function ServiceFaq({ id, content, contact, t }: ServiceFaqProps)
               <p className={cls.role}>{card.role}</p>
               <div className="flex flex-wrap gap-[10px]">
                 <a href={contact.phoneHref ?? "#contact"} className={cls.call}>
-                  <Image src="/service/m/phone-15.svg" alt="" width={15} height={15} className="md:hidden" />
-                  <Image src="/service/icon-phone-17.svg" alt="" width={17} height={17} className="hidden md:block" />
+                  <Phone className="size-[15px] text-white md:size-[17px]" aria-hidden="true" />
                   {card.call}
                 </a>
                 <a
@@ -69,8 +69,7 @@ export default function ServiceFaq({ id, content, contact, t }: ServiceFaqProps)
                   className={cls.whatsapp}
                   {...(whatsappIsExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                 >
-                  <Image src="/service/m/msg-15.svg" alt="" width={15} height={15} className="md:hidden" />
-                  <Image src="/service/icon-msg-white-17.svg" alt="" width={17} height={17} className="hidden md:block" />
+                  <MessageCircle className="size-[15px] text-white md:size-[17px]" aria-hidden="true" />
                   {card.whatsapp}
                   {whatsappIsExternal && <span className="sr-only"> {t.opensWhatsApp}</span>}
                 </a>

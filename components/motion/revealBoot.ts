@@ -1,4 +1,4 @@
-// Inline script for app/[lang]/layout.tsx. Runs while the HTML is parsed,
+// Inline script for app/layout.tsx. Runs while the HTML is parsed,
 // before first paint, and adds html.reveal-ready unless the visitor prefers
 // reduced motion. That class enables the hero entrance and the scroll
 // reveals (styles/public.css, ScrollReveal.tsx). Without JS it's never set,

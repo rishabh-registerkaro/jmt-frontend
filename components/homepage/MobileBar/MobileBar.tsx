@@ -1,13 +1,12 @@
-import Image from "next/image";
+import { ArrowRight, MessageCircle, Phone } from "lucide-react";
 import type { ContactInfo } from "@/types/homepage";
-import type { Dictionary } from "@/lib/i18n";
+import { UI_TEXT as t } from "@/lib/uiText";
 
 interface MobileBarProps {
   contact: ContactInfo;
   /** Main CTA (same label and target as the hero's primary button). */
   ctaLabel: string;
   ctaHref: string;
-  t: Dictionary;
 }
 
 // Figma "Homepage — Mobile 390" → "Sticky bottom bar (fixed)". Phones only;
@@ -26,14 +25,14 @@ const cls = {
   cta: "btn-primary min-w-0 flex-1 gap-2 px-5 py-[14px] text-[15.5px] leading-[21px] [--btn-h:49px]",
 };
 
-export default function MobileBar({ contact, ctaLabel, ctaHref, t }: MobileBarProps) {
+export default function MobileBar({ contact, ctaLabel, ctaHref }: MobileBarProps) {
   const whatsappHref = contact.whatsappHref ?? "#contact";
   const whatsappIsExternal = whatsappHref.startsWith("http");
 
   return (
     <nav className={cls.bar} aria-label={t.bar.label}>
       <a href={contact.phoneHref ?? "#contact"} className={cls.action}>
-        <Image src="/homepage/m/phone-brown.svg" alt="" width={19} height={19} />
+        <Phone size={19} className="text-brown" aria-hidden="true" />
         {t.bar.call}
       </a>
       <a
@@ -41,13 +40,13 @@ export default function MobileBar({ contact, ctaLabel, ctaHref, t }: MobileBarPr
         className={cls.action}
         {...(whatsappIsExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       >
-        <Image src="/homepage/m/msg-bar.svg" alt="" width={19} height={19} />
+        <MessageCircle size={19} className="text-brown" aria-hidden="true" />
         {t.bar.whatsapp}
         {whatsappIsExternal && <span className="sr-only"> {t.opensWhatsApp}</span>}
       </a>
       <a href={ctaHref} className={cls.cta}>
         <span className="truncate">{ctaLabel}</span>
-        <Image src="/homepage/icon-arrow-right-white.svg" alt="" width={18} height={18} />
+        <ArrowRight size={18} className="text-white" aria-hidden="true" />
       </a>
     </nav>
   );

@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
+import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { SiteTypeCard } from "@/types/homepage";
 import Photo from "@/components/common/Photo";
-import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { UI_TEXT as t } from "@/lib/uiText";
 
 interface SitesCarouselProps {
   sites: SiteTypeCard[];
@@ -13,7 +13,6 @@ interface SitesCarouselProps {
 }
 
 export default function SitesCarousel({ sites, children }: SitesCarouselProps) {
-  const { t } = useLanguage();
   const trackRef = useRef<HTMLUListElement>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(true);
@@ -72,7 +71,7 @@ export default function SitesCarousel({ sites, children }: SitesCarouselProps) {
             aria-label={t.sites.previous}
             aria-controls="sites-track"
           >
-            <Image src="/homepage/icon-arrow-left-dark.svg" alt="" width={20} height={20} className="size-4 md:size-5" />
+            <ArrowLeft className="size-4 text-navy md:size-5" aria-hidden="true" />
           </button>
           <button
             type="button"
@@ -82,8 +81,7 @@ export default function SitesCarousel({ sites, children }: SitesCarouselProps) {
             aria-label={t.sites.next}
             aria-controls="sites-track"
           >
-            <Image src="/homepage/icon-arrow-right-white.svg" alt="" width={16} height={16} className="md:hidden" />
-            <Image src="/homepage/icon-arrow-right-dark.svg" alt="" width={20} height={20} className="hidden md:block" />
+            <ArrowRight className="size-4 text-white md:size-5 md:text-navy" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -97,13 +95,7 @@ export default function SitesCarousel({ sites, children }: SitesCarouselProps) {
                   <Photo image={site.image} sizes="(min-width: 768px) 320px, 250px" />
                   {site.href && (
                     <span className={cls.arrow} aria-hidden="true">
-                      <Image
-                        src="/homepage/icon-arrow-up-right-dark.svg"
-                        alt=""
-                        width={18}
-                        height={18}
-                        className="size-[15px] md:size-[18px]"
-                      />
+                      <ArrowUpRight className="size-[15px] text-navy md:size-[18px]" aria-hidden="true" />
                     </span>
                   )}
                 </>

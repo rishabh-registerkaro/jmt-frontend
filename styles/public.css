@@ -90,8 +90,6 @@
    so they must stay var() references (inline). */
 @theme inline {
   --font-site: var(--font-manrope), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-bengali: var(--font-noto-bengali), var(--font-manrope), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-devanagari: var(--font-noto-devanagari), var(--font-manrope), system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 /* Anchor jumps land below the sticky navbar; smooth only when motion is OK. */
@@ -342,70 +340,6 @@ html:has(.site) {
   pointer-events: none;
 }
 
-/* ── Bengali / Hindi pages (/bn, /hi) ──────────────────────────────────────
-   app/[lang]/layout.tsx renders <html lang="bn|hi">. These rules are not in a
-   cascade layer, so they win over the Tailwind utilities on the same element.
-   Goal: the translated page keeps the English page's layout. Devanagari and
-   Bengali glyphs are taller (matras above and below the line) and the words
-   run longer, so headings get a bit more line-height, a slightly smaller size,
-   balanced wrapping (no single orphaned word) and no negative tracking, which
-   would squeeze conjuncts together. */
-html[lang="bn"] .site {
-  font-family: var(--font-bengali);
-}
-html[lang="hi"] .site {
-  font-family: var(--font-devanagari);
-}
-
-html:is([lang="bn"], [lang="hi"]) .site :is(h1, h2, h3) {
-  line-height: 1.35;
-  letter-spacing: 0;
-  text-wrap: balance;
-}
-
-/* Display headings at 92% of the English size (same fluid curve). */
-html:is([lang="bn"], [lang="hi"]) .site .heading-xl {
-  font-size: calc(30px * 0.92);
-}
-@media (width >= 48rem) {
-  html:is([lang="bn"], [lang="hi"]) .site .heading-xl {
-    font-size: calc(clamp(32px, 24.9577464789px + 1.8779342723vw, 52px) * 0.92);
-  }
-}
-html:is([lang="bn"], [lang="hi"]) .site #hero-title {
-  font-size: calc(42px * 0.92);
-}
-@media (width >= 48rem) {
-  html:is([lang="bn"], [lang="hi"]) .site #hero-title {
-    font-size: calc(clamp(40px, 28.7323943662px + 3.0046948357vw, 72px) * 0.92);
-  }
-}
-
-/* Wide tracking (eyebrows, badges: tracking-[2.1px] etc.) splits Bengali and
-   Devanagari words into loose letters; these scripts have no capitals anyway. */
-html:is([lang="bn"], [lang="hi"]) .site :is(.eyebrow, [class*="tracking-"]) {
-  letter-spacing: 0;
-}
-
-/* Body copy: no orphans in short blocks. */
-html:is([lang="bn"], [lang="hi"]) .site p {
-  text-wrap: pretty;
-}
-
-/* Header and CTAs never wrap or shrink, so the navbar keeps its height and
-   alignment in every language. */
-html:is([lang="bn"], [lang="hi"]) .site :is(.btn-base, .btn-primary, .btn-outline, .eyebrow) {
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-/* Desktop navbar row only — the mobile drawer has room to wrap long links. */
-@media (width >= 64rem) {
-  html:is([lang="bn"], [lang="hi"]) .site header nav :is(a, button) {
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-}
-
 /* Lead form thank-you check mark */
 @keyframes lead-success-pop {
   0% { transform: scale(0.4); opacity: 0; }
@@ -421,23 +355,28 @@ html:is([lang="bn"], [lang="hi"]) .site :is(.btn-base, .btn-primary, .btn-outlin
 
 /* ───────────────────────── Hero entrance ─────────────────────────
    Staggered on page load (.reveal* in HeroSection.tsx, --d = delay). Runs only
-   under html.reveal-ready, which the boot script in app/[lang]/layout.tsx sets
+   under html.reveal-ready, which the boot script in app/layout.tsx sets
    before first paint unless the visitor prefers reduced motion. */
 html.reveal-ready .reveal { animation: reveal-up 900ms var(--d, 0ms) var(--ease-site) backwards; }
-html.reveal-ready .reveal-clip { animation: reveal-clip 1100ms var(--d, 0ms) var(--ease-site) backwards; }
+/* Page <h1>s. No delay: on mobile the heading is often the LCP element. */
+html.reveal-ready .reveal-clip { animation: reveal-clip 700ms var(--ease-site) backwards; }
 html.reveal-ready .reveal-zoom { animation: reveal-zoom 1600ms var(--d, 0ms) var(--ease-site) backwards; }
 
 @keyframes reveal-up {
   from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: none; }
 }
+/* Slide only — no fade, no clip mask: text at opacity 0 or fully clipped
+   doesn't count as painted, which held LCP back ~0.4–1.4s on mobile. */
 @keyframes reveal-clip {
-  from { opacity: 0; transform: translateY(40px); clip-path: inset(0 0 100% 0); }
-  to { opacity: 1; transform: none; clip-path: inset(-20% -10% -20% -10%); }
+  from { transform: translateY(16px); }
+  to { transform: none; }
 }
+/* Scale only, no fade: the hero photo is the LCP element, and an element at
+   opacity 0 doesn't count as painted — fading it in held LCP back ~1.6s. */
 @keyframes reveal-zoom {
-  from { opacity: 0; transform: scale(1.08); }
-  to { opacity: 1; transform: none; }
+  from { transform: scale(1.08); }
+  to { transform: none; }
 }
 @keyframes reveal-failsafe-show { to { opacity: 1; } }
 
@@ -521,4 +460,20 @@ html.reveal-ready:not(.reveal-armed) [data-reveal-stagger]:not(.is-inview) > * {
     animation: none !important;
     opacity: 1 !important;
   }
+}
+
+/* ───────────────────────── About page role marquee ─────────────────────────
+   components/about/AboutTrades.tsx: each row holds its pills twice, so moving
+   it by half its width loops seamlessly. --marquee-duration per row;
+   data-reverse runs a row the other way; hover pauses it. */
+@keyframes about-marquee {
+  to { transform: translateX(-50%); }
+}
+.about-marquee {
+  animation: about-marquee var(--marquee-duration, 60s) linear infinite;
+}
+.about-marquee[data-reverse] { animation-direction: reverse; }
+.about-marquee:hover { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .about-marquee { animation: none; }
 }

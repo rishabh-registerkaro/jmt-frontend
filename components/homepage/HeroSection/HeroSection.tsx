@@ -1,19 +1,25 @@
 import Image from "next/image";
+import { ArrowRight, Headphones, MessageCircle, ShieldCheck, Zap, type LucideIcon } from "lucide-react";
+import type { IconType } from "react-icons";
+import { MdOutlineSupportAgent, MdOutlineVerifiedUser } from "react-icons/md";
+import { SiWhatsapp } from "react-icons/si";
+import { TbBolt } from "react-icons/tb";
 import type { ContactInfo, HeroContent, HeroTrustIcon } from "@/types/homepage";
 import Photo from "@/components/common/Photo";
-import type { Dictionary } from "@/lib/i18n";
+import { UI_TEXT as t } from "@/lib/uiText";
 
 interface HeroSectionProps {
   content: HeroContent;
   contact: ContactInfo;
-  t: Dictionary;
 }
 
-// `mobile`: the 16px outline icons from Figma "Homepage — Mobile 390".
-const TRUST_ICONS: Record<HeroTrustIcon, { src: string; size: number; mobile: string }> = {
-  verified: { src: "/homepage/icon-verified-user.svg", size: 24, mobile: "/homepage/m/shield-brown.svg" },
-  fast: { src: "/homepage/icon-lightning-fast.svg", size: 24, mobile: "/homepage/m/bolt-brown.svg" },
-  support: { src: "/homepage/icon-person-support.svg", size: 28, mobile: "/homepage/m/support-brown.svg" },
+// `mobile`: the 16px Lucide outline icons from Figma "Homepage — Mobile 390".
+// `desktop`: Figma's desktop trust icons (Material verified-user and support-agent;
+// Tabler bolt for the lightning icon).
+const TRUST_ICONS: Record<HeroTrustIcon, { desktop: IconType; size: number; mobile: LucideIcon }> = {
+  verified: { desktop: MdOutlineVerifiedUser, size: 24, mobile: ShieldCheck },
+  fast: { desktop: TbBolt, size: 24, mobile: Zap },
+  support: { desktop: MdOutlineSupportAgent, size: 26, mobile: Headphones },
 };
 
 // Desktop: photo fills the section, two blurred peach washes fade it out
@@ -68,7 +74,7 @@ const cls = {
 // Staggered entrance on page load (.reveal* in styles/public.css).
 const delay = (ms: number) => ({ "--d": `${ms}ms` }) as React.CSSProperties;
 
-export default function HeroSection({ content, contact, t }: HeroSectionProps) {
+export default function HeroSection({ content, contact }: HeroSectionProps) {
   const whatsappHref = contact.whatsappHref ?? "#contact";
   const whatsappIsExternal = whatsappHref.startsWith("http");
 
@@ -81,7 +87,7 @@ export default function HeroSection({ content, contact, t }: HeroSectionProps) {
               <span className={cls.dot} aria-hidden="true" />
               {content.eyebrow}
             </p>
-            <h1 id="hero-title" className={`${cls.title} reveal-clip`} style={delay(360)}>
+            <h1 id="hero-title" className={`${cls.title} reveal-clip`}>
               {content.titleLead}{" "}
               <span className={cls.accent}>{content.titleAccent}</span>{" "}
               {content.titleTail}
@@ -92,7 +98,7 @@ export default function HeroSection({ content, contact, t }: HeroSectionProps) {
           <div className={`${cls.ctas} reveal`} style={delay(620)}>
             <a href={content.primaryHref} className={`btn-primary ${cls.button}`}>
               {content.primaryCta}
-              <Image src="/homepage/icon-arrow-right-white.svg" alt="" width={18} height={18} />
+              <ArrowRight size={18} className="text-white" aria-hidden="true" />
             </a>
             <a href={content.secondaryHref} className={`btn-outline ${cls.button} max-md:border-[1.2px]`}>
               {content.secondaryCta}
@@ -102,8 +108,8 @@ export default function HeroSection({ content, contact, t }: HeroSectionProps) {
               className={cls.whatsapp}
               {...(whatsappIsExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             >
-              <Image src="/homepage/m/msg-brown.svg" alt="" width={18} height={18} className="md:hidden" />
-              <Image src="/homepage/icon-whatsapp-fill.svg" alt="" width={24} height={24} className="hidden md:block" />
+              <MessageCircle size={18} className="text-brown md:hidden" aria-hidden="true" />
+              <SiWhatsapp size={22} className="hidden flex-none text-brown md:block" aria-hidden="true" />
               {content.whatsappCta}
               {whatsappIsExternal && <span className="sr-only"> {t.opensWhatsApp}</span>}
             </a>
@@ -114,8 +120,8 @@ export default function HeroSection({ content, contact, t }: HeroSectionProps) {
               const icon = TRUST_ICONS[point.icon];
               return (
                 <li key={point.label} className={`${cls.trustItem} reveal`} style={delay(720 + i * 90)}>
-                  <Image src={icon.mobile} alt="" width={16} height={16} className="md:hidden" />
-                  <Image src={icon.src} alt="" width={icon.size} height={icon.size} className="hidden md:block" />
+                  <icon.mobile size={16} className="text-brown md:hidden" aria-hidden="true" />
+                  <icon.desktop size={icon.size} className="hidden flex-none text-brown md:block" aria-hidden="true" />
                   {point.label}
                 </li>
               );

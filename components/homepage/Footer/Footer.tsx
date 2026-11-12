@@ -1,13 +1,11 @@
+import { breakable } from "@/components/common/BreakableText";
 import Image from "next/image";
 import Link from "next/link";
-import { localePath, type Locale } from "@/lib/i18n";
+import { UI_TEXT } from "@/lib/uiText";
 import type { NavChildLink, SiteChrome } from "@/types/homepage";
 
 interface FooterProps {
   chrome: SiteChrome;
-  lang: Locale;
-  /** "home" in the page language, for the logo link's screen-reader label. */
-  homeLabel: string;
 }
 
 // footer__link / footer__text share the type; links add hover + focus.
@@ -19,19 +17,19 @@ function isExternal(href: string): boolean {
 }
 
 function FooterLink({ link }: { link: NavChildLink }) {
-  if (!link.href) return <span className={footerText}>{link.label}</span>;
+  if (!link.href) return <span className={footerText}>{breakable(link.label)}</span>;
   return (
     <a
       href={link.href}
       className={footerLink}
       {...(isExternal(link.href) ? { target: "_blank", rel: "noopener noreferrer" } : {})}
     >
-      {link.label}
+      {breakable(link.label)}
     </a>
   );
 }
 
-export default function Footer({ chrome, lang, homeLabel }: FooterProps) {
+export default function Footer({ chrome }: FooterProps) {
   const { contact } = chrome;
   const contactLinks: NavChildLink[] = [
     { label: contact.phoneDisplay, href: contact.phoneHref },
@@ -56,10 +54,10 @@ export default function Footer({ chrome, lang, homeLabel }: FooterProps) {
       >
         <div className="flex max-w-[330px] flex-col gap-7 md:max-w-[320px] md:gap-4 xl:flex-[0_0_278px]" data-reveal>
           <Link
-            href={localePath(lang)}
+            href="/"
             className="notranslate inline-flex self-start rounded-[8px] focus-ring"
             translate="no"
-            aria-label={`${chrome.brand.name || chrome.brand.footerLogo.alt} — ${homeLabel}`}
+            aria-label={`${chrome.brand.name || chrome.brand.footerLogo.alt} — ${UI_TEXT.nav.home}`}
           >
             <Image src={chrome.brand.footerLogo.src} alt="" width={chrome.brand.footerLogo.width} height={chrome.brand.footerLogo.height} className="block h-auto w-[150px] md:w-[220px] lg:w-[267px]" />
           </Link>
@@ -73,9 +71,11 @@ export default function Footer({ chrome, lang, homeLabel }: FooterProps) {
         <div
           className={[
             // Phones: link columns in pairs, the contact column on its own row.
-            "grid flex-auto grid-cols-2 gap-x-5 gap-y-7 md:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] md:gap-8",
+            // md: link columns share the space; the contact column sizes to its email.
+            "grid flex-auto grid-cols-2 gap-x-5 gap-y-7 md:grid-cols-[repeat(var(--footer-cols),minmax(0,1fr))_max-content] md:gap-8",
             "xl:flex xl:flex-wrap xl:justify-between",
           ].join(" ")}
+          style={{ "--footer-cols": chrome.footerColumns.length } as React.CSSProperties}
           data-reveal-stagger
         >
           {columns.map((column) => (

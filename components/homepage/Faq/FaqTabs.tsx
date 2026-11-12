@@ -1,18 +1,19 @@
 "use client";
 
-import Image from "next/image";
+import PlusMinus from "@/components/common/PlusMinus";
+import { Building2, HardHat, type LucideIcon } from "lucide-react";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import type { FaqAudience, FaqGroup } from "@/types/homepage";
 import { JOIN_CREW_ANCHOR } from "./anchors";
-import { useLanguage } from "@/components/i18n/LanguageProvider";
+import { UI_TEXT as t } from "@/lib/uiText";
 
 interface FaqTabsProps {
   groups: FaqGroup[];
 }
 
-const ICON_CLASS: Record<FaqAudience, string> = {
-  companies: "[mask-image:url(/homepage/icon-companies.svg)]",
-  workers: "[mask-image:url(/homepage/icon-workers.svg)]",
+const TAB_ICONS: Record<FaqAudience, LucideIcon> = {
+  companies: Building2,
+  workers: HardHat,
 };
 
 const cls = {
@@ -24,7 +25,7 @@ const cls = {
   ].join(" "),
   tab: [
     "inline-flex min-w-0 flex-none items-center justify-center gap-[6px] px-[14px] py-[9px]",
-    // Under 375px the Bengali/Hindi labels are too long for 14px padding.
+    // Under 375px long labels don't fit 14px padding.
     "max-[374px]:gap-[4px] max-[374px]:px-[9px] max-[374px]:text-[13.5px]",
     "md:gap-[8px] md:px-[18px] md:py-0",
     "cursor-pointer appearance-none rounded-full whitespace-nowrap",
@@ -37,14 +38,9 @@ const cls = {
     "rounded-full px-[7px] py-px text-[11.5px] leading-[16px] font-bold md:rounded-none md:bg-transparent md:p-0 md:text-[12.5px] md:leading-[20px] md:font-semibold",
   countIdle: "bg-white text-slate md:text-inherit",
   countActive: "bg-white/25 text-white",
-  // The design ships white/orange variants of each icon; masking one shape with
-  // currentColor keeps a single asset per icon and follows the tab state.
-  // Both tab labels only fit side by side on the smallest phones without icons
-  // (hidden below 375px).
-  icon: [
-    "hidden size-[17px] flex-none bg-current md:block",
-    "[mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]",
-  ].join(" "),
+  // Icons draw in currentColor, so they follow the tab state (white/orange).
+  // Tab icons only show from md up.
+  icon: "hidden size-[17px] flex-none md:block",
   item: [
     "rounded-[12px] border md:rounded-[20px]",
     "transition-[background-color,border-color,filter] duration-240 ease-[ease] motion-reduce:transition-none",
@@ -74,7 +70,6 @@ const cls = {
 };
 
 export default function FaqTabs({ groups }: FaqTabsProps) {
-  const { t } = useLanguage();
   const idPrefix = useId();
   const [activeIndex, setActiveIndex] = useState(0);
   // One open question per audience; the first starts open, as in the design.
@@ -94,7 +89,7 @@ export default function FaqTabs({ groups }: FaqTabsProps) {
     };
     const onClick = (event: MouseEvent) => {
       const link = (event.target as Element | null)?.closest?.("a[href]");
-      // Navbar links may carry the home path ("/#join-our-crew", "/bn#…").
+      // Navbar links may carry the home path ("/#join-our-crew").
       if (link?.getAttribute("href")?.endsWith(hash)) showWorkers();
     };
 
@@ -149,6 +144,7 @@ export default function FaqTabs({ groups }: FaqTabsProps) {
       <div className={cls.list} role="tablist" aria-label={t.faq.tabs}>
         {groups.map((group, index) => {
           const selected = index === activeIndex;
+          const TabIcon = TAB_ICONS[group.audience];
           return (
             <button
               key={group.audience}
@@ -165,7 +161,7 @@ export default function FaqTabs({ groups }: FaqTabsProps) {
               onClick={() => setActiveIndex(index)}
               onKeyDown={onTabKeyDown}
             >
-              <span className={`${cls.icon} ${ICON_CLASS[group.audience]}`} aria-hidden="true" />
+              <TabIcon className={cls.icon} strokeWidth={1.75} aria-hidden="true" />
               <span className="text-[13.5px] leading-[18px] font-semibold md:text-[14.5px] md:leading-[23.2px]">
                 {group.label}
               </span>
@@ -200,21 +196,13 @@ export default function FaqTabs({ groups }: FaqTabsProps) {
                     onClick={() => toggle(item.id)}
                   >
                     <span className={cls.question}>{item.question}</span>
-                    <span className={`${cls.badge} ${open ? "bg-orange" : "bg-input-bg"}`} aria-hidden="true">
-                      <Image
-                        src={open ? "/homepage/m/x-white.svg" : "/homepage/m/plus.svg"}
-                        alt=""
-                        width={13}
-                        height={13}
-                      />
+                    <span
+                      className={`${cls.badge} ${open ? "bg-orange text-white" : "bg-input-bg text-ink"}`}
+                      aria-hidden="true"
+                    >
+                      <PlusMinus open={open} size={13} />
                     </span>
-                    <Image
-                      src={open ? "/homepage/icon-close.svg" : "/homepage/icon-plus.svg"}
-                      alt=""
-                      width={20}
-                      height={20}
-                      className="hidden flex-none md:block"
-                    />
+                    <PlusMinus open={open} size={20} strokeWidth={1.45} className="hidden text-navy md:block" />
                   </button>
                 </h3>
                 <div
