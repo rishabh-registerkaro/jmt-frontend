@@ -9,10 +9,11 @@ interface HeroSectionProps {
   t: Dictionary;
 }
 
-const TRUST_ICONS: Record<HeroTrustIcon, { src: string; size: number }> = {
-  verified: { src: "/homepage/icon-verified-user.svg", size: 24 },
-  fast: { src: "/homepage/icon-lightning-fast.svg", size: 24 },
-  support: { src: "/homepage/icon-person-support.svg", size: 28 },
+// `mobile`: the 16px outline icons from Figma "Homepage — Mobile 390".
+const TRUST_ICONS: Record<HeroTrustIcon, { src: string; size: number; mobile: string }> = {
+  verified: { src: "/homepage/icon-verified-user.svg", size: 24, mobile: "/homepage/m/shield-brown.svg" },
+  fast: { src: "/homepage/icon-lightning-fast.svg", size: 24, mobile: "/homepage/m/bolt-brown.svg" },
+  support: { src: "/homepage/icon-person-support.svg", size: 28, mobile: "/homepage/m/support-brown.svg" },
 };
 
 // Desktop: photo fills the section, two blurred peach washes fade it out
@@ -20,30 +21,36 @@ const TRUST_ICONS: Record<HeroTrustIcon, { src: string; size: number }> = {
 // the copy as its own block so text never sits on a busy image. (The wash only
 // clears the 659px copy column from ~1280px; at 1024 the copy ran onto the photo.)
 const cls = {
-  hero: "relative isolate flex flex-col overflow-hidden bg-hero-wash-2 xl:min-h-[643px] xl:justify-center xl:bg-navy",
-  inner: "site-container relative z-2 pt-[40px] pb-[32px] xl:py-[60px]",
+  // Mobile (<768, Figma "Homepage — Mobile 390"): peach gradient, 32px block
+  // padding, 20px rhythm, photo as a rounded card inside the gutters.
+  hero: "relative isolate flex flex-col overflow-hidden bg-linear-to-b from-hero-wash-1 to-hero-wash-2 pb-8 md:bg-none md:bg-hero-wash-2 md:pb-0 xl:min-h-[643px] xl:justify-center xl:bg-navy",
+  inner: "site-container relative z-2 pt-8 pb-5 md:pt-[40px] md:pb-[32px] xl:py-[60px]",
   content:
-    "flex max-w-[659px] flex-col gap-[28px] xl:min-h-[523px] xl:justify-between xl:gap-[40px]",
-  intro: "flex flex-col gap-[18px]",
+    "flex max-w-[659px] flex-col gap-5 md:gap-[28px] xl:min-h-[523px] xl:justify-between xl:gap-[40px]",
+  intro: "flex flex-col gap-5 md:gap-[18px]",
   eyebrow:
-    "m-0 flex items-center gap-[10px] text-[13px] leading-[20.8px] font-semibold tracking-[2.1px] text-brown uppercase",
-  dot: "size-[7px] flex-none rounded-[50px] bg-brown",
+    "m-0 flex items-center gap-2 text-[12px] leading-[16px] font-semibold tracking-[1.2px] text-brown uppercase md:gap-[10px] md:text-[13px] md:leading-[20.8px] md:tracking-[2.1px]",
+  dot: "size-[6px] flex-none rounded-[50px] bg-brown md:size-[7px]",
   title:
-    "m-0 text-[clamp(40px,28.7323943662px+3.0046948357vw,72px)] leading-[1.05] font-semibold tracking-[-1.4px] text-brown",
-  accent: "font-extrabold text-orange",
+    "m-0 text-[42px] leading-[46px] font-bold tracking-[-0.84px] text-brown md:text-[clamp(40px,28.7323943662px+3.0046948357vw,72px)] md:leading-[1.05] md:font-semibold md:tracking-[-1.4px]",
+  accent: "font-bold text-orange md:font-extrabold",
   subtitle:
-    "m-0 max-w-[629px] text-[clamp(16px,14.9436619718px+0.2816901408vw,19px)] leading-[1.6] font-normal tracking-[0] text-brown-soft",
-  ctas: "flex flex-wrap items-center gap-x-[20px] gap-y-[12px]",
+    "m-0 max-w-[629px] text-[16px] leading-[25px] font-normal tracking-[0] text-[#5c280c] md:text-[clamp(16px,14.9436619718px+0.2816901408vw,19px)] md:leading-[1.6] md:text-brown-soft",
+  ctas: "flex flex-col items-stretch gap-[10px] md:flex-row md:flex-wrap md:items-center md:gap-x-[20px] md:gap-y-[12px]",
+  // Mobile: full-width 49px buttons, 15.5px label, 1.2px outline.
+  button:
+    "max-md:w-full max-md:[--btn-h:49px] max-md:py-[14px] max-md:text-[15.5px] max-md:leading-[21px]",
   whatsapp: [
-    "inline-flex min-h-[44px] items-center gap-[8px] rounded-[6px]",
-    "text-[15px] leading-[24px] font-medium text-brown no-underline",
+    "inline-flex min-h-[20px] items-center justify-center gap-[8px] rounded-[6px] md:min-h-[44px] md:justify-start",
+    "text-[15px] leading-[20px] font-semibold text-brown no-underline md:leading-[24px] md:font-medium",
     "focus-ring hover:underline hover:underline-offset-[3px]",
   ].join(" "),
-  trust: "flex flex-wrap items-center gap-x-[24px] gap-y-[4px] md:max-w-[557px] md:justify-between",
-  trustItem: "flex min-h-[44px] items-center gap-[8px] text-[15px] leading-[24px] font-medium text-brown",
+  trust: "flex flex-wrap items-center gap-x-[14px] gap-y-[10px] md:max-w-[557px] md:justify-between md:gap-x-[24px] md:gap-y-[4px]",
+  trustItem:
+    "flex min-h-[18px] items-center gap-[6px] text-[13.5px] leading-[18px] font-medium text-brown md:min-h-[44px] md:gap-[8px] md:text-[15px] md:leading-[24px]",
 
   // ── Background layers ──
-  media: "relative z-0 h-[280px] overflow-hidden md:h-[380px] xl:absolute xl:inset-0 xl:h-auto",
+  media: "relative z-0 mx-5 h-[240px] overflow-hidden rounded-[18px] md:mx-0 md:h-[380px] md:rounded-none xl:absolute xl:inset-0 xl:h-auto",
   // Figma builds this fade from two blurred, rotated rectangles (Rectangles 9
   // and 10). Their CSS export doesn't render like Figma does, so this single
   // gradient is fitted to the rendered frame instead: solid peach to x≈650px,
@@ -53,7 +60,7 @@ const cls = {
     "bg-[linear-gradient(85deg,#f7dcc5_0%,#f7dcc5_44%,rgba(247,220,197,0.92)_48%,rgba(247,220,197,0.55)_53%,rgba(247,220,197,0.18)_57%,rgba(247,220,197,0)_61%)]",
   ].join(" "),
   mandala: [
-    "pointer-events-none absolute top-[12px] left-[-40px] z-1 h-auto w-[300px] mix-blend-plus-lighter",
+    "pointer-events-none absolute top-[12px] left-[-40px] z-1 hidden h-auto w-[300px] mix-blend-plus-lighter md:block",
     "xl:top-[8.34%] xl:left-[0.97%] xl:h-[83.32%] xl:w-[38.03%]",
   ].join(" "),
 };
@@ -83,11 +90,11 @@ export default function HeroSection({ content, contact, t }: HeroSectionProps) {
           </div>
 
           <div className={`${cls.ctas} reveal`} style={delay(620)}>
-            <a href={content.primaryHref} className="btn-primary">
+            <a href={content.primaryHref} className={`btn-primary ${cls.button}`}>
               {content.primaryCta}
               <Image src="/homepage/icon-arrow-right-white.svg" alt="" width={18} height={18} />
             </a>
-            <a href={content.secondaryHref} className="btn-outline">
+            <a href={content.secondaryHref} className={`btn-outline ${cls.button} max-md:border-[1.2px]`}>
               {content.secondaryCta}
             </a>
             <a
@@ -95,7 +102,8 @@ export default function HeroSection({ content, contact, t }: HeroSectionProps) {
               className={cls.whatsapp}
               {...(whatsappIsExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             >
-              <Image src="/homepage/icon-whatsapp-fill.svg" alt="" width={24} height={24} />
+              <Image src="/homepage/m/msg-brown.svg" alt="" width={18} height={18} className="md:hidden" />
+              <Image src="/homepage/icon-whatsapp-fill.svg" alt="" width={24} height={24} className="hidden md:block" />
               {content.whatsappCta}
               {whatsappIsExternal && <span className="sr-only"> {t.opensWhatsApp}</span>}
             </a>
@@ -106,7 +114,8 @@ export default function HeroSection({ content, contact, t }: HeroSectionProps) {
               const icon = TRUST_ICONS[point.icon];
               return (
                 <li key={point.label} className={`${cls.trustItem} reveal`} style={delay(720 + i * 90)}>
-                  <Image src={icon.src} alt="" width={icon.size} height={icon.size} />
+                  <Image src={icon.mobile} alt="" width={16} height={16} className="md:hidden" />
+                  <Image src={icon.src} alt="" width={icon.size} height={icon.size} className="hidden md:block" />
                   {point.label}
                 </li>
               );

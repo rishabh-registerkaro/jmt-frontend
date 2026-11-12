@@ -30,10 +30,11 @@ export default function Trades({ trades, copy }: TradesProps) {
             <li key={trade.id} className={cls.trade}>
               <Photo
                 image={trade.image}
-                sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw"
+                sizes="(min-width: 1024px) 25vw, 50vw"
               />
+              <span className="card-scrim md:hidden" aria-hidden="true" />
               <div className={cls.trade__label}>
-                <Image src={TRADE_ICONS[trade.icon]} alt="" width={20} height={20} />
+                <Image src={TRADE_ICONS[trade.icon]} alt="" width={20} height={20} className="max-md:hidden" />
                 <h3 className={cls.trade__title}>{trade.title}</h3>
               </div>
             </li>
@@ -46,12 +47,16 @@ export default function Trades({ trades, copy }: TradesProps) {
 
 const cls = {
   trades: "bg-white",
-  trades__inner: "site-container section-pad flex flex-col gap-8",
-  trades__header: "flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-6",
+  // Mobile (<768, Figma "Homepage — Mobile 390"): 2×2 photo tiles, caption on a scrim.
+  trades__inner: "site-container section-pad flex flex-col gap-6 md:gap-8",
+  trades__header: "flex flex-col gap-6 md:gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-6",
   trades__title: "heading-xl flex-1",
   trades__copy: "body-lg lg:flex-[0_0_420px]",
-  trades__grid: "grid grid-cols-1 gap-4 xs:grid-cols-2 lg:grid-cols-4",
-  trade: "relative h-[340px] overflow-hidden rounded-[12px] bg-navy-card lg:h-[394.7px]",
-  trade__label: "absolute inset-x-0 bottom-0 flex items-center gap-2.5 bg-brown px-4 py-3.5 [&_img]:flex-none",
-  trade__title: "m-0 text-[16.5px] leading-[20.6px] font-semibold text-white",
+  trades__grid: "grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4",
+  trade:
+    "relative h-[210px] overflow-hidden rounded-[14px] bg-navy-card md:h-[340px] md:rounded-[12px] lg:h-[394.7px]",
+  trade__label:
+    "absolute inset-x-0 bottom-0 flex items-center gap-2.5 p-4 md:bg-brown md:py-3.5 [&_img]:flex-none",
+  trade__title:
+    "m-0 text-[14.5px] leading-[19px] font-semibold text-white md:text-[16.5px] md:leading-[20.6px]",
 };

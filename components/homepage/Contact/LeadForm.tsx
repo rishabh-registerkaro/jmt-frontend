@@ -15,12 +15,18 @@ import type { LeadField, LeadFormCopy, LeadFormState } from "@/types/homepage";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 const cls = {
+  // Mobile (<768, Figma "Homepage — Mobile 390"): 45px rounded-rect fields, sand border.
   input: [
-    "h-[50px] w-full px-[19px] rounded-full border bg-input-bg",
+    "h-[45px] w-full px-[14px] rounded-[10px] border bg-input-bg md:h-[50px] md:px-[19px] md:rounded-full",
+    "placeholder:text-slate/80",
     // 16px on phones stops iOS Safari from zooming the page when a field is focused.
     "font-site text-[16px] xs:text-[15px] text-ink",
     // iOS renders empty/filled date inputs centred and collapsed; keep them like the other pills.
     "[&[type=date]]:appearance-none [&[type=date]]:text-left [&::-webkit-date-and-time-value]:text-left",
+    // Phones: the leading calendar icon replaces the native one; the invisible
+    // native picker button covers the whole field so any tap opens it.
+    "max-md:[&[type=date]]:relative max-md:[&::-webkit-calendar-picker-indicator]:absolute max-md:[&::-webkit-calendar-picker-indicator]:inset-0",
+    "max-md:[&::-webkit-calendar-picker-indicator]:h-full max-md:[&::-webkit-calendar-picker-indicator]:w-full max-md:[&::-webkit-calendar-picker-indicator]:opacity-0",
     "transition-[border-color,background-color,box-shadow] duration-160 ease-[ease]",
     "hover:border-pill-line focus:bg-white focus:outline-none",
     // Number spinners add clutter to a pill input.
@@ -28,15 +34,20 @@ const cls = {
     "[&[type=number]::-webkit-inner-spin-button]:m-0 [&[type=number]::-webkit-inner-spin-button]:appearance-none",
     "[&[type=number]::-webkit-outer-spin-button]:m-0 [&[type=number]::-webkit-outer-spin-button]:appearance-none",
   ].join(" "),
-  inputValid: "border-input-line focus:border-orange focus:[box-shadow:0_0_0_3px_rgba(242,105,33,0.18)]",
+  inputValid: "border-sand md:border-input-line focus:border-orange focus:[box-shadow:0_0_0_3px_rgba(242,105,33,0.18)]",
   inputInvalid:
     "border-error bg-[#fff7f7] focus:border-error focus:[box-shadow:0_0_0_3px_rgba(198,40,40,0.15)]",
   // Room on the right for the ✓ / ! badge (not on date inputs: the picker icon lives there).
   inputBadge: "pr-[44px]",
   badge:
     "pointer-events-none absolute top-1/2 right-[16px] flex size-[20px] -translate-y-1/2 items-center justify-center rounded-full text-white",
-  // Fixed one-line slot under every field: messages appear without moving anything.
-  error: "m-0 flex h-[18px] min-w-0 items-center gap-[5px] pl-[14px] text-[12.5px] leading-[18px] text-error",
+  // Fixed one-line slot under every field from md up: messages appear without
+  // moving anything. Phones collapse the empty slot to keep the design's spacing.
+  error:
+    "m-0 flex h-[18px] min-w-0 items-center gap-[5px] pl-[14px] text-[12.5px] leading-[18px] text-error max-md:empty:hidden",
+  // Leading 16px icon inside phone / location / date fields (phones only).
+  fieldIcon: "pointer-events-none absolute top-1/2 left-[14px] z-1 size-4 -translate-y-1/2 md:hidden",
+  inputWithIcon: "max-md:pl-[38px]",
   status:
     "absolute top-full right-0 left-0 m-0 mt-[8px] truncate text-center text-[13px] leading-[18px] text-error empty:hidden focus:outline-none",
   success: [
@@ -129,17 +140,21 @@ interface FieldConfig {
   maxLength?: number;
   /** Spans both columns (keeps the grid even with an odd field count). */
   wide?: boolean;
+  /** Phones: shares a row with the other half field (headcount + start date). */
+  half?: boolean;
+  /** Phones: leading icon inside the field. */
+  icon?: string;
 }
 
 // Two per row, in the design's order. Labels come from the admin (copy.labels).
 const FIELDS: FieldConfig[] = [
   { name: "companyName", type: "text", autoComplete: "organization", required: false },
   { name: "name", type: "text", autoComplete: "name", required: true },
-  { name: "phone", type: "tel", autoComplete: "tel", required: true, inputMode: "tel", maxLength: 20 },
+  { name: "phone", type: "tel", autoComplete: "tel", required: true, inputMode: "tel", maxLength: 20, icon: "/homepage/m/field-phone.svg" },
   { name: "email", type: "email", autoComplete: "email", required: true, inputMode: "email", maxLength: 254 },
-  { name: "siteLocation", type: "text", autoComplete: "address-level2", required: true },
-  { name: "headcount", type: "number", autoComplete: "off", required: true, inputMode: "numeric" },
-  { name: "startDate", type: "date", autoComplete: "off", required: false, wide: true },
+  { name: "siteLocation", type: "text", autoComplete: "address-level2", required: true, icon: "/homepage/m/field-pin.svg" },
+  { name: "headcount", type: "number", autoComplete: "off", required: true, inputMode: "numeric", half: true },
+  { name: "startDate", type: "date", autoComplete: "off", required: false, wide: true, half: true, icon: "/homepage/m/field-cal.svg" },
 ];
 
 export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
@@ -232,13 +247,13 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
     <form
       ref={formRef}
       action={formAction}
-      className="flex flex-[1_1_auto] flex-col justify-between gap-[14px]"
+      className="flex flex-[1_1_auto] flex-col justify-between gap-[16px] md:gap-[14px]"
       noValidate
       onSubmit={onSubmit}
       aria-describedby={`${idPrefix}-status`}
     >
       <input type="hidden" name={LOCALE_FIELD} value={locale} />
-      <div className="grid grid-cols-1 gap-x-[16px] gap-y-[4px] xs:grid-cols-2">
+      <div className="grid grid-cols-2 gap-x-[10px] gap-y-[16px] md:gap-x-[16px] md:gap-y-[4px]">
         {FIELDS.map((field) => {
           const inputId = `${idPrefix}-${field.name}`;
           const errorId = `${inputId}-error`;
@@ -246,14 +261,25 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
           const valid = checked[field.name] === null && filled[field.name];
           const hasBadge = field.type !== "date";
           return (
-            <div key={field.name} className={`flex min-w-0 flex-col gap-[6px]${field.wide ? " xs:col-span-2" : ""}`}>
-              <label htmlFor={inputId} className="text-[14px] leading-[22.4px] font-semibold text-ink">
+            <div
+              key={field.name}
+              className={[
+                "flex min-w-0 flex-col gap-[6px]",
+                field.half ? "col-span-1" : "col-span-2",
+                field.wide ? "md:col-span-2" : "md:col-span-1",
+              ].join(" ")}
+            >
+              <label
+                htmlFor={inputId}
+                className="text-[13px] leading-[18px] font-semibold text-ink md:text-[14px] md:leading-[22.4px]"
+              >
                 {copy.labels[field.name]}
                 {!field.required && copy.optionalHint && (
                   <span className="font-normal text-slate"> {copy.optionalHint}</span>
                 )}
               </label>
               <div className="relative">
+                {field.icon && <Image src={field.icon} alt="" width={16} height={16} className={cls.fieldIcon} />}
                 <input
                   id={inputId}
                   name={field.name}
@@ -263,6 +289,7 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
                   maxLength={field.maxLength}
                   required={field.required}
                   defaultValue={state.values[field.name]}
+                  placeholder={(t.form.placeholders as Partial<Record<LeadField, string>>)[field.name]}
                   min={field.type === "number" ? 1 : undefined}
                   max={field.type === "number" ? MAX_HEADCOUNT : undefined}
                   aria-invalid={error ? true : undefined}
@@ -275,6 +302,7 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
                     cls.input,
                     error ? cls.inputInvalid : cls.inputValid,
                     hasBadge ? cls.inputBadge : "",
+                    field.icon ? cls.inputWithIcon : "",
                   ].join(" ")}
                 />
                 {hasBadge && (error || valid) && (
@@ -315,7 +343,12 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
           so a send failure doesn't change the form's height either. Field
           problems are already shown on the fields, so only other errors appear. */}
       <div className="relative">
-        <button type="submit" className="btn-primary w-full" disabled={isPending} aria-busy={isPending}>
+        <button
+          type="submit"
+          className="btn-primary w-full max-md:py-[14px] max-md:text-[15.5px] max-md:leading-[21px] max-md:[--btn-h:49px]"
+          disabled={isPending}
+          aria-busy={isPending}
+        >
           {isPending && (
             <span
               aria-hidden="true"

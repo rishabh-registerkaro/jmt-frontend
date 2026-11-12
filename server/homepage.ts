@@ -21,6 +21,7 @@ import {
   buildHomepageData,
   buildSiteChrome,
 } from "@/lib/homepage/buildHomepage";
+import { mapChromeLinks, mapServiceCards } from "@/lib/siteLinks";
 import type { HomepageData, SiteChrome, SwitcherLanguage } from "@/types/homepage";
 
 export { HOMEPAGE_REVALIDATE_SECONDS, HOMEPAGE_TAGS } from "@/lib/homepage/buildHomepage";
@@ -84,8 +85,18 @@ function withFormLabelDefaults(bundle: HomepageBundle, lang: SwitcherLanguage): 
   };
 }
 
+/**
+ * Points homepage links at the service pages and makes the shared navbar and
+ * footer anchors work from every page (lib/siteLinks.ts).
+ */
+function withSiteLinks(bundle: HomepageBundle, lang: SwitcherLanguage): HomepageBundle {
+  return { ...bundle, data: mapServiceCards(bundle.data, lang), chrome: mapChromeLinks(bundle.chrome, lang) };
+}
+
 /** One cached request per language (the URL differs); all share the same tags. */
-const getBundle = cache(async (lang: SwitcherLanguage): Promise<HomepageBundle> => {
+const getBundle = cache(async (lang: SwitcherLanguage): Promise<HomepageBundle> => withSiteLinks(await fetchBundle(lang), lang));
+
+async function fetchBundle(lang: SwitcherLanguage): Promise<HomepageBundle> {
   try {
     const res = await fetch(adminUrl(`/api/homepage/client?locale=${lang}`), {
       cache: "force-cache",
@@ -101,7 +112,7 @@ const getBundle = cache(async (lang: SwitcherLanguage): Promise<HomepageBundle> 
     console.error(`[homepage] jmt-admin API unavailable, using fallback content: ${reason}`);
     return fallbackBundle(lang);
   }
-});
+}
 
 /** Navbar, footer and contact details in `lang`. */
 export async function getSiteChrome(lang: SwitcherLanguage): Promise<SiteChrome> {

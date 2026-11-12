@@ -12,6 +12,7 @@ import Founder from "@/components/homepage/Founder/Founder";
 import Banner from "@/components/homepage/Banner/Banner";
 import Faq from "@/components/homepage/Faq/Faq";
 import Contact from "@/components/homepage/Contact/Contact";
+import MobileBar from "@/components/homepage/MobileBar/MobileBar";
 import { HOME_META_DEFAULTS } from "@/app/lib/content/home-content";
 import { LOCALES, getDictionary, hasLocale, localePath } from "@/lib/i18n";
 import { getHomepageData, getSiteChrome } from "@/server/homepage";
@@ -70,7 +71,7 @@ export default async function HomePage({ params }: PageProps) {
     sites: () => <Sites sites={data.siteTypes} copy={data.sitesCopy} />,
     why: () => <WhyChoose reasons={data.reasons} image={data.reasonsImage} copy={data.whyCopy} />,
     trades: () => <Trades trades={data.trades} copy={data.tradesCopy} />,
-    process: () => <HowTo steps={data.process} copy={data.processCopy} />,
+    process: () => <HowTo steps={data.process} copy={data.processCopy} t={t} />,
     founder: () => <Founder founder={data.founder} contact={chrome.contact} labels={chrome.labels} t={t} />,
     banner: () => <Banner banner={data.banner} />,
     faq: () => (
@@ -93,6 +94,12 @@ export default async function HomePage({ params }: PageProps) {
         .map((key) => (
           <Fragment key={key}>{sections[key]()}</Fragment>
         ))}
+      <MobileBar
+        contact={chrome.contact}
+        ctaLabel={data.hero.primaryCta}
+        ctaHref={data.hero.primaryHref}
+        t={t}
+      />
     </>
   );
 }

@@ -14,9 +14,10 @@ interface NavbarProps {
 export default function Navbar({ chrome, lang, homeLabel }: NavbarProps) {
   const { brand, contact, labels, languages, nav } = chrome;
   return (
-    <header className="sticky top-0 z-50 border-b border-brown/20 bg-white">
-      {/* lg min-height 79px: Figma's 80px frame includes its 1px bottom border. */}
-      <div className="site-container flex min-h-[68px] items-center gap-6 lg:min-h-[79px] lg:py-[7px]">
+    <header className="sticky top-0 z-50 border-b border-[#f1e3d3] bg-white lg:border-brown/20">
+      {/* Mobile (Figma "Homepage — Mobile 390"): 16px gutters, 10px block padding.
+          lg min-height 79px: Figma's 80px frame includes its 1px bottom border. */}
+      <div className="site-container flex min-h-[63px] items-center gap-2 py-[10px] max-md:px-4 md:min-h-[68px] md:gap-6 md:py-0 lg:min-h-[79px] lg:py-[7px]">
         {/* The brand name is never translated (translate="no" for browser translators too). */}
         <Link
           href={localePath(lang)}
@@ -30,7 +31,7 @@ export default function Navbar({ chrome, lang, homeLabel }: NavbarProps) {
             width={brand.headerLogo.width}
             height={brand.headerLogo.height}
             priority
-            className="block h-auto w-[128px] lg:w-[150px]"
+            className="block h-auto w-[123px] md:w-[128px] lg:w-[150px]"
           />
         </Link>
         <NavMenu
