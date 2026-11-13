@@ -126,7 +126,7 @@ next.config.ts            security headers, noindex on Vercel previews, image op
 
 ### Languages
 
-The site is English only. The shared files below still contain the Bengali/Hindi translation model (`translations`, `site.languages`, `data/homepageTranslations.ts`) because jmt-admin still uses it; this app never asks for a translated bundle and ignores those fields.
+The site is English only. Old `/en`, `/bn` and `/hi` links are redirected to the English page by `proxy.ts`.
 
 ### Files shared with jmt-admin
 
@@ -136,7 +136,6 @@ These files have **identical copies** in jmt-admin (marked `SHARED FILE`). When 
 - `app/lib/content/home-content.ts`
 - `types/homepage.ts`
 - `data/homepageFallback.ts`
-- `data/homepageTranslations.ts`
 - `utils/leadForm.ts` (also defines the lead form's hidden page and services fields), `utils/contactForm.ts`, `utils/joinForm.ts`
 - `lib/service/normalizeServicePage.ts`, `data/services/*`, `types/service.ts`
 - `lib/sitePages/mergeContent.ts`

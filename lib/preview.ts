@@ -58,5 +58,5 @@ export async function fetchPreview(token: string, query: string): Promise<{ rev:
 export const getPreviewDraft = cache(async (): Promise<PreviewDraft | null> => {
   const token = await getPreviewToken();
   if (!token) return null;
-  return (await fetchPreview(token, "locale=en")).draft;
+  return (await fetchPreview(token, "")).draft;
 });

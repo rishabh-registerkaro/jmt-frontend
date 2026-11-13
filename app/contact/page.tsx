@@ -57,7 +57,7 @@ export default async function ContactPage() {
       <ContactOptions copy={page.options} office={page.office} contact={chrome.contact} />
       <NextSteps copy={page.steps} />
       <OfficeDetails page={page} contact={chrome.contact} />
-      <WorkersLine copy={page.workers} href={sitePagePath("join-our-crew")} />
+      <WorkersLine copy={page.workers} href={`${sitePagePath("join-our-crew")}#apply`} />
       {/* Phones: fixed Call / WhatsApp / Request bar (Figma 304:418), same as the homepage's. */}
       <MobileBar contact={chrome.contact} ctaLabel={data.hero.primaryCta} ctaHref="#enquiry" />
     </>
