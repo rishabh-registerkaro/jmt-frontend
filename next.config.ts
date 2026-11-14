@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 
+/** "1" / "true" (any case, quotes and spaces ignored) turns an env switch on. */
+const isOn = (value: string | undefined) => /^(1|true)$/i.test((value ?? "").trim().replace(/^['"]|['"]$/g, ""));
+
 // Fail a Vercel *production* build that would ship localhost URLs in
 // canonicals/sitemap or never reach jmt-admin. Preview and local builds are
 // not affected (they fall back to localhost / fallback content).
@@ -12,18 +15,28 @@ if (process.env.VERCEL_ENV === "production") {
   }
 }
 
-/**
- * Hostnames of jmt-admin's HOSTINGER_MEDIA_URL (comma-separated, no scheme),
- * e.g. "media.example.com". Set → next/image optimizes; unset → served as-is.
- * Read at build time: changing it needs a rebuild.
- */
-const MEDIA_HOSTNAMES = (process.env.MEDIA_HOSTNAMES ?? "")
-  .split(",")
-  .map((h) => h.trim().replace(/^https?:\/\//, "").replace(/\/.*$/, ""))
-  .filter(Boolean);
+// Same check for production builds outside Vercel (Docker, VPS), opt-in with
+// REQUIRE_PROD_ENV=1 so a plain local "npm run build" keeps working against
+// localhost. REVALIDATE_SECRET is not checked: it is only needed at runtime.
+if (process.env.NODE_ENV === "production" && isOn(process.env.REQUIRE_PROD_ENV)) {
+  const missing = ["ADMIN_API_URL", "SITE_URL"].filter(
+    (name) => !process.env[name] || /localhost|127\.0\.0\.1/.test(process.env[name] ?? ""),
+  );
+  if (missing.length > 0) {
+    throw new Error(
+      `[next.config] REQUIRE_PROD_ENV is set and these are missing or have localhost values: ${missing.join(", ")}`,
+    );
+  }
+}
 
-/** TEMP (dev): serve original HD images. Flip to true for prod to get AVIF/WebP + srcset. */
-const OPTIMIZE_IMAGES: boolean = false;
+/**
+ * Bundled images in public/ are not content-hashed, so Next serves them with
+ * max-age=0. Cache them for a day and let browsers reuse a stale copy for a
+ * week while they refetch. Only file URLs match: /about, /contact and
+ * /service/<slug> are pages and keep their own caching.
+ */
+const PUBLIC_IMAGE_SOURCE = "/:dir(homepage|about|contact|join|service)/:file(.+\\.(?:avif|gif|ico|jpe?g|png|svg|webp))";
+const PUBLIC_IMAGE_CACHE = "public, max-age=86400, stale-while-revalidate=604800";
 
 /** Vercel preview / development deployments are public URLs: keep them out of search. */
 const isNonProductionDeploy = Boolean(process.env.VERCEL_ENV) && process.env.VERCEL_ENV !== "production";
@@ -50,25 +63,17 @@ const nextConfig: NextConfig = {
   experimental: {
     cpus: 2,
   },
-  // TEMP: optimizer off — images are served full-resolution, as uploaded.
-  // Set OPTIMIZE_IMAGES = true before the production push to re-enable it.
-  images: OPTIMIZE_IMAGES && MEDIA_HOSTNAMES.length > 0
-    ? {
-        // Optimizer on: AVIF/WebP, srcset from each Photo's `sizes`. Every CMS
-        // image host must be listed in MEDIA_HOSTNAMES or next/image refuses it.
-        formats: ["image/avif", "image/webp"],
-        // Any protocol: older CMS rows store http:// URLs for the same host.
-        remotePatterns: MEDIA_HOSTNAMES.map((hostname) => ({ hostname })),
-      }
-    : {
-        // Images come from public/homepage and from the CMS media host (any domain
-        // set in jmt-admin's HOSTINGER_MEDIA_URL), served as-is — no optimizer, so
-        // no remotePatterns allow-list is needed.
-        unoptimized: true,
-      },
+  poweredByHeader: false,
+  // Image optimizer is off: its resized AVIF/WebP output looked blurred.
+  // Every image (public/ and the CMS media host) is served exactly as
+  // uploaded, so no remotePatterns allow-list is needed.
+  images: {
+    unoptimized: true,
+  },
   async headers() {
     return [
       { source: "/:path*", headers: SECURITY_HEADERS },
+      { source: PUBLIC_IMAGE_SOURCE, headers: [{ key: "Cache-Control", value: PUBLIC_IMAGE_CACHE }] },
       // API routes are never search results, on any deployment.
       { source: "/api/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
       ...(isNonProductionDeploy

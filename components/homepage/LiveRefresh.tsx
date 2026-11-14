@@ -4,8 +4,11 @@
 // /dashboard/homepage, this re-renders the page with the new content — no
 // manual reload. Two signals:
 //   • a BroadcastChannel message from the editor (instant; same origin only, i.e. when both apps share a domain)
-//   • a cheap version check when the tab regains focus, and every 30 s while
-//     it is visible (works for every visitor; the endpoint is cache-backed)
+//   • a cheap version check when the tab regains focus or becomes visible
+//     (works for every visitor; the endpoint is cache-backed), plus a slow
+//     5-minute timer as a fallback for a tab left open and visible — hidden
+//     tabs are skipped. Only editors need faster than that, and they get the
+//     BroadcastChannel message or simply switch back to the tab.
 // router.refresh() re-fetches the server components only, so scroll position
 // and form input are kept.
 
@@ -13,7 +16,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 export const HOMEPAGE_CHANNEL = "jmt-homepage";
-const POLL_MS = 30_000;
+const POLL_MS = 5 * 60_000;
 
 export default function LiveRefresh({ version }: { version: string }) {
   const router = useRouter();
@@ -56,7 +59,10 @@ export default function LiveRefresh({ version }: { version: string }) {
     };
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("focus", onVisible);
-    const timer = window.setInterval(check, POLL_MS);
+    const timer = window.setInterval(() => {
+      // Hidden tab: no request at all; the visibilitychange check covers it.
+      if (document.visibilityState === "visible") void check();
+    }, POLL_MS);
 
     return () => {
       stopped = true;
