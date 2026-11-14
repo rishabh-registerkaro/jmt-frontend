@@ -33,7 +33,7 @@ Friendly aliases redirect permanently (308) to the real pages (`proxy.ts`): `/ab
 | Forms | Server Actions send each form to jmt-admin, which saves the lead, emails the admin and rate-limits each visitor (per IP, and per email/phone number). The "Request workers" form (homepage and service pages) goes through `app/actions/leads.ts` to `/api/lead/homepage`, the Contact enquiry form through `app/actions/contactLead.ts` to `/api/lead/contact`, and the Join our crew application through `app/actions/joinApplication.ts` to `/api/lead/join`. All of them appear in jmt-admin → Leads. |
 | Lead source | The "Request workers" form sends the page path and title it was filled on, so jmt-admin's **Source** column shows the page. On a service page it also sends the roles ticked in "Roles we supply" (`components/service/RoleSelection.tsx`). |
 | Preview of unsaved edits | jmt-admin's **Preview** button opens `/api/preview?token=…&path=…` here. That turns on Next.js Draft Mode for that browser only and stores the token in the `jmt-preview` cookie. While it's on, `server/*` renders the draft (read from jmt-admin's `/api/preview/<token>` with `REVALIDATE_SECRET`) instead of the published content, and `components/preview/PreviewBar.tsx` shows a bar, polls `/api/preview/version` and re-renders as the editor types. "Exit preview" goes to `/api/preview?exit=1`. Every other visitor keeps getting the cached, published pages. See `lib/preview.ts`. |
-| SEO | `lib/seo.ts` gives every page an absolute canonical, Open Graph and Twitter tags, and JSON-LD (Organization and WebSite in the layout, a BreadcrumbList on the service, Contact and Join pages, and a Service on each service page). `app/sitemap.ts` lists every page, with `<lastmod>` from the CMS. `app/robots.ts` allows everything except `/api/`. |
+| SEO | `lib/seo.ts` gives every page an absolute canonical, Open Graph and Twitter tags, and JSON-LD (Organization and WebSite in the layout, a BreadcrumbList on the service, Contact and Join pages, and a Service on each service page). `app/sitemap.ts` lists every page, with `<lastmod>` from the CMS. `app/robots.ts` allows everything except `/api/`; it is rendered per request, so its sitemap link always uses the running server's `SITE_URL`. |
 | Analytics | Vercel Web Analytics and Speed Insights load only when the site runs on Vercel. |
 
 ---
@@ -63,9 +63,13 @@ For the full local setup, start jmt-admin first (`npm run dev` in that repo, por
 | `REVALIDATE_SECRET` | **yes** | Must be the **same value** as `REVALIDATE_SECRET` in jmt-admin's `.env`. If it's missing, CMS edits don't refresh this site, Preview doesn't work, and the lead form's rate limit treats every visitor as a single IP. Generate one with `openssl rand -hex 32`. |
 | `SITE_URL` | in production | Public URL of this site, without a trailing slash. Used for canonical and hreflang links, `og:url`/`og:image`, JSON-LD, the sitemap and robots.txt. On Vercel it falls back to the project's production domain, otherwise to `http://localhost:3002`. |
 | `PRODUCTION_URL` | no | Origin of the main website. CMS links given as relative paths (such as `/blog/x`) are prefixed with it. If it's empty, those links are hidden. |
-| `MEDIA_HOSTNAMES` | no | Hostname(s) of jmt-admin's `HOSTINGER_MEDIA_URL`, comma-separated, without `https://` (e.g. `media.example.com`). When set, `next/image` optimizes photos (AVIF/WebP, responsive sizes), and **only** these hosts are allowed. When empty, images are served as-is. Read at **build** time. |
+| `MEDIA_HOSTNAMES` | no | Hostname(s) of jmt-admin's `HOSTINGER_MEDIA_URL`, comma-separated, without `https://` (e.g. `media.example.com`). When set, `next/image` optimizes photos (AVIF/WebP, responsive sizes), and **only** these hosts are allowed. When empty, images are served as-is. Read at **build** time. Set it in production. |
+| `DISABLE_IMAGE_OPTIMIZATION` | no | `1` keeps the image optimizer off even when `MEDIA_HOSTNAMES` is set, so images are served as uploaded. Read at **build** time. |
+| `REQUIRE_PROD_ENV` | no | `1` makes a production build fail when `ADMIN_API_URL` or `SITE_URL` is missing or points at localhost. Leave it empty locally; set it where a real deployment is built. |
 
 All of these are server-side only, so none of them reach the browser. Quotes and stray spaces pasted into a hosting dashboard are stripped automatically.
+
+`SITE_URL`, `ADMIN_API_URL`, `PRODUCTION_URL`, `MEDIA_HOSTNAMES` and `DISABLE_IMAGE_OPTIMIZATION` are needed when the site is **built** as well as when it runs: pages are prerendered with them and the image settings are baked into the build. `REVALIDATE_SECRET` is only needed at runtime.
 
 For edits to show up immediately, jmt-admin's `JMT_FRONTEND_URL` must point at this app (default `http://localhost:3002`).
 
@@ -120,8 +124,8 @@ server/                   cached data fetching from jmt-admin, with fallback
 types/ data/ utils/       types, bundled default content and translations, form rules
 styles/public.css         design tokens and utilities (from the Figma file)
 public/                   bundled images and icons (homepage/, service/, about/, contact/, join/)
-next.config.ts            security headers, noindex on Vercel previews, image optimizer (MEDIA_HOSTNAMES),
-                          Vercel production env check
+next.config.ts            security headers, cache headers for public/ images, noindex on Vercel previews,
+                          image optimizer (MEDIA_HOSTNAMES), production env checks (Vercel, REQUIRE_PROD_ENV)
 ```
 
 ### Languages
@@ -164,7 +168,7 @@ The bundled copy in `data/` is both the fallback and the **schema** for the admi
 ### Before you deploy
 
 1. `npm run lint && npm run typecheck && npm run build` all pass.
-2. Set `ADMIN_API_URL`, `REVALIDATE_SECRET` and `SITE_URL`, plus `PRODUCTION_URL` and `MEDIA_HOSTNAMES` if they're needed, on the host.
+2. Set `ADMIN_API_URL`, `REVALIDATE_SECRET` and `SITE_URL`, plus `PRODUCTION_URL` and `MEDIA_HOSTNAMES` if they're needed, on the host. All except `REVALIDATE_SECRET` must also be there when the build runs (see Environment variables).
 3. In **jmt-admin**, set `JMT_FRONTEND_URL` and `NEXT_PUBLIC_JMT_FRONTEND_URL` to this site's public URL and `REVALIDATE_SECRET` to the same value.
 4. After the deploy, check that `/` loads, that `/en`, `/bn` and `/hi` redirect to `/`, and that an unknown URL shows the 404 page. Open `/about`, `/contact`, `/join-our-crew` and a `/service/<slug>` page. Save something in the CMS and confirm it appears on the site. Click **Preview** in a jmt-admin editor and confirm the preview bar appears.
 5. Check that `/sitemap.xml` lists the pages with your real domain (not localhost) and that `/robots.txt` points at it.
@@ -179,11 +183,16 @@ The bundled copy in `data/` is both the fallback and the **schema** for the admi
 ### Docker
 
 ```bash
-docker build -t jmt-frontend .
+docker build -t jmt-frontend --build-arg SITE_URL=https://www.example.com --build-arg ADMIN_API_URL=https://admin.example.com --build-arg MEDIA_HOSTNAMES=media.example.com --build-arg PRODUCTION_URL=https://www.example.com --build-arg REQUIRE_PROD_ENV=1 .
 docker run -d --name jmt-frontend -p 3002:3002 --env-file .env --restart unless-stopped jmt-frontend
 ```
 
-The image is a two-stage build. It installs the exact versions from `package-lock.json` (`npm ci`), drops the dev dependencies, and runs as the non-root `node` user. Secrets are passed at runtime and never baked into the image (`.env` is excluded by `.dockerignore`).
+The image is a two-stage build. It installs the exact versions from `package-lock.json` (`npm ci`), drops the dev dependencies, and runs as the non-root `node` user.
+
+- `.env` is excluded by `.dockerignore`, so the build can't read it. The values the build needs are passed as **build args**: `SITE_URL`, `ADMIN_API_URL`, `PRODUCTION_URL`, `MEDIA_HOSTNAMES` and, optionally, `DISABLE_IMAGE_OPTIMIZATION=1`. None of them is a secret. Without them the image still builds, but with `localhost` canonicals and sitemap URLs, the bundled content and unoptimized images.
+- `--build-arg REQUIRE_PROD_ENV=1` makes the build fail when `SITE_URL` or `ADMIN_API_URL` is missing or points at localhost. Use it for every production image.
+- `REVALIDATE_SECRET` is never a build arg. It is passed at runtime (`--env-file .env`) together with `ADMIN_API_URL`, `SITE_URL` and `PRODUCTION_URL`, which must have the same values as the build args.
+- `MEDIA_HOSTNAMES` and `DISABLE_IMAGE_OPTIMIZATION` are stored in the image, because the server must see the values the build used. Don't put them in the runtime `.env` (an empty `MEDIA_HOSTNAMES=` line there would break optimized images); rebuild to change them.
 
 ### Node host (Hostinger, VPS, …)
 
@@ -193,7 +202,7 @@ npm run build
 npm start          # port 3002
 ```
 
-Set the environment variables in the host's dashboard. `next.config.ts` caps build workers at 2 (`experimental.cpus`), because Hostinger containers report the host's full CPU count and the build otherwise runs out of threads.
+Set the environment variables in the host's dashboard, so that both `npm run build` and `npm start` see them. Add `REQUIRE_PROD_ENV=1` to make the build fail when `ADMIN_API_URL` or `SITE_URL` is missing or points at localhost. `next.config.ts` caps build workers at 2 (`experimental.cpus`), because Hostinger containers report the host's full CPU count and the build otherwise runs out of threads.
 
 The site needs a long-running Node server. It uses a proxy, Server Actions and on-demand revalidation, so it **can't be a static export**.
 
@@ -201,7 +210,8 @@ The site needs a long-running Node server. It uses a proxy, Server Actions and o
 
 - **jmt-admin doesn't need to be reachable during the build.** If it's down, the pages are prerendered with the fallback content, and the live content takes over within 10 minutes or right away on the next CMS save.
 - Fonts come from Google Fonts **at build time** and are then self-hosted. The build machine needs internet access. If a build fails with an error in `next/font`, it's usually a network blip, so run it again.
-- Images are optimized by Next only when `MEDIA_HOSTNAMES` is set. Then every host that CMS images come from must be in it, or those images fail to load. When it's empty, images are served as-is and any host works.
+- Images are optimized by Next (AVIF/WebP, responsive sizes) whenever `MEDIA_HOSTNAMES` is set. Then every host that CMS images come from must be in it, or those images fail to load. When it's empty, or `DISABLE_IMAGE_OPTIMIZATION=1` is set, images are served as-is and any host works. Bundled images in `public/` work in both modes, and SVGs are always served as-is. The optimizer fetches CMS images from the server, so the media host must be reachable from it and must not resolve to a private IP.
+- Bundled images under `/homepage`, `/about`, `/contact`, `/join` and `/service` are cached by browsers for a day (`max-age=86400, stale-while-revalidate=604800`). Their file names aren't hashed, so give a replaced image a new file name if it must show up at once.
 - Every response carries security headers (HSTS, `nosniff`, a referrer policy, no framing by other sites, and `upgrade-insecure-requests` so older `http://` media URLs load over HTTPS). `/api/*` is always `noindex`.
 
 ## Troubleshooting
@@ -210,7 +220,8 @@ The site needs a long-running Node server. It uses a proxy, Server Actions and o
 - **CMS edits don't appear.** `REVALIDATE_SECRET` must match in both apps, and jmt-admin's `JMT_FRONTEND_URL` must point here. Pages also refresh on their own every 10 minutes.
 - **A form says it couldn't send.** jmt-admin is unreachable at `ADMIN_API_URL`. The server log has the details. "Too many submissions" means jmt-admin's spam limit was hit; it clears after 10 minutes.
 - **The preview bar says the preview expired, or Preview shows the live page.** The draft is gone from jmt-admin (older than 2 hours, restarted, or another instance). Click Preview in the dashboard again. If it never works, check `REVALIDATE_SECRET` in both apps and the server log for `[preview]`.
-- **Some CMS images are broken after setting `MEDIA_HOSTNAMES`.** Their host isn't in the list. Add it and rebuild, or clear the variable.
-- **The sitemap or canonical links show `localhost`.** `SITE_URL` wasn't set on the host.
+- **Some CMS images are broken after setting `MEDIA_HOSTNAMES`.** Their host isn't in the list. Add it and rebuild, or set `DISABLE_IMAGE_OPTIMIZATION=1` and rebuild.
+- **The sitemap or canonical links show `localhost`.** `SITE_URL` wasn't set when the site was built (Docker: `--build-arg SITE_URL=…`). Build with `REQUIRE_PROD_ENV=1` to catch this.
+- **Images aren't optimized (no `/_next/image` URLs).** `MEDIA_HOSTNAMES` was empty at build time, or `DISABLE_IMAGE_OPTIMIZATION` is set. Set it and rebuild.
 - **About, Contact or Join edits don't show, and jmt-admin returns 500 for `/api/site-pages/client/…`.** The `jmt_site_pages` table doesn't exist yet. Run `npx prisma db push` in jmt-admin and restart it. Until then, the pages show their bundled copy.
 - **CMS links to pages such as `/blog/…` are missing.** Set `PRODUCTION_URL`.

@@ -9,6 +9,8 @@ import { NextResponse, type NextRequest } from "next/server";
 //   /about-us   → /about, the About page (PAGE_ALIASES)
 //   /join, /careers, /jobs → /join-our-crew, the Join our crew page (PAGE_ALIASES)
 //   /site-labour-supply → /service/site-service-supply (PAGE_ALIASES)
+//   /About, /CONTACT, /Service/Foo → the lower-case path (routes and service
+//                         slugs are lower case only, so these used to 404)
 //   /sitemap.xml, /robots.txt → app/sitemap.ts, app/robots.ts (not matched here)
 //
 // Kept self-contained (no app imports), as the proxy docs recommend.
@@ -85,6 +87,15 @@ function friendlyRedirect(request: NextRequest, pathname: string): NextResponse 
   return NextResponse.redirect(url, 307);
 }
 
+/**
+ * "/About" → "/about". Percent-escapes ("%E0") are left as they are, and so
+ * are API routes and Next internals in any casing.
+ */
+function lowerCasePath(pathname: string): string {
+  if (/^\/(api|_next)(\/|$)/i.test(pathname)) return pathname;
+  return pathname.replace(/%[0-9a-f]{2}|[A-Z]+/gi, (m) => (m[0] === "%" ? m : m.toLowerCase()));
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isGet = request.method === "GET" || request.method === "HEAD";
@@ -92,13 +103,15 @@ export function proxy(request: NextRequest) {
 
   if (isGet) {
     // "/bn/contact-us" → "/contact-us" → "/contact": strip the old prefix
-    // first, then resolve aliases, so it's a single redirect.
-    const prefix = pathname.split("/")[1] ?? "";
-    const rest = OLD_LOCALES.has(prefix) ? pathname.slice(prefix.length + 1) || "/" : null;
-    response = friendlyRedirect(request, rest ?? pathname);
-    if (!response && rest !== null) {
+    // first, then resolve aliases, so it's a single redirect. Upper-case
+    // letters are folded in the same step ("/BN/Contact-Us" → "/contact").
+    const path = lowerCasePath(pathname);
+    const prefix = path.split("/")[1] ?? "";
+    const rest = OLD_LOCALES.has(prefix) ? path.slice(prefix.length + 1) || "/" : null;
+    response = friendlyRedirect(request, rest ?? path);
+    if (!response && (rest !== null || path !== pathname)) {
       const url = request.nextUrl.clone();
-      url.pathname = rest;
+      url.pathname = rest ?? path;
       response = NextResponse.redirect(url, 308);
     }
   }
