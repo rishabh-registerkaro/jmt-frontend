@@ -62,7 +62,7 @@ For the full local setup, start jmt-admin first (`npm run dev` in that repo, por
 | `ADMIN_API_URL` | **yes** | Origin of jmt-admin, without a trailing slash. Locally that's `http://localhost:3000`. |
 | `REVALIDATE_SECRET` | **yes** | Must be the **same value** as `REVALIDATE_SECRET` in jmt-admin's `.env`. If it's missing, CMS edits don't refresh this site, Preview doesn't work, and the lead form's rate limit treats every visitor as a single IP. Generate one with `openssl rand -hex 32`. |
 | `SITE_URL` | in production | Public URL of this site, without a trailing slash. Used for canonical and hreflang links, `og:url`/`og:image`, JSON-LD, the sitemap and robots.txt. On Vercel it falls back to the project's production domain, otherwise to `http://localhost:3002`. |
-| `PRODUCTION_URL` | no | Origin of the main Global Elite website. CMS links given as relative paths (such as `/blog/x`) are prefixed with it. If it's empty, those links are hidden. |
+| `PRODUCTION_URL` | no | Origin of the main website. CMS links given as relative paths (such as `/blog/x`) are prefixed with it. If it's empty, those links are hidden. |
 | `MEDIA_HOSTNAMES` | no | Hostname(s) of jmt-admin's `HOSTINGER_MEDIA_URL`, comma-separated, without `https://` (e.g. `media.example.com`). When set, `next/image` optimizes photos (AVIF/WebP, responsive sizes), and **only** these hosts are allowed. When empty, images are served as-is. Read at **build** time. |
 
 All of these are server-side only, so none of them reach the browser. Quotes and stray spaces pasted into a hosting dashboard are stripped automatically.
