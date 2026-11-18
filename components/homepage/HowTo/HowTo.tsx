@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { FileText, MapPin, MapPinCheck, ShieldCheck, User, UserCheck, type LucideIcon } from "lucide-react";
 import type { ProcessCopy, ProcessIcon, ProcessStep } from "@/types/homepage";
 import { UI_TEXT as t } from "@/lib/uiText";
@@ -56,7 +55,7 @@ const cls = {
   rail: "flex items-start pt-[18px] pl-[18px] md:items-center md:px-[24px] md:pt-[24px] md:pb-0 lg:row-1 lg:h-[44px] lg:overflow-hidden lg:p-0 lg:pl-[32px]",
   number:
     "flex size-[40px] flex-none items-center justify-center rounded-full bg-orange text-[13px] font-bold text-white md:size-[44px] md:text-[14px]",
-  line: "hidden lg:flex lg:min-w-0 lg:flex-[1_1_0] lg:overflow-hidden lg:[&_img]:flex-none",
+  line: "hidden lg:block lg:h-[2px] lg:max-w-[244px] lg:min-w-0 lg:flex-[1_1_0] lg:bg-orange",
   body: [
     "flex flex-auto flex-col pt-[18px] pr-[18px] pb-[16px] md:gap-[24px] md:px-[24px] md:pt-[20px] md:pb-[28px]",
     "lg:relative lg:row-2 lg:mt-[20px] lg:px-[32px] lg:pt-[32px] lg:pb-[36px]",
@@ -104,11 +103,7 @@ export default function HowTo({ steps, copy }: HowToProps) {
               <li key={step.number} className={cls.step}>
                 <div className={`${cls.rail} ${col}`} aria-hidden="true">
                   <span className={cls.number}>{step.number}</span>
-                  {index < steps.length - 1 && (
-                    <span className={cls.line}>
-                      <Image src="/homepage/process-line.svg" alt="" width={244} height={2} />
-                    </span>
-                  )}
+                  {index < steps.length - 1 && <span className={cls.line} />}
                 </div>
                 {/* Column dividers on every step but the last (≥ 1024px). */}
                 <div className={`${cls.body} ${col} ${isLast ? "" : cls.bodyDivider}`}>

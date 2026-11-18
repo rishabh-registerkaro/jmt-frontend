@@ -25,7 +25,8 @@ export const SITE_PAGE_LOCKED: Record<SitePageKey, readonly string[]> = {
   // form.services is keyed by the stored values, so only its labels are editable.
   contact: [],
   // Form options are validated against fixed lists in utils/joinForm.ts.
-  "join-our-crew": ["form.trades", "form.experience", "form.start", "form.languages[].value"],
+  // hero.alsoIn and apply.introShort are not shown anywhere on the page.
+  "join-our-crew": ["hero.alsoIn", "apply.introShort", "form.trades", "form.experience", "form.start", "form.languages[].value"],
 };
 
 /** Cache tag of a page. Must match jmtSitePageTags in jmt-admin/app/lib/utils/revalidateFrontend.ts. */

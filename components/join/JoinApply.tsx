@@ -58,6 +58,7 @@ export default function JoinApply({ id, content, form, contact, opensWhatsApp }:
             <Eyebrow>{content.eyebrow}</Eyebrow>
             <h2 id={`${id}-title`} className={cls.title}>
               {content.heading.lead} <span className="text-orange">{content.heading.accent}</span>
+              {content.heading.tail ? ` ${content.heading.tail}` : null}
             </h2>
           </div>
           <p className={cls.intro}>{content.intro}</p>
