@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, Calendar, Check, MapPin, Phone, X, type LucideIcon } from "lucide-react";
+import { FaExclamation } from "react-icons/fa6";
 import { usePathname } from "next/navigation";
 import { useActionState, useEffect, useId, useRef, useState, type RefObject } from "react";
 import { submitLead } from "@/app/actions/leads";
@@ -382,10 +383,7 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
                 {hasBadge && (error || valid) && (
                   <span aria-hidden="true" className={`${cls.badge} ${error ? "bg-error" : "bg-success"}`}>
                     {error ? (
-                      <svg viewBox="0 0 20 20" className="size-[12px]" fill="currentColor">
-                        <rect x="9" y="4" width="2.4" height="8" rx="1.2" />
-                        <circle cx="10.2" cy="15.2" r="1.4" />
-                      </svg>
+                      <FaExclamation className="size-[12px]" />
                     ) : (
                       <Check className="size-[12px]" strokeWidth={3.2} />
                     )}

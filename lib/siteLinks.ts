@@ -82,23 +82,27 @@ function homeAnchor(href: Href): Href {
   return `/${href}`;
 }
 
-function mapLink<T extends { label: string; href: Href }>(link: T): T {
+function mapLink<T extends { label: string; href: Href }>(link: T, liveServices: readonly string[]): T {
   if (!isAnchorOrEmpty(link.href)) return { ...link, href: homeAnchor(link.href) };
   if (CONTACT_PAGE_LABELS.some((name) => labelMatches(link.label, name))) {
     return { ...link, href: contactPath() };
   }
   const sitePage = SITE_PAGES.find((candidate) => labelMatches(link.label, candidate.label));
   if (sitePage) return { ...link, href: sitePagePath(sitePage.path) };
-  const page = SERVICE_PAGES.find((candidate) => labelMatches(link.label, candidate.label));
+  // A service that is offline keeps its homepage anchor instead of linking to a 404.
+  const page = SERVICE_PAGES.find(
+    (candidate) => labelMatches(link.label, candidate.label) && liveServices.includes(candidate.slug),
+  );
   return { ...link, href: page ? servicePath(page.slug) : homeAnchor(link.href) };
 }
 
 /** Navbar and footer links. */
-export function mapChromeLinks(chrome: SiteChrome): SiteChrome {
-  const mapChildren = (links: NavChildLink[]) => links.map(mapLink);
+export function mapChromeLinks(chrome: SiteChrome, liveServices: readonly string[]): SiteChrome {
+  const map = <T extends { label: string; href: Href }>(link: T) => mapLink(link, liveServices);
+  const mapChildren = (links: NavChildLink[]) => links.map(map);
   return {
     ...chrome,
-    nav: chrome.nav.map((item) => ({ ...mapLink(item), children: mapChildren(item.children) })),
+    nav: chrome.nav.map((item) => ({ ...map(item), children: mapChildren(item.children) })),
     footerColumns: chrome.footerColumns.map((column) => ({ ...column, links: mapChildren(column.links) })),
   };
 }
@@ -108,7 +112,7 @@ export function mapChromeLinks(chrome: SiteChrome): SiteChrome {
  * the FAQ's worker tab; it now opens the Join our crew page). Other section
  * anchors inside the page stay as they are.
  */
-export function mapServiceCards(data: HomepageData): HomepageData {
+export function mapServiceCards(data: HomepageData, liveServices: readonly string[]): HomepageData {
   const joinHref = data.hero.secondaryHref === JOIN_CREW_HASH ? sitePagePath("join-our-crew") : data.hero.secondaryHref;
   return {
     ...data,
@@ -116,7 +120,7 @@ export function mapServiceCards(data: HomepageData): HomepageData {
     services: data.services.map((card) => {
       // Card ids are "<slug of English title>-<position>", e.g. "site-labour-supply-0".
       const slug = card.id.replace(/-\d+$/, "");
-      const page = SERVICE_PAGES.find((p) => p.cardId === slug);
+      const page = SERVICE_PAGES.find((p) => p.cardId === slug && liveServices.includes(p.slug));
       return page && isAnchorOrEmpty(card.href) ? { ...card, href: servicePath(page.slug) } : card;
     }),
   };

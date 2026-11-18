@@ -7,9 +7,11 @@
 //                  them on every save via POST /api/revalidate, and they also
 //                  expire after SERVICE_REVALIDATE_SECONDS (ISR).
 //   • resilient  — pages with built-in content (data/services/*) still render
-//                  if jmt-admin is down or has not saved them yet. A page that
-//                  only exists in the CMS throws instead, so ISR keeps serving
-//                  the last good version rather than caching an error.
+//                  if jmt-admin is down. A page that only exists in the CMS
+//                  throws instead, so ISR keeps serving the last good version
+//                  rather than caching an error.
+//   • CMS decides — when jmt-admin answers, a page that is draft or deleted
+//                  there is offline, even if it has built-in content.
 
 import { cache } from "react";
 import { ADMIN_TIMEOUT_MS, adminUrl } from "@/lib/adminApi";
@@ -27,7 +29,7 @@ export const SERVICE_TAGS = {
   page: (slug: string) => `jmt-service-${slug}`,
 };
 
-/** Pages shipped with the site; used until the CMS has a published version. */
+/** Pages shipped with the site; used only while jmt-admin can't be reached. */
 const BUILT_IN: Record<string, ServicePageContent> = {
   [SITE_LABOUR_SUPPLY.slug]: SITE_LABOUR_SUPPLY,
 };
@@ -61,8 +63,8 @@ export const getServicePage = cache(async (slug: string): Promise<ServicePageCon
   try {
     const body = await adminJson(`/api/jmt-services/client/${slug}`, [SERVICE_TAGS.page(slug), SERVICE_TAGS.list]);
     if (!isRecord(body) || !("page" in body)) throw new Error("unexpected response shape");
-    // Not published in the CMS → built-in content if this page ships with the site.
-    if (!isRecord(body.page)) return builtIn ?? null;
+    // Draft or deleted in the CMS → offline.
+    if (!isRecord(body.page)) return null;
     return normalizeServicePage(body.page.content, slug, builtIn);
   } catch (error) {
     if (builtIn) {
@@ -79,9 +81,9 @@ export interface ServiceIndexEntry {
   updatedAt?: string;
 }
 
-/** Published CMS pages plus the built-in ones, with their last CMS change. */
+/** Published CMS pages with their last CMS change; the built-in ones if jmt-admin can't be reached. */
 export async function getServiceIndex(): Promise<ServiceIndexEntry[]> {
-  const index = new Map<string, ServiceIndexEntry>(Object.keys(BUILT_IN).map((slug) => [slug, { slug }]));
+  const index = new Map<string, ServiceIndexEntry>();
   try {
     const body = await adminJson("/api/jmt-services/client", [SERVICE_TAGS.list]);
     if (isRecord(body) && Array.isArray(body.pages)) {
@@ -95,15 +97,19 @@ export async function getServiceIndex(): Promise<ServiceIndexEntry[]> {
       for (const slug of body.slugs) {
         if (typeof slug === "string" && SERVICE_SLUG_PATTERN.test(slug) && !index.has(slug)) index.set(slug, { slug });
       }
+    } else {
+      throw new Error("unexpected response shape");
     }
   } catch (error) {
     // Not fatal: pages not prerendered here are rendered on their first visit.
     console.error(`[service] could not list service pages from jmt-admin: ${reason(error)}`);
+    index.clear();
+    for (const slug of Object.keys(BUILT_IN)) index.set(slug, { slug });
   }
   return [...index.values()];
 }
 
-/** Slugs to prerender at build time: published CMS pages plus the built-in ones. */
+/** Service pages that are live: prerendered at build time and linked from the homepage. */
 export async function getServiceSlugs(): Promise<string[]> {
   return (await getServiceIndex()).map((entry) => entry.slug);
 }

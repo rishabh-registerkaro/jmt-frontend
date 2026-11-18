@@ -61,11 +61,11 @@ For the full local setup, start jmt-admin first (`npm run dev` in that repo, por
 |---|---|---|
 | `ADMIN_API_URL` | **yes** | Origin of jmt-admin, without a trailing slash. Locally that's `http://localhost:3000`. |
 | `REVALIDATE_SECRET` | **yes** | Must be the **same value** as `REVALIDATE_SECRET` in jmt-admin's `.env`. If it's missing, CMS edits don't refresh this site, Preview doesn't work, and the lead form's rate limit treats every visitor as a single IP. Generate one with `openssl rand -hex 32`. |
-| `SITE_URL` | in production | Public URL of this site, without a trailing slash. Used for canonical and hreflang links, `og:url`/`og:image`, JSON-LD, the sitemap and robots.txt. On Vercel it falls back to the project's production domain, otherwise to `http://localhost:3002`. |
+| `SITE_URL` | in production | Public URL of this site, without a trailing slash. Used for canonical and hreflang links, `og:url`/`og:image`, JSON-LD, the sitemap and robots.txt. Locally this is `http://localhost:3002`. When deployed, a localhost value is ignored: it falls back to the Vercel production domain, then the deployed site. |
 | `PRODUCTION_URL` | no | Origin of the main website. CMS links given as relative paths (such as `/blog/x`) are prefixed with it. If it's empty, those links are hidden. |
 | `MEDIA_HOSTNAMES` | no | Hostname(s) of jmt-admin's `HOSTINGER_MEDIA_URL`, comma-separated, without `https://` (e.g. `media.example.com`). When set, `next/image` optimizes photos (AVIF/WebP, responsive sizes), and **only** these hosts are allowed. When empty, images are served as-is. Read at **build** time. Set it in production. |
 | `DISABLE_IMAGE_OPTIMIZATION` | no | `1` keeps the image optimizer off even when `MEDIA_HOSTNAMES` is set, so images are served as uploaded. Read at **build** time. |
-| `REQUIRE_PROD_ENV` | no | `1` makes a production build fail when `ADMIN_API_URL` or `SITE_URL` is missing or points at localhost. Leave it empty locally; set it where a real deployment is built. |
+| `REQUIRE_PROD_ENV` | on Hostinger | `1` marks a real deployment: localhost URLs are never used, and the build fails when `ADMIN_API_URL` or `SITE_URL` is missing or points at localhost. Leave it empty locally. Vercel turns this on automatically. |
 
 All of these are server-side only, so none of them reach the browser. Quotes and stray spaces pasted into a hosting dashboard are stripped automatically.
 
@@ -180,20 +180,6 @@ The bundled copy in `data/` is both the fallback and the **schema** for the admi
 - Preview deployments are kept out of search engines: `X-Robots-Tag: noindex`, a `noindex` meta tag, `Disallow: /` in robots.txt and an empty sitemap.
 - Web Analytics and Speed Insights start reporting once you enable them in the Vercel project.
 
-### Docker
-
-```bash
-docker build -t jmt-frontend --build-arg SITE_URL=https://www.example.com --build-arg ADMIN_API_URL=https://admin.example.com --build-arg MEDIA_HOSTNAMES=media.example.com --build-arg PRODUCTION_URL=https://www.example.com --build-arg REQUIRE_PROD_ENV=1 .
-docker run -d --name jmt-frontend -p 3002:3002 --env-file .env --restart unless-stopped jmt-frontend
-```
-
-The image is a two-stage build. It installs the exact versions from `package-lock.json` (`npm ci`), drops the dev dependencies, and runs as the non-root `node` user.
-
-- `.env` is excluded by `.dockerignore`, so the build can't read it. The values the build needs are passed as **build args**: `SITE_URL`, `ADMIN_API_URL`, `PRODUCTION_URL`, `MEDIA_HOSTNAMES` and, optionally, `DISABLE_IMAGE_OPTIMIZATION=1`. None of them is a secret. Without them the image still builds, but with `localhost` canonicals and sitemap URLs, the bundled content and unoptimized images.
-- `--build-arg REQUIRE_PROD_ENV=1` makes the build fail when `SITE_URL` or `ADMIN_API_URL` is missing or points at localhost. Use it for every production image.
-- `REVALIDATE_SECRET` is never a build arg. It is passed at runtime (`--env-file .env`) together with `ADMIN_API_URL`, `SITE_URL` and `PRODUCTION_URL`, which must have the same values as the build args.
-- `MEDIA_HOSTNAMES` and `DISABLE_IMAGE_OPTIMIZATION` are stored in the image, because the server must see the values the build used. Don't put them in the runtime `.env` (an empty `MEDIA_HOSTNAMES=` line there would break optimized images); rebuild to change them.
-
 ### Node host (Hostinger, VPS, …)
 
 ```bash
@@ -221,7 +207,7 @@ The site needs a long-running Node server. It uses a proxy, Server Actions and o
 - **A form says it couldn't send.** jmt-admin is unreachable at `ADMIN_API_URL`. The server log has the details. "Too many submissions" means jmt-admin's spam limit was hit; it clears after 10 minutes.
 - **The preview bar says the preview expired, or Preview shows the live page.** The draft is gone from jmt-admin (older than 2 hours, restarted, or another instance). Click Preview in the dashboard again. If it never works, check `REVALIDATE_SECRET` in both apps and the server log for `[preview]`.
 - **Some CMS images are broken after setting `MEDIA_HOSTNAMES`.** Their host isn't in the list. Add it and rebuild, or set `DISABLE_IMAGE_OPTIMIZATION=1` and rebuild.
-- **The sitemap or canonical links show `localhost`.** `SITE_URL` wasn't set when the site was built (Docker: `--build-arg SITE_URL=…`). Build with `REQUIRE_PROD_ENV=1` to catch this.
+- **The sitemap or canonical links show `localhost`.** `SITE_URL` wasn't set when the site was built. Build with `REQUIRE_PROD_ENV=1` to catch this.
 - **Images aren't optimized (no `/_next/image` URLs).** `MEDIA_HOSTNAMES` was empty at build time, or `DISABLE_IMAGE_OPTIMIZATION` is set. Set it and rebuild.
 - **About, Contact or Join edits don't show, and jmt-admin returns 500 for `/api/site-pages/client/…`.** The `jmt_site_pages` table doesn't exist yet. Run `npx prisma db push` in jmt-admin and restart it. Until then, the pages show their bundled copy.
 - **CMS links to pages such as `/blog/…` are missing.** Set `PRODUCTION_URL`.

@@ -1,6 +1,7 @@
-// Accordion toggle icon: "+" when closed, "−" when open. The vertical bar
-// shrinks away so the plus morphs into a minus. Drawn in currentColor, so the
-// parent's text colour sets it.
+import { Minus, Plus } from "lucide-react";
+
+// Accordion toggle icon: "+" when closed, "−" when open. The plus fades away
+// over the minus. Drawn in currentColor, so the parent's text colour sets it.
 export default function PlusMinus({
   open,
   size = 14,
@@ -12,24 +13,14 @@ export default function PlusMinus({
   strokeWidth?: number;
   className?: string;
 }) {
+  const icon = { size, strokeWidth, absoluteStrokeWidth: true };
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 14 14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      aria-hidden="true"
-      className={`flex-none ${className}`}
-    >
-      <path d="M2.5 7h9" />
-      <path
-        d="M7 2.5v9"
-        className="origin-center transition-transform duration-240 ease-site motion-reduce:transition-none"
-        style={{ transform: open ? "scaleY(0)" : "scaleY(1)", transformBox: "fill-box" }}
+    <span aria-hidden="true" className={`relative flex-none ${className}`} style={{ width: size, height: size }}>
+      <Minus {...icon} className="absolute inset-0" />
+      <Plus
+        {...icon}
+        className={`absolute inset-0 transition-opacity duration-240 ease-site motion-reduce:transition-none ${open ? "opacity-0" : "opacity-100"}`}
       />
-    </svg>
+    </span>
   );
 }
