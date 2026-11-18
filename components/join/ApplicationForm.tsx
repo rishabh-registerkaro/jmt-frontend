@@ -1,7 +1,6 @@
 "use client";
 
-import { ArrowRight, Check, Clock, MapPin, Phone, User } from "lucide-react";
-import Image from "next/image";
+import { ArrowRight, Check, Clock, MapPin, MessageCircle, Phone, User } from "lucide-react";
 import { useActionState, useEffect, useRef } from "react";
 import { submitJoinApplication } from "@/app/actions/joinApplication";
 import { JOIN_PAGE } from "@/data/joinPage";
@@ -173,12 +172,12 @@ export default function ApplicationForm({ copy, whatsappHref, opensWhatsApp }: A
     return (
       <div ref={successRef} className={cls.sent} role="status" tabIndex={-1}>
         <span className={cls.sentBadge} aria-hidden="true">
-          <Image src="/join/icon-check.svg" alt="" width={36} height={36} className="size-[30px] md:size-[36px]" />
+          <Check className="size-[30px] text-white md:size-[36px]" strokeWidth={2.6} />
         </span>
         <h3 className={cls.sentTitle}>{copy.messages.successTitle}</h3>
         <p className={cls.sentText}>{state.message}</p>
         <a href={whatsappHref} className={cls.sentWhatsApp} {...external}>
-          <Image src="/join/icon-msg.svg" alt="" width={17} height={17} className="size-[17px] flex-none" aria-hidden="true" />
+          <MessageCircle className="size-[17px] flex-none" aria-hidden="true" />
           {copy.messages.whatsapp}
           {"target" in external && <span className="sr-only"> {opensWhatsApp}</span>}
         </a>

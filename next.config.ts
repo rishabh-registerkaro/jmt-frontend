@@ -15,7 +15,7 @@ if (process.env.VERCEL_ENV === "production") {
   }
 }
 
-// Same check for production builds outside Vercel (Docker, VPS), opt-in with
+// Same check for production builds outside Vercel (Hostinger, VPS), opt-in with
 // REQUIRE_PROD_ENV=1 so a plain local "npm run build" keeps working against
 // localhost. REVALIDATE_SECRET is not checked: it is only needed at runtime.
 if (process.env.NODE_ENV === "production" && isOn(process.env.REQUIRE_PROD_ENV)) {
@@ -27,6 +27,11 @@ if (process.env.NODE_ENV === "production" && isOn(process.env.REQUIRE_PROD_ENV))
       `[next.config] REQUIRE_PROD_ENV is set and these are missing or have localhost values: ${missing.join(", ")}`,
     );
   }
+}
+
+// Any other production build (Hostinger, VPS) needs the jmt-admin URL too.
+if (process.env.NODE_ENV === "production" && !process.env.VERCEL && !(process.env.ADMIN_API_URL ?? "").trim()) {
+  throw new Error("[next.config] ADMIN_API_URL is missing. Set it to the deployed jmt-admin URL.");
 }
 
 /**

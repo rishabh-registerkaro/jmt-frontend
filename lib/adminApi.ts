@@ -1,6 +1,8 @@
 // jmt-admin is this site's backend: every read and write goes through its API.
 // Server-only — these values are never sent to the browser.
 
+import { resolveOrigin } from "@/lib/deployment";
+
 // Hosting dashboards often end up with surrounding quotes or stray whitespace
 // pasted into env values (dotenv strips quotes, dashboard UIs don't). Normalize
 // so both projects compare the same secret regardless.
@@ -8,8 +10,12 @@
 export const normalizeSecret = (v: string | null | undefined) =>
   (v ?? "").trim().replace(/^['"]|['"]$/g, "");
 
-/** Origin of the jmt-admin project, e.g. http://localhost:3000. */
-const ADMIN_API_URL = normalizeSecret(process.env.ADMIN_API_URL).replace(/\/+$/, "") || "http://localhost:3000";
+/**
+ * Origin of the jmt-admin project: localhost locally, ADMIN_API_URL when
+ * deployed. A deployment without it uses the bundled content (next.config.ts
+ * fails the build first), and never calls localhost.
+ */
+const ADMIN_API_URL = resolveOrigin(process.env.ADMIN_API_URL, { local: "http://localhost:3000", deployed: "" });
 
 /** Absolute URL of a jmt-admin API path ("/api/..."). */
 export function adminUrl(path: string): string {

@@ -23,6 +23,7 @@ import {
 } from "@/lib/homepage/buildHomepage";
 import { mapChromeLinks, mapServiceCards } from "@/lib/siteLinks";
 import { getPreviewDraft } from "@/lib/preview";
+import { getServiceSlugs } from "@/server/service";
 import type { HomepageData, SiteChrome } from "@/types/homepage";
 
 export { HOMEPAGE_REVALIDATE_SECONDS, HOMEPAGE_TAGS } from "@/lib/homepage/buildHomepage";
@@ -91,12 +92,15 @@ function withFormLabelDefaults(bundle: HomepageBundle): HomepageBundle {
  * Points homepage links at the service pages and makes the shared navbar and
  * footer anchors work from every page (lib/siteLinks.ts).
  */
-function withSiteLinks(bundle: HomepageBundle): HomepageBundle {
-  return { ...bundle, data: mapServiceCards(bundle.data), chrome: mapChromeLinks(bundle.chrome) };
+function withSiteLinks(bundle: HomepageBundle, liveServices: readonly string[]): HomepageBundle {
+  return { ...bundle, data: mapServiceCards(bundle.data, liveServices), chrome: mapChromeLinks(bundle.chrome, liveServices) };
 }
 
 /** One cached request per render, shared by layout and page. */
-const getBundle = cache(async (): Promise<HomepageBundle> => withSiteLinks(await fetchBundle()));
+const getBundle = cache(async (): Promise<HomepageBundle> => {
+  const [bundle, liveServices] = await Promise.all([fetchBundle(), getServiceSlugs()]);
+  return withSiteLinks(bundle, liveServices);
+});
 
 async function fetchBundle(): Promise<HomepageBundle> {
   // Previewing unsaved homepage edits from the dashboard (lib/preview.ts).
