@@ -26,12 +26,13 @@ const cls = {
 };
 
 export default function MobileBar({ contact, ctaLabel, ctaHref }: MobileBarProps) {
-  const whatsappHref = contact.whatsappHref ?? "#contact";
+  // Not every page has a #contact section; ctaHref always points at this page's form.
+  const whatsappHref = contact.whatsappHref ?? ctaHref;
   const whatsappIsExternal = whatsappHref.startsWith("http");
 
   return (
     <nav className={cls.bar} aria-label={t.bar.label}>
-      <a href={contact.phoneHref ?? "#contact"} className={cls.action}>
+      <a href={contact.phoneHref ?? ctaHref} className={cls.action}>
         <Phone size={19} className="text-brown" aria-hidden="true" />
         {t.bar.call}
       </a>
