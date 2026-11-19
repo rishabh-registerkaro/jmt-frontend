@@ -10,6 +10,7 @@ import {
   HONEYPOT_FIELD,
   INITIAL_CONTACT_STATE,
   MAX_HEADCOUNT,
+  OTHER_SERVICE,
   readContactValues,
   validateContact,
   type ContactField,
@@ -30,13 +31,14 @@ const cls = {
   star: "text-[#e81d25]",
   option: [
     "relative flex cursor-pointer items-center gap-[7px] rounded-[12px] border border-sand bg-white py-[9px] pr-[12px] pl-[10px]",
-    "text-[12.5px] leading-[normal] font-semibold text-ink md:gap-[8px] md:px-[12px] md:py-[11px] md:text-[13px]",
+    // Desktop: compact enough that all four choices sit on one row.
+    "text-[12.5px] leading-[normal] font-semibold text-ink md:gap-[6px] md:px-[10px] md:py-[10px] md:whitespace-nowrap",
     "transition-[border-color,background-color] duration-160 hover:border-sand-line",
     "has-checked:border-[1.5px] has-checked:border-orange has-checked:bg-peach-100",
     "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-orange",
   ].join(" "),
   optionDot: [
-    "flex size-[16px] flex-none items-center justify-center rounded-full border-[1.5px] border-sand bg-white md:size-[18px]",
+    "flex size-[16px] flex-none items-center justify-center rounded-full border-[1.5px] border-sand bg-white",
     "group-has-checked/opt:border-0 group-has-checked/opt:bg-orange",
   ].join(" "),
   input: [
@@ -63,7 +65,7 @@ const cls = {
     "flex items-center gap-[8px] rounded-[10px] bg-peach-100 px-[12px] py-[10px] text-[12.5px] leading-[normal] font-medium text-brown md:rounded-[12px] md:px-[14px] md:py-[12px] md:text-[13.5px]",
 };
 
-type InputField = Exclude<ContactField, "service" | "note">;
+type InputField = Exclude<ContactField, "service" | "serviceOther" | "note">;
 
 interface FieldConfig {
   name: InputField;
@@ -156,6 +158,10 @@ export default function EnquiryForm({
   const statusMessage = state.status === "error" && Object.keys(state.fieldErrors).length === 0 ? state.message : "";
   const serviceError = errorFor("service");
   const values = state.status === "success" ? INITIAL_CONTACT_STATE.values : state.values;
+  // The visitor's pick since the last server reply; otherwise the reply's value.
+  const [picked, setPicked] = useState<{ state: ContactFormState; service: string } | null>(null);
+  const service = picked?.state === state ? picked.service : values.service;
+  const otherError = errorFor("serviceOther");
 
   return (
     <div id="enquiry" className={`${cls.card} scroll-mt-[84px]`}>
@@ -204,26 +210,30 @@ export default function EnquiryForm({
               {copy.serviceLabel}
               <span className={cls.star} aria-hidden="true">*</span>
             </legend>
-            <div className="flex flex-wrap gap-[8px]">
-              {CONTACT_SERVICES.map((service) => (
-                <label key={service} className={`group/opt ${cls.option}`}>
+            {/* Phones: an even 2 × 2 grid; desktop: one row. */}
+            <div className="grid grid-cols-2 gap-[8px] md:flex md:flex-wrap md:gap-[6px]">
+              {CONTACT_SERVICES.map((option) => (
+                <label key={option} className={`group/opt ${cls.option}`}>
                   <input
                     type="radio"
                     name="service"
-                    value={service}
-                    defaultChecked={values.service === service}
+                    value={option}
+                    defaultChecked={values.service === option}
                     required
                     className="sr-only"
-                    onChange={() => checkFields(["service"])}
+                    onChange={() => {
+                      setPicked({ state, service: option });
+                      checkFields(["service"]);
+                    }}
                   />
                   <span className={cls.optionDot} aria-hidden="true">
                     <Check
                       aria-hidden="true"
                       strokeWidth={3}
-                      className="hidden size-[9px] text-white group-has-checked/opt:block md:size-[10px]"
+                      className="hidden size-[9px] text-white group-has-checked/opt:block"
                     />
                   </span>
-                  {copy.services[service]}
+                  {copy.services[option]}
                 </label>
               ))}
             </div>
@@ -231,6 +241,34 @@ export default function EnquiryForm({
               <p id={`${idPrefix}-service-error`} className={cls.error}>
                 {serviceError}
               </p>
+            )}
+            {service === OTHER_SERVICE && (
+              <div className="flex flex-col gap-[6px]">
+                {/* The "Others" choice above is the visible label; this one is for screen readers. */}
+                <label htmlFor={`${idPrefix}-serviceOther`} className="sr-only">
+                  {copy.labels.serviceOther}
+                </label>
+                <input
+                  id={`${idPrefix}-serviceOther`}
+                  name="serviceOther"
+                  type="text"
+                  autoComplete="off"
+                  required
+                  maxLength={150}
+                  defaultValue={values.serviceOther}
+                  placeholder={copy.placeholders.serviceOther}
+                  aria-invalid={otherError ? true : undefined}
+                  aria-describedby={otherError ? `${idPrefix}-serviceOther-error` : undefined}
+                  onBlur={() => checkFields(["serviceOther"])}
+                  onChange={() => {
+                    if ("serviceOther" in checked) checkFields(["serviceOther"]);
+                  }}
+                  className={`${cls.input} ${otherError ? cls.inputBad : cls.inputOk}`}
+                />
+                <p id={`${idPrefix}-serviceOther-error`} className={otherError ? cls.error : "sr-only"} aria-live="polite">
+                  {otherError}
+                </p>
+              </div>
             )}
           </fieldset>
 
@@ -250,7 +288,7 @@ export default function EnquiryForm({
               return (
                 <div
                   key={field.name}
-                  className={`flex min-w-0 flex-col gap-[6px] md:col-span-1 md:gap-[7px] ${field.half ? "col-span-2 min-[420px]:col-span-1" : "col-span-2"}`}
+                  className={`flex min-w-0 flex-col gap-[6px] md:col-span-1 md:gap-[7px] ${field.half ? "col-span-2 min-[390px]:col-span-1" : "col-span-2"}`}
                 >
                   <label htmlFor={inputId} className={cls.label}>
                     {copy.labels[field.name]}

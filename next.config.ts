@@ -67,6 +67,9 @@ const nextConfig: NextConfig = {
   // Pin it to the cores the plan actually provides.
   experimental: {
     cpus: 2,
+    // Join our crew form sends up to 4 MB of CVs/letters (utils/joinForm.ts);
+    // the default 1 MB would reject it. Room left for multipart overhead.
+    serverActions: { bodySizeLimit: "5mb" },
   },
   poweredByHeader: false,
   // Image optimizer is off: its resized AVIF/WebP output looked blurred.
