@@ -5,8 +5,10 @@ import { ADMIN_TIMEOUT_MS, adminUrl, sharedSecret } from "@/lib/adminApi";
 import {
   EMPTY_JOIN_VALUES,
   HONEYPOT_FIELD,
+  readJoinDocuments,
   readJoinValues,
   validateJoin,
+  validateJoinDocuments,
   type JoinFormState,
 } from "@/utils/joinForm";
 import { getJoinPage } from "@/server/sitePages";
@@ -31,6 +33,8 @@ export async function submitJoinApplication(
 
   const values = readJoinValues(formData);
   const fieldErrors = validateJoin(values);
+  const documentsError = validateJoinDocuments(readJoinDocuments(formData));
+  if (documentsError) fieldErrors.documents = documentsError;
   if (Object.keys(fieldErrors).length > 0) {
     return { status: "error", message: messages.invalid, fieldErrors, values };
   }
@@ -44,8 +48,9 @@ export async function submitJoinApplication(
       headers: { "x-revalidate-secret": sharedSecret(), "x-jmt-client-ip": visitorIp },
       body: formData,
       cache: "no-store",
-      // Covers the admin's own 8 s cap on the notification email.
-      signal: AbortSignal.timeout(ADMIN_TIMEOUT_MS + 5_000),
+      // Covers the admin's own 8 s cap on the notification email, plus the FTP
+      // upload when documents are attached (up to 4 MB).
+      signal: AbortSignal.timeout(ADMIN_TIMEOUT_MS + (readJoinDocuments(formData).length > 0 ? 35_000 : 5_000)),
     });
     const state: unknown = await res.json();
     if (isJoinFormState(state)) {
