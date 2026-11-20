@@ -5,6 +5,7 @@ import { Eyebrow } from "@/components/service/SectionHeader";
 import { officeMapsUrl, type ContactPageContent } from "@/data/contactPage";
 import { SECTION_ASIDE, SECTION_HEADER, SECTION_TITLE } from "./ContactOptions";
 import { AccentHeading } from "./Responsive";
+import { WHATSAPP_DRAFTS, withWhatsAppText } from "@/lib/whatsapp";
 
 // Figma "Office and company details" — desktop 303:121 (grey band, 80px
 // padding, 720×420 map art + office and procurement cards); phones 304:316
@@ -15,7 +16,7 @@ const cls = {
   section: "bg-white md:bg-input-bg",
   inner:
     "site-container flex flex-col gap-[14px] pt-[24px] pb-[40px] max-md:px-[20px] md:gap-[32px] md:py-[72px] lg:py-[80px]",
-  row: "flex flex-col gap-[14px] md:gap-[24px] lg:flex-row lg:items-start",
+  row: "flex flex-col gap-[14px] md:gap-[24px] lg:flex-row lg:items-stretch",
   map: "relative h-[220px] flex-none overflow-hidden rounded-[18px] bg-[#f6ede3] md:h-[360px] md:rounded-[24px] lg:h-[420px] lg:w-[56.25%]",
   pinLabel:
     "hidden items-center gap-[8px] rounded-[12px] bg-white py-[8px] pr-[12px] pl-[10px] shadow-[0_14px_36px_rgba(99,36,0,0.07)] md:flex",
@@ -27,7 +28,7 @@ const cls = {
   ].join(" "),
   details: "flex min-w-0 flex-col gap-[14px] md:gap-[16px] lg:flex-[1_1_0]",
   officeCard:
-    "flex flex-col gap-[8px] rounded-[16px] border border-sand bg-white p-[16px] md:gap-[12px] md:rounded-[20px] md:p-[24px]",
+    "flex flex-col gap-[8px] rounded-[16px] border border-sand bg-white p-[16px] md:gap-[12px] md:rounded-[20px] md:p-[24px] lg:flex-1 lg:justify-center",
   officeLabel: "text-[10.5px] leading-[normal] font-bold tracking-[1.05px] text-slate uppercase md:text-[11px] md:tracking-[1.1px]",
   region: "m-0 text-[17px] leading-[normal] font-bold text-ink md:text-[18px]",
   address: "m-0 text-[13.5px] leading-[normal] font-medium md:text-[14.5px]",
@@ -38,7 +39,7 @@ const cls = {
   detailRow:
     "flex flex-col gap-[2px] border-t border-sand py-[9px] leading-[normal] md:flex-row md:items-start md:justify-between md:gap-[16px] md:py-[11px]",
   detailLabel: "text-[12px] text-slate md:text-[14px]",
-  detailValue: "m-0 text-[13.5px] font-semibold md:text-right md:text-[14px]",
+  detailValue: "m-0 min-w-0 text-[13.5px] font-semibold break-words md:text-right md:text-[14px]",
 };
 
 export default function OfficeDetails({ page, contact }: { page: ContactPageContent; contact: ContactInfo }) {
@@ -74,7 +75,7 @@ export default function OfficeDetails({ page, contact }: { page: ContactPageCont
                 <span className="flex flex-col leading-[normal] whitespace-nowrap">
                   <span className="text-[13px] font-bold text-ink">{copy.pinTitle}</span>
                   <span className={`text-[11.5px] ${copy.address ? "text-slate" : "text-orange"}`}>
-                    {copy.address || copy.pinPlaceholder}
+                    {copy.address ? copy.pinAddress || copy.address : copy.pinPlaceholder}
                   </span>
                 </span>
               </div>
@@ -108,7 +109,7 @@ export default function OfficeDetails({ page, contact }: { page: ContactPageCont
               </p>
               {contact.whatsappHref && (
                 <a
-                  href={contact.whatsappHref}
+                  href={withWhatsAppText(contact.whatsappHref, WHATSAPP_DRAFTS.general)}
                   className={`${cls.line} hidden w-fit rounded-[4px] text-orange no-underline focus-ring hover:underline md:flex`}
                   {...(whatsappExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                 >

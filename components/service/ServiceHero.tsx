@@ -5,6 +5,7 @@ import Photo from "@/components/common/Photo";
 import type { ContactInfo } from "@/types/homepage";
 import type { ServiceFactIcon, ServiceHeroContent } from "@/types/service";
 import { UI_TEXT as t } from "@/lib/uiText";
+import { WHATSAPP_DRAFTS, withWhatsAppText } from "@/lib/whatsapp";
 
 interface ServiceHeroProps {
   content: ServiceHeroContent;
@@ -83,7 +84,7 @@ const cls = {
 const delay = (ms: number) => ({ "--d": `${ms}ms` }) as React.CSSProperties;
 
 export default function ServiceHero({ content, contact, homeHref }: ServiceHeroProps) {
-  const whatsappHref = contact.whatsappHref ?? "#contact";
+  const whatsappHref = withWhatsAppText(contact.whatsappHref, WHATSAPP_DRAFTS.service(content.breadcrumb.current)) ?? "#contact";
   const whatsappIsExternal = whatsappHref.startsWith("http");
 
   return (

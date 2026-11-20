@@ -10,7 +10,7 @@ const ICONS: Record<AboutValueIcon, LucideIcon> = {
 
 /** Orange value glyph: 20px on phones, 22px from md. */
 function ValueIcon({ icon }: { icon: AboutValueIcon }) {
-  const Icon = ICONS[icon];
+  const Icon = ICONS[icon] ?? Check;
   return <Icon aria-hidden="true" className="size-[20px] flex-none text-orange md:size-[22px]" />;
 }
 

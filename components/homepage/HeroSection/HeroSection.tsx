@@ -7,6 +7,7 @@ import { TbBolt } from "react-icons/tb";
 import type { ContactInfo, HeroContent, HeroTrustIcon } from "@/types/homepage";
 import Photo from "@/components/common/Photo";
 import { UI_TEXT as t } from "@/lib/uiText";
+import { WHATSAPP_DRAFTS, withWhatsAppText } from "@/lib/whatsapp";
 
 interface HeroSectionProps {
   content: HeroContent;
@@ -75,7 +76,7 @@ const cls = {
 const delay = (ms: number) => ({ "--d": `${ms}ms` }) as React.CSSProperties;
 
 export default function HeroSection({ content, contact }: HeroSectionProps) {
-  const whatsappHref = contact.whatsappHref ?? "#contact";
+  const whatsappHref = withWhatsAppText(contact.whatsappHref, WHATSAPP_DRAFTS.general) ?? "#contact";
   const whatsappIsExternal = whatsappHref.startsWith("http");
 
   return (

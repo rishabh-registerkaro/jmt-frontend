@@ -3,6 +3,7 @@ import { Clock, MessageCircle, Phone } from "lucide-react";
 import type { ContactCopy, ContactInfo, HomeImage } from "@/types/homepage";
 import Photo from "@/components/common/Photo";
 import LeadForm from "./LeadForm";
+import { WHATSAPP_DRAFTS, withWhatsAppText } from "@/lib/whatsapp";
 
 interface ContactProps {
   contact: ContactInfo;
@@ -58,7 +59,7 @@ export default function Contact({ contact, image, copy }: ContactProps) {
       key: "whatsapp",
       label: copy.labels.whatsapp,
       value: copy.labels.whatsappValue,
-      href: contact.whatsappHref,
+      href: withWhatsAppText(contact.whatsappHref, WHATSAPP_DRAFTS.general),
       icon: MessageCircle,
       iconSize: 18,
       external: whatsappIsExternal,

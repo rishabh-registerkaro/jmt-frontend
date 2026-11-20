@@ -3,6 +3,7 @@ import { Eyebrow } from "@/components/service/SectionHeader";
 import { JOIN_PAGE } from "@/data/joinPage";
 import type { ContactInfo } from "@/types/homepage";
 import ApplicationForm from "./ApplicationForm";
+import { WHATSAPP_DRAFTS, withWhatsAppText } from "@/lib/whatsapp";
 
 interface JoinApplyProps {
   id: string;
@@ -46,7 +47,7 @@ const cls = {
 
 export default function JoinApply({ id, content, form, contact, opensWhatsApp }: JoinApplyProps) {
   const callHref = contact.phoneHref ?? `#${id}`;
-  const whatsappHref = contact.whatsappHref ?? `#${id}`;
+  const whatsappHref = withWhatsAppText(contact.whatsappHref, WHATSAPP_DRAFTS.join) ?? `#${id}`;
   const whatsappExternal = whatsappHref.startsWith("http");
   const external = whatsappExternal ? { target: "_blank", rel: "noopener noreferrer" } : {};
 
@@ -103,7 +104,7 @@ export default function JoinApply({ id, content, form, contact, opensWhatsApp }:
           </p>
         </div>
 
-        <ApplicationForm copy={form} whatsappHref={whatsappHref} opensWhatsApp={opensWhatsApp} />
+        <ApplicationForm copy={form} />
 
         <div className={cls.talk}>
           <a href={callHref} className={cls.talkBtn}>

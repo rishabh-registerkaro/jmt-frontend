@@ -20,7 +20,7 @@ const SERVICE_ICONS: Record<AboutServiceIcon, { Icon: LucideIcon; color: string 
 };
 
 function ServiceIcon({ icon }: { icon: AboutServiceIcon }) {
-  const { Icon, color } = SERVICE_ICONS[icon];
+  const { Icon, color } = SERVICE_ICONS[icon] ?? SERVICE_ICONS.users;
   return <Icon aria-hidden="true" className={`size-[16px] flex-none md:size-[19px] ${color}`} />;
 }
 

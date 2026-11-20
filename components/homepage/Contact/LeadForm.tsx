@@ -2,8 +2,8 @@
 
 import { ArrowRight, Calendar, Check, MapPin, Phone, X, type LucideIcon } from "lucide-react";
 import { FaExclamation } from "react-icons/fa6";
-import { usePathname } from "next/navigation";
-import { useActionState, useEffect, useId, useRef, useState, type RefObject } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { submitLead } from "@/app/actions/leads";
 import {
   HONEYPOT_FIELD,
@@ -12,12 +12,17 @@ import {
   PAGE_PATH_FIELD,
   PAGE_TITLE_FIELD,
   SERVICES_FIELD,
+  readLeadServices,
   readLeadValues,
   validateLead,
 } from "@/utils/leadForm";
 import type { LeadField, LeadFormCopy, LeadFormState } from "@/types/homepage";
 import { UI_TEXT as t } from "@/lib/uiText";
 import { useRoleSelection } from "@/components/service/RoleSelection";
+import { saveThankYouNote, thankYouPath } from "@/lib/thankYou";
+
+/** Where a sent request goes (app/thank-you/[form]). */
+const THANK_YOU = thankYouPath("request");
 
 const cls = {
   // Mobile (<768, Figma "Homepage — Mobile 390"): 45px rounded-rect fields, sand border.
@@ -55,84 +60,7 @@ const cls = {
   inputWithIcon: "max-md:pl-[38px]",
   status:
     "absolute top-full right-0 left-0 m-0 mt-[8px] truncate text-center text-[13px] leading-[18px] text-error empty:hidden focus:outline-none",
-  success: [
-    "relative flex flex-[1_1_auto] flex-col items-center justify-center gap-[10px] xs:gap-[12px] overflow-hidden",
-    "min-h-[340px] px-[18px] py-[32px] xs:px-[24px] xs:py-[40px] rounded-[16px] text-center",
-    "bg-[linear-gradient(160deg,var(--color-peach-50)_0%,var(--color-peach-100)_100%)]",
-    "border border-peach-line focus:outline-none",
-  ].join(" "),
 };
-
-/** Seconds the thank-you panel stays up before the empty form comes back. */
-const RESET_AFTER_S = 30;
-
-function SuccessPanel({
-  panelRef,
-  title,
-  message,
-  resetLabel,
-  resetInText,
-  onReset,
-}: {
-  panelRef: RefObject<HTMLDivElement | null>;
-  title: string;
-  message: string;
-  resetLabel: string;
-  resetInText: string;
-  onReset: () => void;
-}) {
-  const [left, setLeft] = useState(RESET_AFTER_S);
-  const onResetRef = useRef(onReset);
-  useEffect(() => {
-    onResetRef.current = onReset;
-  });
-
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      setLeft((s) => Math.max(0, s - 1));
-    }, 1000);
-    const done = window.setTimeout(() => onResetRef.current(), RESET_AFTER_S * 1000);
-    return () => {
-      window.clearInterval(id);
-      window.clearTimeout(done);
-    };
-  }, []);
-
-  const progress = left / RESET_AFTER_S;
-
-  return (
-    <div ref={panelRef} className={cls.success} role="status" tabIndex={-1}>
-      <span
-        aria-hidden="true"
-        className="lead-success-pop flex size-[56px] xs:size-[64px] items-center justify-center rounded-full bg-success text-white shadow-[0_0_0_7px_rgba(46,125,79,0.12)] xs:shadow-[0_0_0_8px_rgba(46,125,79,0.12)]"
-      >
-        <Check className="size-[26px] xs:size-[30px]" strokeWidth={2.6} aria-hidden="true" />
-      </span>
-      <p className="m-0 mt-[8px] text-[20px] xs:text-[24px] leading-[1.25] font-bold tracking-[-0.3px] text-ink text-balance">
-        {title}
-      </p>
-      <p className="m-0 max-w-[380px] text-[14.5px] leading-[22px] xs:text-[15px] xs:leading-[24px] text-slate-strong text-pretty">
-        {message}
-      </p>
-      <button
-        type="button"
-        className="btn-outline [--btn-h:48px] mt-[8px] w-full max-w-[300px] text-[15px] xs:w-auto"
-        onClick={onReset}
-      >
-        {resetLabel}
-      </button>
-      <div className="mt-[4px] flex w-full max-w-[220px] flex-col items-center gap-[6px]" aria-hidden="true">
-        <div className="h-[4px] w-full overflow-hidden rounded-full bg-peach-200/60">
-          <div
-            className="h-full rounded-full bg-orange transition-[width] duration-1000 ease-linear"
-            style={{ width: `${progress * 100}%` }}
-          />
-        </div>
-        <p className="m-0 text-[12px] leading-[16px] text-slate">{resetInText.replace("{s}", String(left))}</p>
-      </div>
-    </div>
-  );
-}
 
 /**
  * Service pages: the roles ticked in "Roles we supply", as removable chips,
@@ -227,18 +155,50 @@ const FIELDS: FieldConfig[] = [
 export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
   // Service pages only: the roles ticked in "Roles we supply" (null on the homepage).
   const selection = useRoleSelection();
-  const [state, formAction, isPending] = useActionState(submitLead, INITIAL_LEAD_STATE);
-  const [dismissed, setDismissed] = useState<LeadFormState | null>(null);
+  const router = useRouter();
+  // Sent: open the thank-you page. Pushed inside the action, so the button
+  // keeps showing "Sending…" until the page is there.
+  const [state, formAction, isPending] = useActionState(
+    async (prev: LeadFormState, formData: FormData): Promise<LeadFormState> => {
+      // A rejected action (offline, body too large, stale deploy) would otherwise throw to the error page.
+      const next = await submitLead(prev, formData).catch(
+        (): LeadFormState => ({
+          status: "error",
+          message: copy.errorText,
+          fieldErrors: {},
+          values: readLeadValues(formData),
+        }),
+      );
+      if (next.status === "success") {
+        const values = readLeadValues(formData);
+        saveThankYouNote({
+          form: "request",
+          name: values.name,
+          crew: values.headcount,
+          location: values.siteLocation,
+          start: values.startDate,
+          tags: readLeadServices(formData),
+        });
+        router.push(THANK_YOU);
+      }
+      return next;
+    },
+    INITIAL_LEAD_STATE,
+  );
+  // Until the thank-you page has loaded.
+  const sending = isPending || state.status === "success";
   const idPrefix = useId();
   const formRef = useRef<HTMLFormElement>(null);
   const statusRef = useRef<HTMLParagraphElement>(null);
-  const successRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   // document.title only exists in the browser; it is written into this hidden
   // field at submit time, so it always matches the page the form was sent from.
   const pageTitleRef = useRef<HTMLInputElement>(null);
 
-  const showSuccess = state.status === "success" && dismissed !== state;
+  // Load the thank-you page ahead, so it opens at once.
+  useEffect(() => {
+    router.prefetch(THANK_YOU);
+  }, [router]);
 
   // Live validation: a field is checked when the visitor leaves it, then
   // re-checked on every keystroke so the message clears as soon as it's fixed.
@@ -281,40 +241,14 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
   const statusMessage =
     state.status === "error" && Object.keys(state.fieldErrors).length === 0 ? state.message : "";
 
-  const resetForm = () => {
-    setChecked({});
-    setFilled({});
-    setDismissed(state);
-  };
-
-  // Move focus to the outcome so keyboard and screen-reader users hear it:
-  // the success panel, else the first invalid field, else the error message.
+  // After an error, move focus to it so keyboard and screen-reader users hear
+  // it: the first invalid field, else the error message.
   useEffect(() => {
-    if (state.status === "success") {
-      // On phones the long form collapses into the shorter panel, which can leave it
-      // above the viewport; bring it into view instead of letting focus jump.
-      const panel = successRef.current;
-      panel?.focus({ preventScroll: true });
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      panel?.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
-    } else if (state.status === "error") {
+    if (state.status === "error") {
       const invalid = formRef.current?.querySelector<HTMLInputElement>('[aria-invalid="true"]');
       (invalid ?? statusRef.current)?.focus();
     }
   }, [state]);
-
-  if (showSuccess) {
-    return (
-      <SuccessPanel
-        panelRef={successRef}
-        title={copy.successTitle}
-        message={state.message}
-        resetLabel={copy.resetLabel}
-        resetInText={t.form.resetIn}
-        onReset={resetForm}
-      />
-    );
-  }
 
   return (
     <form
@@ -418,17 +352,17 @@ export default function LeadForm({ copy }: { copy: LeadFormCopy }) {
         <button
           type="submit"
           className="btn-primary w-full max-md:py-[14px] max-md:text-[15.5px] max-md:leading-[21px] max-md:[--btn-h:49px]"
-          disabled={isPending}
-          aria-busy={isPending}
+          disabled={sending}
+          aria-busy={sending}
         >
-          {isPending && (
+          {sending && (
             <span
               aria-hidden="true"
               className="size-[16px] animate-spin rounded-full border-2 border-white/40 border-t-white"
             />
           )}
-          {isPending ? copy.submitting : copy.submit}
-          {!isPending && <ArrowRight size={18} className="text-white" aria-hidden="true" />}
+          {sending ? copy.submitting : copy.submit}
+          {!sending && <ArrowRight size={18} className="text-white" aria-hidden="true" />}
         </button>
         <p
           id={`${idPrefix}-status`}

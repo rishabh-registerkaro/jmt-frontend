@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, Calendar, Check, Clock, MapPin, MessageCircle, Phone, User, Users, type LucideIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { submitContactLead } from "@/app/actions/contactLead";
 import type { ContactPageContent } from "@/data/contactPage";
@@ -17,6 +18,11 @@ import {
   type ContactFormState,
 } from "@/utils/contactForm";
 import { Responsive } from "./Responsive";
+import { ENQUIRY_TEMPLATE, enquiryDraft, withWhatsAppText } from "@/lib/whatsapp";
+import { saveThankYouNote, thankYouPath } from "@/lib/thankYou";
+
+/** Where a sent enquiry goes (app/thank-you/[form]). */
+const THANK_YOU = thankYouPath("enquiry");
 
 // Figma "Enquiry form" — desktop 302:158 (two fields per row), phones 304:55
 // (one per row, crew size + start date side by side).
@@ -56,7 +62,9 @@ const cls = {
   inputOk: "border-sand focus:border-orange focus:[box-shadow:0_0_0_3px_rgba(242,105,33,0.18)]",
   inputBad: "border-error bg-[#fff7f9] focus:border-error focus:[box-shadow:0_0_0_3px_rgba(198,40,40,0.15)]",
   fieldIcon: "pointer-events-none absolute top-1/2 left-[14px] z-1 size-[16px] -translate-y-1/2 text-slate",
-  error: "m-0 text-[12.5px] leading-[18px] text-error",
+  // Floats in the gap under its field (parent is relative), so a message never
+  // pushes the form taller. One line, cut with "…" if it is too long.
+  error: "pointer-events-none absolute top-full right-0 left-0 m-0 mt-[2px] truncate text-[11.5px] leading-[13px] text-error",
   submit:
     "btn-primary w-full gap-[8px] [--btn-h:49px] px-[20px] text-[15.5px] leading-[normal] md:w-auto md:[--btn-h:51px] md:px-[28px] md:text-[16px]",
   whatsapp:
@@ -108,16 +116,48 @@ export default function EnquiryForm({
   copy: ContactPageContent["form"];
   whatsappHref: string | null;
 }) {
-  const [state, formAction, isPending] = useActionState(submitContactLead, INITIAL_CONTACT_STATE);
-  const [dismissed, setDismissed] = useState<ContactFormState | null>(null);
+  const router = useRouter();
+  // Sent: open the thank-you page. Pushed inside the action, so the button
+  // keeps showing "Sending…" until the page is there.
+  const [state, formAction, isPending] = useActionState(
+    async (prev: ContactFormState, formData: FormData): Promise<ContactFormState> => {
+      // A rejected action (offline, body too large, stale deploy) would otherwise throw to the error page.
+      const next = await submitContactLead(prev, formData).catch(
+        (): ContactFormState => ({
+          status: "error",
+          message: copy.messages.error,
+          fieldErrors: {},
+          values: readContactValues(formData),
+        }),
+      );
+      if (next.status === "success") {
+        const values = readContactValues(formData);
+        saveThankYouNote({
+          form: "enquiry",
+          name: values.name,
+          crew: values.headcount,
+          location: values.siteLocation,
+          start: values.startDate,
+          tags: [values.service === OTHER_SERVICE ? values.serviceOther : copy.services[values.service as keyof typeof copy.services] ?? values.service],
+        });
+        router.push(THANK_YOU);
+      }
+      return next;
+    },
+    INITIAL_CONTACT_STATE,
+  );
+  // Until the thank-you page has loaded.
+  const sending = isPending || state.status === "success";
   const [checked, setChecked] = useState<Partial<Record<ContactField, string | null>>>({});
   const idPrefix = useId();
   const formRef = useRef<HTMLFormElement>(null);
   const statusRef = useRef<HTMLParagraphElement>(null);
-  const successRef = useRef<HTMLDivElement>(null);
   const isPhone = useIsPhone();
 
-  const showSuccess = state.status === "success" && dismissed !== state;
+  // Load the thank-you page ahead, so it opens at once.
+  useEffect(() => {
+    router.prefetch(THANK_YOU);
+  }, [router]);
 
   // A field is checked when the visitor leaves it, then re-checked on every
   // change so its message clears as soon as it's fixed.
@@ -144,12 +184,7 @@ export default function EnquiryForm({
   };
 
   useEffect(() => {
-    if (state.status === "success") {
-      const panel = successRef.current;
-      panel?.focus({ preventScroll: true });
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      panel?.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
-    } else if (state.status === "error") {
+    if (state.status === "error") {
       const invalid = formRef.current?.querySelector<HTMLInputElement>('[aria-invalid="true"]');
       (invalid ?? statusRef.current)?.focus();
     }
@@ -170,33 +205,6 @@ export default function EnquiryForm({
         <p className={cls.note}>{copy.requiredNote}</p>
       </div>
 
-      {showSuccess ? (
-        <div
-          ref={successRef}
-          role="status"
-          tabIndex={-1}
-          className="flex flex-col items-center gap-[12px] rounded-[16px] border border-peach-line bg-[linear-gradient(160deg,var(--color-peach-50),var(--color-peach-100))] px-[20px] py-[40px] text-center focus:outline-none"
-        >
-          <span
-            aria-hidden="true"
-            className="lead-success-pop flex size-[56px] items-center justify-center rounded-full bg-success text-white shadow-[0_0_0_8px_rgba(46,125,79,0.12)]"
-          >
-            <Check aria-hidden="true" className="size-[26px]" strokeWidth={2.6} />
-          </span>
-          <p className="m-0 mt-[6px] text-[20px] leading-[1.25] font-bold text-ink md:text-[22px]">{copy.successTitle}</p>
-          <p className="m-0 max-w-[380px] text-[14.5px] leading-[22px] text-slate-strong">{state.message}</p>
-          <button
-            type="button"
-            className="btn-outline mt-[6px] [--btn-h:46px] text-[15px]"
-            onClick={() => {
-              setChecked({});
-              setDismissed(state);
-            }}
-          >
-            {copy.sendAnother}
-          </button>
-        </div>
-      ) : (
         <form
           ref={formRef}
           action={formAction}
@@ -205,7 +213,7 @@ export default function EnquiryForm({
           aria-describedby={`${idPrefix}-status`}
           className="flex flex-col gap-[16px] md:gap-[20px]"
         >
-          <fieldset className="m-0 flex flex-col gap-[8px] border-0 p-0" aria-describedby={serviceError ? `${idPrefix}-service-error` : undefined}>
+          <fieldset className={`relative m-0 flex flex-col gap-[8px] border-0 p-0 ${serviceError ? "[&_label]:border-error" : ""}`} aria-describedby={serviceError ? `${idPrefix}-service-error` : undefined}>
             <legend className={`${cls.label} mb-[8px] p-0`}>
               {copy.serviceLabel}
               <span className={cls.star} aria-hidden="true">*</span>
@@ -243,7 +251,7 @@ export default function EnquiryForm({
               </p>
             )}
             {service === OTHER_SERVICE && (
-              <div className="flex flex-col gap-[6px]">
+              <div className="relative flex flex-col gap-[6px]">
                 {/* The "Others" choice above is the visible label; this one is for screen readers. */}
                 <label htmlFor={`${idPrefix}-serviceOther`} className="sr-only">
                   {copy.labels.serviceOther}
@@ -272,7 +280,7 @@ export default function EnquiryForm({
             )}
           </fieldset>
 
-          <div className="grid grid-cols-2 gap-x-[10px] gap-y-[16px] md:gap-x-[14px] md:gap-y-[20px]">
+          <div className="grid grid-cols-2 gap-x-[10px] gap-y-[20px] md:gap-x-[14px] md:gap-y-[24px]">
             {FIELDS.map((field) => {
               const inputId = `${idPrefix}-${field.name}`;
               const errorId = `${inputId}-error`;
@@ -288,7 +296,7 @@ export default function EnquiryForm({
               return (
                 <div
                   key={field.name}
-                  className={`flex min-w-0 flex-col gap-[6px] md:col-span-1 md:gap-[7px] ${field.half ? "col-span-2 min-[390px]:col-span-1" : "col-span-2"}`}
+                  className={`relative flex min-w-0 flex-col gap-[6px] md:col-span-1 md:gap-[7px] ${field.half ? "col-span-2 min-[390px]:col-span-1" : "col-span-2"}`}
                 >
                   <label htmlFor={inputId} className={cls.label}>
                     {copy.labels[field.name]}
@@ -347,18 +355,25 @@ export default function EnquiryForm({
           </div>
 
           <div className="flex flex-col gap-[16px] md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-[12px]">
-            <button type="submit" className={cls.submit} disabled={isPending} aria-busy={isPending}>
-              {isPending && (
+            <button type="submit" className={cls.submit} disabled={sending} aria-busy={sending}>
+              {sending && (
                 <span aria-hidden="true" className="size-[16px] animate-spin rounded-full border-2 border-white/40 border-t-white" />
               )}
-              {isPending ? copy.submitting : copy.submit}
-              {!isPending && (
+              {sending ? copy.submitting : copy.submit}
+              {!sending && (
                 <ArrowRight aria-hidden="true" className="size-[17px] flex-none text-white md:size-[18px]" />
               )}
             </button>
             {whatsappHref && (
               <a
-                href={whatsappHref}
+                href={withWhatsAppText(whatsappHref, ENQUIRY_TEMPLATE)}
+                // Fill the draft with what the visitor has typed so far.
+                onClick={(event) => {
+                  if (formRef.current) {
+                    const values = readContactValues(new FormData(formRef.current));
+                    event.currentTarget.href = withWhatsAppText(whatsappHref, enquiryDraft(values));
+                  }
+                }}
                 className={cls.whatsapp}
                 {...(whatsappHref.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
               >
@@ -378,7 +393,6 @@ export default function EnquiryForm({
             {statusMessage}
           </p>
         </form>
-      )}
 
       <p className={`m-0 ${cls.reassure}`}>
         <Clock aria-hidden="true" className="size-[15px] flex-none text-orange md:size-[16px]" />

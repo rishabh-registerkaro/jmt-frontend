@@ -27,7 +27,6 @@ export const UI_TEXT = {
   },
   form: {
     honeypot: "Leave this field empty",
-    resetIn: "This form will reset in {s}s",
     placeholders: {
       companyName: "e.g. ABC Infra",
       name: "Full name",

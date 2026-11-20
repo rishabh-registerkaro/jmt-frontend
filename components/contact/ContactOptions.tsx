@@ -4,6 +4,7 @@ import type { ContactInfo } from "@/types/homepage";
 import { Eyebrow } from "@/components/service/SectionHeader";
 import type { ContactPageContent } from "@/data/contactPage";
 import { AccentHeading, Responsive } from "./Responsive";
+import { WHATSAPP_DRAFTS, withWhatsAppText } from "@/lib/whatsapp";
 
 // Figma "Contact options" — desktop 303:14 (white, 24 top / 80 bottom, three
 // cards of 311px in a row); phones 304:238 (grey band, 40px block padding,
@@ -73,7 +74,7 @@ export default function ContactOptions({
       value: office.address || copy.visit.placeholder,
       placeholder: !office.address,
       // Visits are by appointment: book over WhatsApp, else via the form.
-      href: contact.whatsappHref ?? "#enquiry",
+      href: withWhatsAppText(contact.whatsappHref, WHATSAPP_DRAFTS.visit) ?? "#enquiry",
       external: whatsappExternal,
       order: "max-md:order-3 max-md:col-span-2",
     },

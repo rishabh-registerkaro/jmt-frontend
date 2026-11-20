@@ -10,6 +10,7 @@ import { sitePagePath } from "@/lib/siteLinks";
 import { breadcrumbJsonLd, jsonLdHtml, pageMetadata } from "@/lib/seo";
 import { getSiteChrome } from "@/server/homepage";
 import { getJoinPage } from "@/server/sitePages";
+import { WHATSAPP_DRAFTS, withWhatsAppText } from "@/lib/whatsapp";
 
 // Join our crew page — Figma "JMT" → "Join our crew — Desktop 1440" (311:2)
 // and "Join our crew — Mobile 390" (313:2).
@@ -53,7 +54,7 @@ export default async function JoinOurCrewPage() {
         content={content.hero}
         homeHref="/"
         applyHref={applyHref}
-        whatsappHref={chrome.contact.whatsappHref ?? applyHref}
+        whatsappHref={withWhatsAppText(chrome.contact.whatsappHref, WHATSAPP_DRAFTS.join) ?? applyHref}
         opensWhatsApp={UI_TEXT.opensWhatsApp}
       />
       <JoinBenefits content={content.benefits} />
@@ -67,7 +68,7 @@ export default async function JoinOurCrewPage() {
         opensWhatsApp={UI_TEXT.opensWhatsApp}
       />
       {/* Phones: fixed Call / WhatsApp / Apply now bar (Figma 313:439). */}
-      <MobileBar contact={chrome.contact} ctaLabel={content.hero.primaryCta} ctaHref={applyHref} />
+      <MobileBar contact={chrome.contact} ctaLabel={content.hero.primaryCta} ctaHref={applyHref} whatsappText={WHATSAPP_DRAFTS.join} />
     </>
   );
 }

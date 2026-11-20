@@ -6,7 +6,7 @@ import { JOIN_PAGE, type SiteIcon } from "@/data/joinPage";
 import { JOIN_INNER, JoinSectionHeader } from "./shared";
 
 function SiteGlyph({ icon }: { icon: SiteIcon }) {
-  const Glyph = SITE_ICONS[icon];
+  const Glyph = SITE_ICONS[icon] ?? SITE_ICONS.building;
   // Figma stroke 1.35 on an 18 viewBox = 1.8 on a 24 grid.
   return <Glyph size={18} strokeWidth={SITE_ICON_STROKE} className="flex-none text-brown" aria-hidden="true" />;
 }

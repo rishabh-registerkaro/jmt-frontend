@@ -11,7 +11,7 @@ const ICONS: Record<AboutDetailIcon, LucideIcon> = {
 
 /** Orange 17px detail glyph. */
 function DetailIcon({ icon }: { icon: AboutDetailIcon }) {
-  const Icon = ICONS[icon];
+  const Icon = ICONS[icon] ?? FileText;
   return <Icon aria-hidden="true" size={17} className="flex-none text-orange" />;
 }
 

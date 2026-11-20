@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { UI_TEXT } from "@/lib/uiText";
 import type { NavChildLink, SiteChrome } from "@/types/homepage";
+import { WHATSAPP_DRAFTS, withWhatsAppText } from "@/lib/whatsapp";
 
 interface FooterProps {
   chrome: SiteChrome;
@@ -33,7 +34,7 @@ export default function Footer({ chrome }: FooterProps) {
   const { contact } = chrome;
   const contactLinks: NavChildLink[] = [
     { label: contact.phoneDisplay, href: contact.phoneHref },
-    { label: contact.whatsappDisplay, href: contact.whatsappHref },
+    { label: contact.whatsappDisplay, href: withWhatsAppText(contact.whatsappHref, WHATSAPP_DRAFTS.general) },
     { label: contact.emailDisplay, href: contact.emailHref },
     { label: contact.hours, href: null },
   ].filter((link) => link.label);

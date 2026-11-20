@@ -1,5 +1,5 @@
 // Server-side data layer for the CMS-driven site pages (About, Contact,
-// Join our crew). Same approach as server/homepage.ts and server/service.ts:
+// Join our crew, Thank you). Same approach as server/homepage.ts and server/service.ts:
 //
 //   • cached     — the fetch is cached under the page's tag; jmt-admin expires
 //                  it on every save via POST /api/revalidate, and it also
@@ -66,3 +66,4 @@ export const getSitePageUpdatedAt = async (key: SitePageKey) => (await fetchSite
 export const getAboutPage = async () => (await getSitePage("about")) as SitePageContent<"about">;
 export const getContactPage = async () => (await getSitePage("contact")) as SitePageContent<"contact">;
 export const getJoinPage = async () => (await getSitePage("join-our-crew")) as SitePageContent<"join-our-crew">;
+export const getThankYouPage = async () => (await getSitePage("thank-you")) as SitePageContent<"thank-you">;

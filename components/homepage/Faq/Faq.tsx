@@ -3,6 +3,7 @@ import type { ChromeLabels, ContactInfo, FaqCopy, FaqGroup, FounderContent } fro
 import FaqTabs from "./FaqTabs";
 import { JOIN_CREW_ANCHOR } from "./anchors";
 import { UI_TEXT as t } from "@/lib/uiText";
+import { WHATSAPP_DRAFTS, withWhatsAppText } from "@/lib/whatsapp";
 
 interface FaqProps {
   groups: FaqGroup[];
@@ -58,7 +59,7 @@ const cls = {
 };
 
 export default function Faq({ groups, copy, founder, contact, labels }: FaqProps) {
-  const whatsappHref = contact.whatsappHref ?? "#contact";
+  const whatsappHref = withWhatsAppText(contact.whatsappHref, WHATSAPP_DRAFTS.general) ?? "#contact";
   const whatsappIsExternal = whatsappHref.startsWith("http");
 
   return (
