@@ -5,6 +5,7 @@ import type { ContactInfo, HomeImage } from "@/types/homepage";
 import Photo from "@/components/common/Photo";
 import type { ContactPageContent } from "@/data/contactPage";
 import { Responsive } from "./Responsive";
+import { WHATSAPP_DRAFTS, withWhatsAppText } from "@/lib/whatsapp";
 
 // Figma "JMT business card" — desktop 302:62 (560 wide, stretches to the form's
 // height), phones 304:146. A photo header with the logo chip and company name,
@@ -85,7 +86,7 @@ export default function BusinessCard({
       key: "whatsapp",
       label: copy.labels.whatsapp,
       value: copy.whatsappValue,
-      href: contact.whatsappHref,
+      href: withWhatsAppText(contact.whatsappHref, WHATSAPP_DRAFTS.general),
       icon: MessageCircle,
       external: contact.whatsappHref?.startsWith("http") ?? false,
       placeholder: false,

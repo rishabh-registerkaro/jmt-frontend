@@ -5,6 +5,7 @@ import type { ServiceFaqContent } from "@/types/service";
 import { UI_TEXT as t } from "@/lib/uiText";
 import { AccentTitle, Eyebrow, SECTION_TITLE } from "./SectionHeader";
 import ServiceFaqList from "./ServiceFaqList";
+import { WHATSAPP_DRAFTS, withWhatsAppText } from "@/lib/whatsapp";
 
 interface ServiceFaqProps {
   id: string;
@@ -33,7 +34,7 @@ const cls = {
 
 export default function ServiceFaq({ id, content, contact }: ServiceFaqProps) {
   const { card } = content;
-  const whatsappHref = contact.whatsappHref ?? "#contact";
+  const whatsappHref = withWhatsAppText(contact.whatsappHref, WHATSAPP_DRAFTS.general) ?? "#contact";
   const whatsappIsExternal = whatsappHref.startsWith("http");
 
   return (

@@ -10,12 +10,12 @@ import {
   Hammer,
   Languages,
   MapPin,
-  MessageCircle,
   Paperclip,
   Phone,
   User,
   X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { submitJoinApplication } from "@/app/actions/joinApplication";
 import { JOIN_PAGE } from "@/data/joinPage";
@@ -28,20 +28,22 @@ import {
   WHY_HIRE_MAX_LETTERS,
   countLetters,
   limitLetters,
+  readJoinValues,
   validateJoinDocuments,
   type JoinErrorField,
   type JoinField,
+  type JoinFormState,
   type JoinFormValues,
 } from "@/utils/joinForm";
+import { THANK_YOU_PATH, saveThankYouNote } from "@/lib/thankYou";
+
+/** Where a sent application goes (app/thank-you). */
+const THANK_YOU = THANK_YOU_PATH;
 
 type FormCopy = (typeof JOIN_PAGE)["form"];
 
 interface ApplicationFormProps {
   copy: FormCopy;
-  /** WhatsApp link from the admin's contact details (falls back to the section anchor). */
-  whatsappHref: string;
-  /** Screen-reader note for links that open WhatsApp in a new tab. */
-  opensWhatsApp: string;
 }
 
 // Figma "Application form" — desktop 312:105 (white card, 32px padding, name
@@ -50,21 +52,24 @@ interface ApplicationFormProps {
 // a chosen chip turns peach with an orange ring and a check badge.
 const cls = {
   card: [
-    "flex min-w-0 flex-col gap-[14px] rounded-[20px] border border-sand bg-white px-[16px] py-[20px]",
+    "flex min-w-0 flex-col gap-[20px] rounded-[20px] border border-sand bg-white px-[16px] py-[20px]",
     "shadow-[0_12px_30px_0_rgba(99,36,0,0.08)]",
-    "md:gap-[14px] md:rounded-[24px] md:px-[26px] md:py-[24px] md:shadow-[0_16px_40px_0_rgba(99,36,0,0.08)] lg:flex-1",
+    "md:gap-[19px] md:rounded-[24px] md:px-[26px] md:py-[24px] md:shadow-[0_16px_40px_0_rgba(99,36,0,0.08)] lg:flex-1",
   ].join(" "),
   head: "flex flex-col gap-[4px] leading-[normal] md:flex-row md:items-baseline md:justify-between md:gap-[12px]",
   title: "m-0 hidden text-[22px] font-bold text-ink md:block",
   required: "m-0 text-[12.5px] text-slate md:text-[13px]",
-  row: "flex flex-col gap-[14px] md:flex-row md:gap-[12px]",
-  field: "flex min-w-0 flex-col gap-[6px] md:flex-1",
-  group: "m-0 flex min-w-0 flex-col gap-[6px] border-0 p-0",
+  // Gaps leave room for a one-line error under a field (cls.error).
+  row: "flex flex-col gap-[20px] md:flex-row md:gap-[12px]",
+  // relative: errors float just below the field (cls.error) instead of adding a line.
+  field: "relative flex min-w-0 flex-col gap-[6px] md:flex-1",
+  group: "relative m-0 flex min-w-0 flex-col gap-[6px] border-0 p-0 [&[aria-invalid=true]_label]:border-error",
   label: "flex gap-[3px] text-[13.5px] leading-[normal] font-semibold text-ink md:text-[14px]",
   star: "text-[#e81d25]",
   inputWrap: [
     "flex items-center gap-[8px] rounded-[12px] border border-sand bg-input-bg px-[14px]",
     "focus-within:border-orange focus-within:[box-shadow:0_0_0_3px_rgba(242,105,33,0.18)]",
+    "has-[[aria-invalid=true]]:border-error has-[[aria-invalid=true]]:bg-[#fff7f9]",
   ].join(" "),
   input: [
     "h-[44px] min-w-0 flex-1 border-0 bg-transparent p-0 text-[16px] text-ink md:text-[15px] outline-none",
@@ -80,7 +85,12 @@ const cls = {
     "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-orange",
   ].join(" "),
   chipCheck: "hidden size-[16px] flex-none items-center justify-center rounded-full bg-orange peer-checked:flex",
-  error: "m-0 text-[12.5px] leading-[normal] font-medium text-error",
+  // Floats in the gap under its field (parent is relative), so a message never
+  // pushes the form taller. One line, cut with "…" if it is too long.
+  error: [
+    "pointer-events-none absolute top-full right-0 left-0 m-0 mt-[1px] truncate",
+    "text-[11.5px] leading-[13px] font-medium text-error",
+  ].join(" "),
   select: "cursor-pointer appearance-none",
   menu: [
     "absolute top-[calc(100%+6px)] right-0 left-0 z-30 m-0 max-h-[288px] list-none overflow-y-auto rounded-[14px] border border-sand bg-white p-[6px]",
@@ -96,6 +106,7 @@ const cls = {
     "inline-flex h-[36px] flex-none cursor-pointer items-center gap-[7px] rounded-full border border-sand bg-white px-[14px]",
     "text-[13.5px] leading-[normal] font-semibold whitespace-nowrap text-ink transition-colors duration-160 hover:border-orange",
     "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-orange",
+    "has-[[aria-invalid=true]]:border-error",
   ].join(" "),
   fileRow: "flex max-w-full items-center gap-[6px] rounded-full border border-sand bg-input-bg py-[3px] pr-[3px] pl-[10px] text-[12.5px] text-ink",
   fileRemove: [
@@ -108,19 +119,6 @@ const cls = {
   ].join(" "),
   note: "m-0 flex items-center justify-center gap-[6px] text-center text-[13px] leading-[normal] font-medium text-brown md:gap-[8px] md:text-[14px]",
   banner: "m-0 rounded-[12px] px-[14px] py-[12px] text-[14px] leading-[20px] font-medium",
-  // Figma "State — Application sent" 312:293: the card keeps its frame, the
-  // form is replaced by a centred check badge, heading, note and WhatsApp link.
-  sent: [
-    "flex min-w-0 flex-col items-center justify-center gap-[14px] rounded-[20px] border border-sand bg-white px-[20px] py-[32px] text-center outline-none",
-    // Same height as the form it replaces (measured on submit), so the card doesn't shrink.
-    "md:min-h-[var(--form-h,auto)]",
-    "shadow-[0_12px_30px_0_rgba(99,36,0,0.08)]",
-    "md:gap-[16px] md:rounded-[24px] md:p-[40px] md:shadow-[0_16px_40px_0_rgba(99,36,0,0.08)] lg:flex-1",
-  ].join(" "),
-  sentBadge: "lead-success-pop flex size-[60px] flex-none items-center justify-center rounded-full bg-orange md:size-[72px]",
-  sentTitle: "m-0 text-[26px] leading-[normal] font-bold text-ink md:text-[30px]",
-  sentText: "m-0 max-w-[480px] text-[15.5px] leading-[24px] text-slate md:text-[16.5px] md:leading-[26px]",
-  sentWhatsApp: "btn-outline gap-[8px] border-[1.2px] pr-[20px] pl-[18px] text-[14.5px] font-semibold [--btn-h:46px] md:text-[15px]",
 };
 
 function Label({ htmlFor, children, required = true }: { htmlFor?: string; children: React.ReactNode; required?: boolean }) {
@@ -578,7 +576,7 @@ function DocumentsField({ copy, errors, describe }: Omit<FieldProps, "values">) 
   };
 
   return (
-    <div className="flex min-w-0 flex-col gap-[6px]">
+    <div className="relative flex min-w-0 flex-col gap-[6px]">
       <div className="flex flex-wrap items-center gap-x-[10px] gap-y-[6px]">
         <label className={cls.upload}>
           <Paperclip size={15} className="flex-none text-orange" aria-hidden="true" />
@@ -621,9 +619,38 @@ function DocumentsField({ copy, errors, describe }: Omit<FieldProps, "values">) 
   );
 }
 
-export default function ApplicationForm({ copy, whatsappHref, opensWhatsApp }: ApplicationFormProps) {
-  const [state, formAction, pending] = useActionState(submitJoinApplication, INITIAL_JOIN_STATE);
-  const showSuccess = state.status === "success";
+export default function ApplicationForm({ copy }: ApplicationFormProps) {
+  const router = useRouter();
+  // Sent: open the thank-you page. Pushed inside the action, so the button
+  // keeps showing "Sending…" until the page is there.
+  const [state, formAction, isPending] = useActionState(
+    async (prev: JoinFormState, formData: FormData): Promise<JoinFormState> => {
+      // A rejected action (offline, body too large, stale deploy) would otherwise throw to the error page.
+      const next = await submitJoinApplication(prev, formData).catch(
+        (): JoinFormState => ({
+          status: "error",
+          message: copy.messages.error,
+          fieldErrors: {},
+          values: readJoinValues(formData),
+        }),
+      );
+      if (next.status === "success") {
+        const values = readJoinValues(formData);
+        saveThankYouNote({
+          form: "application",
+          name: values.name,
+          location: values.location,
+          start: values.start,
+          tags: [values.trade === JOIN_OTHER ? values.tradeOther : values.trade, values.experience],
+        });
+        router.push(THANK_YOU);
+      }
+      return next;
+    },
+    INITIAL_JOIN_STATE,
+  );
+  // Until the thank-you page has loaded.
+  const pending = isPending || state.status === "success";
   const errors = state.fieldErrors;
   // After an error the form remounts (key) with what the visitor sent.
   const values: JoinFormValues =
@@ -632,18 +659,16 @@ export default function ApplicationForm({ copy, whatsappHref, opensWhatsApp }: A
     errors[field] ? { "aria-invalid": true, "aria-describedby": `join-${field}-error` } : {};
   const fieldProps = { copy, values, errors, describe };
 
-  // After a reply, move focus where keyboard and screen-reader users need it:
-  // the first invalid field (or the first input of an invalid group), or the
-  // success message.
-  const formRef = useRef<HTMLFormElement>(null);
-  // Height of the form when it was sent; the success card keeps it.
-  const [formHeight, setFormHeight] = useState<number>();
-  const successRef = useRef<HTMLDivElement>(null);
+  // Load the thank-you page ahead, so it opens at once.
   useEffect(() => {
-    if (state.status === "success") {
-      successRef.current?.focus();
-      return;
-    }
+    router.prefetch(THANK_YOU);
+  }, [router]);
+
+  // After an error, move focus where keyboard and screen-reader users need it:
+  // the first invalid field (or the first input of an invalid group), or the
+  // error message.
+  const formRef = useRef<HTMLFormElement>(null);
+  useEffect(() => {
     if (state.status !== "error") return;
     const invalid = formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]');
     const target = invalid?.matches("input, select, textarea, button")
@@ -652,36 +677,11 @@ export default function ApplicationForm({ copy, whatsappHref, opensWhatsApp }: A
     (target ?? formRef.current?.querySelector<HTMLElement>("#join-form-status"))?.focus();
   }, [state]);
 
-  if (showSuccess) {
-    const external = whatsappHref.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {};
-    return (
-      <div
-        ref={successRef}
-        className={cls.sent}
-        role="status"
-        tabIndex={-1}
-        style={formHeight ? ({ "--form-h": `${formHeight}px` } as React.CSSProperties) : undefined}
-      >
-        <span className={cls.sentBadge} aria-hidden="true">
-          <Check className="size-[30px] text-white md:size-[36px]" strokeWidth={2.6} />
-        </span>
-        <h3 className={cls.sentTitle}>{copy.messages.successTitle}</h3>
-        <p className={cls.sentText}>{state.message}</p>
-        <a href={whatsappHref} className={cls.sentWhatsApp} {...external}>
-          <MessageCircle className="size-[17px] flex-none" aria-hidden="true" />
-          {copy.messages.whatsapp}
-          {"target" in external && <span className="sr-only"> {opensWhatsApp}</span>}
-        </a>
-      </div>
-    );
-  }
-
   return (
     <form
       ref={formRef}
       key={state.status === "error" ? JSON.stringify(state.values) : "fresh"}
       action={formAction}
-      onSubmit={(e) => setFormHeight(e.currentTarget.offsetHeight)}
       className={cls.card}
       noValidate
       aria-describedby={state.status === "error" ? "join-form-status" : undefined}
@@ -692,7 +692,14 @@ export default function ApplicationForm({ copy, whatsappHref, opensWhatsApp }: A
       </div>
 
       {state.status === "error" && state.message && (
-        <p id="join-form-status" className={`${cls.banner} bg-[#fdecea] text-error`} role="alert">
+        // Field problems are shown on the fields themselves; then this summary is
+        // for screen readers only, so the card doesn't grow. Other problems
+        // (upload failed, server down…) still show as a visible banner.
+        <p
+          id="join-form-status"
+          className={Object.keys(errors).length > 0 ? "sr-only" : `${cls.banner} bg-[#fdecea] text-error`}
+          role="alert"
+        >
           {state.message}
         </p>
       )}

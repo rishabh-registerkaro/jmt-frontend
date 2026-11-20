@@ -1,12 +1,15 @@
 import { ArrowRight, MessageCircle, Phone } from "lucide-react";
 import type { ContactInfo } from "@/types/homepage";
 import { UI_TEXT as t } from "@/lib/uiText";
+import { WHATSAPP_DRAFTS, withWhatsAppText } from "@/lib/whatsapp";
 
 interface MobileBarProps {
   contact: ContactInfo;
   /** Main CTA (same label and target as the hero's primary button). */
   ctaLabel: string;
   ctaHref: string;
+  /** Pre-typed WhatsApp message (lib/whatsapp.ts); general enquiry by default. */
+  whatsappText?: string;
 }
 
 // Figma "Homepage — Mobile 390" → "Sticky bottom bar (fixed)". Phones only;
@@ -25,9 +28,9 @@ const cls = {
   cta: "btn-primary min-w-0 flex-1 gap-2 px-5 py-[14px] text-[15.5px] leading-[21px] [--btn-h:49px]",
 };
 
-export default function MobileBar({ contact, ctaLabel, ctaHref }: MobileBarProps) {
+export default function MobileBar({ contact, ctaLabel, ctaHref, whatsappText = WHATSAPP_DRAFTS.general }: MobileBarProps) {
   // Not every page has a #contact section; ctaHref always points at this page's form.
-  const whatsappHref = contact.whatsappHref ?? ctaHref;
+  const whatsappHref = withWhatsAppText(contact.whatsappHref, whatsappText) ?? ctaHref;
   const whatsappIsExternal = whatsappHref.startsWith("http");
 
   return (

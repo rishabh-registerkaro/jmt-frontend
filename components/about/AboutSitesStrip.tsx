@@ -22,7 +22,7 @@ export default function AboutSitesStrip({ content }: { content: AboutSiteStrip }
               style={{ "--i": index } as React.CSSProperties}
             >
               {(() => {
-                const Glyph = SITE_ICONS[site.icon];
+                const Glyph = SITE_ICONS[site.icon] ?? SITE_ICONS.building;
                 return <Glyph strokeWidth={SITE_ICON_STROKE} className="size-[18px] flex-none md:size-[22px]" aria-hidden="true" />;
               })()}
               <Responsive copy={site.label} />

@@ -353,6 +353,20 @@ html:has(.site) {
   .lead-success-pop { animation: none; }
 }
 
+/* Thank-you page (app/thank-you): two soft rings ripple out of the check
+   badge a few times after it pops in. */
+@keyframes thanks-ring {
+  from { transform: scale(0.85); opacity: 0.5; }
+  to { transform: scale(1.9); opacity: 0; }
+}
+.thanks-ring {
+  opacity: 0;
+  animation: thanks-ring 2200ms calc(380ms + var(--ring-d, 0ms)) var(--ease-site) 3 both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .thanks-ring { animation: none; }
+}
+
 /* ───────────────────────── Hero entrance ─────────────────────────
    Staggered on page load (.reveal* in HeroSection.tsx, --d = delay). Runs only
    under html.reveal-ready, which the boot script in app/layout.tsx sets

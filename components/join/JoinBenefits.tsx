@@ -33,7 +33,7 @@ export default function JoinBenefits({ content }: { content: (typeof JOIN_PAGE)[
         <JoinSectionHeader id="join-benefits-title" copy={content.copy} />
         <ul className={cls.grid} data-reveal-stagger>
           {content.items.map((item, index) => {
-            const Icon = ICONS[item.icon];
+            const Icon = ICONS[item.icon] ?? HardHat;
             return (
             <li key={item.title} className={cls.card} style={{ "--i": index } as React.CSSProperties}>
               <span className={cls.badge} aria-hidden="true">

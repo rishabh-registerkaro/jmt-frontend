@@ -56,7 +56,7 @@ export default function JoinHiring({ content }: { content: (typeof JOIN_PAGE)["h
 
         <ol className={cls.list} data-reveal-stagger>
           {content.steps.map((step, index) => {
-            const Icon = STEP_ICONS[step.icon];
+            const Icon = STEP_ICONS[step.icon] ?? HardHat;
             return (
             <li key={step.title} className={cls.item} style={{ "--i": index } as React.CSSProperties}>
               <div className={cls.rail} aria-hidden="true">
@@ -79,7 +79,7 @@ export default function JoinHiring({ content }: { content: (typeof JOIN_PAGE)["h
         <span className={cls.trackLine} aria-hidden="true" />
         <ol className={cls.track} data-reveal-stagger>
           {content.steps.map((step, index) => {
-            const Icon = STEP_ICONS[step.icon];
+            const Icon = STEP_ICONS[step.icon] ?? HardHat;
             return (
             <li key={step.title} className="relative min-w-0" style={{ "--i": index } as React.CSSProperties}>
               <span className={`${cls.badgeLg} ${tone(index)}`} aria-hidden="true">
@@ -100,7 +100,7 @@ export default function JoinHiring({ content }: { content: (typeof JOIN_PAGE)["h
           <p className={cls.readyLabel}>{content.keepReady.label}</p>
           <ul className="m-0 flex list-none flex-col gap-[8px] p-0 lg:flex-row lg:flex-wrap lg:gap-[16px]">
             {content.keepReady.items.map((item) => {
-              const Icon = READY_ICONS[item.icon];
+              const Icon = READY_ICONS[item.icon] ?? FileText;
               return (
               <li key={item.text} className={cls.readyItem}>
                 <Icon className="size-[16px] flex-none text-brown lg:size-[17px]" aria-hidden="true" />
