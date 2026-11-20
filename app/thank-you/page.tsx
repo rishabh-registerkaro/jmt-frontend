@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { ThankYouVariant } from "@/components/thank-you/ThankYouNote";
 import {
   ThankYouActions,
   ThankYouExplore,
@@ -9,16 +9,17 @@ import {
 } from "@/components/thank-you/ThankYouSections";
 import { UI_TEXT } from "@/lib/uiText";
 import { pageMetadata } from "@/lib/seo";
-import { THANK_YOU_FORMS, isThankYouForm, thankYouPath, type ThankYouForm } from "@/lib/thankYou";
+import { THANK_YOU_PATH, type ThankYouForm } from "@/lib/thankYou";
 import { WHATSAPP_DRAFTS, withWhatsAppText } from "@/lib/whatsapp";
 import { getHomepageData, getSiteChrome } from "@/server/homepage";
 import { getContactPage, getJoinPage, getThankYouPage } from "@/server/sitePages";
 
-// Thank-you page — where every form leads once it is sent (lib/thankYou.ts):
-//   /thank-you/request      "Request workers" (homepage and service pages)
-//   /thank-you/enquiry      Contact page enquiry
-//   /thank-you/application  Join our crew application
-// One URL per form, so ads and analytics can count each as a conversion.
+// Thank-you page — /thank-you, where every form leads once it is sent
+// (lib/thankYou.ts). One version per form, picked in the browser from the
+// note the form left (ThankYouVariant; "request" when there is none):
+//   request      "Request workers" (homepage and service pages)
+//   enquiry      Contact page enquiry
+//   application  Join our crew application
 //
 // Copy: the page's own text from jmt-admin (Dashboard → Thank You, with
 // data/thankYouPage.ts as the fallback); each form's success title and message
@@ -30,16 +31,6 @@ import { getContactPage, getJoinPage, getThankYouPage } from "@/server/sitePages
 
 // Matches SITE_PAGE_REVALIDATE_SECONDS / HOMEPAGE_REVALIDATE_SECONDS (must be a literal here).
 export const revalidate = 600;
-// Only the three forms; any other /thank-you/<x> is a 404.
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return THANK_YOU_FORMS.map((form) => ({ form }));
-}
-
-interface PageProps {
-  params: Promise<{ form: string }>;
-}
 
 /** The form's own success title and message, as set in the admin. */
 async function sentCopy(form: ThankYouForm): Promise<{ title: string; message: string }> {
@@ -55,13 +46,11 @@ async function sentCopy(form: ThankYouForm): Promise<{ title: string; message: s
   return { title: successTitle, message: success };
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { form } = await params;
-  if (!isThankYouForm(form)) return {};
+export async function generateMetadata(): Promise<Metadata> {
   const [page, chrome] = await Promise.all([getThankYouPage(), getSiteChrome()]);
   return {
     ...pageMetadata({
-      path: thankYouPath(form),
+      path: THANK_YOU_PATH,
       title: page.meta.title,
       description: page.meta.description,
       siteName: chrome.brand.name,
@@ -71,9 +60,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function ThankYouPage({ params }: PageProps) {
-  const { form } = await params;
-  if (!isThankYouForm(form)) notFound();
+/** The page as shown after `form`. */
+async function ThankYouContent({ form }: { form: ThankYouForm }) {
   const worker = form === "application";
 
   const [page, chrome, sent, contactPage, joinPage] = await Promise.all([
@@ -120,5 +108,17 @@ export default async function ThankYouPage({ params }: PageProps) {
       />
       <ThankYouExplore copy={page.explore} links={worker ? page.explore.workerLinks : page.explore.links} />
     </>
+  );
+}
+
+export default function ThankYouPage() {
+  return (
+    <ThankYouVariant
+      variants={{
+        request: <ThankYouContent form="request" />,
+        enquiry: <ThankYouContent form="enquiry" />,
+        application: <ThankYouContent form="application" />,
+      }}
+    />
   );
 }

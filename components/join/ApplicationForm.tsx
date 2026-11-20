@@ -35,10 +35,10 @@ import {
   type JoinFormState,
   type JoinFormValues,
 } from "@/utils/joinForm";
-import { saveThankYouNote, thankYouPath } from "@/lib/thankYou";
+import { THANK_YOU_PATH, saveThankYouNote } from "@/lib/thankYou";
 
-/** Where a sent application goes (app/thank-you/[form]). */
-const THANK_YOU = thankYouPath("application");
+/** Where a sent application goes (app/thank-you). */
+const THANK_YOU = THANK_YOU_PATH;
 
 type FormCopy = (typeof JOIN_PAGE)["form"];
 

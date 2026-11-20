@@ -19,10 +19,10 @@ import {
 import type { LeadField, LeadFormCopy, LeadFormState } from "@/types/homepage";
 import { UI_TEXT as t } from "@/lib/uiText";
 import { useRoleSelection } from "@/components/service/RoleSelection";
-import { saveThankYouNote, thankYouPath } from "@/lib/thankYou";
+import { THANK_YOU_PATH, saveThankYouNote } from "@/lib/thankYou";
 
-/** Where a sent request goes (app/thank-you/[form]). */
-const THANK_YOU = thankYouPath("request");
+/** Where a sent request goes (app/thank-you). */
+const THANK_YOU = THANK_YOU_PATH;
 
 const cls = {
   // Mobile (<768, Figma "Homepage — Mobile 390"): 45px rounded-rect fields, sand border.

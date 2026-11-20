@@ -15,7 +15,7 @@ Every page's content is edited in jmt-admin. Each page also ships with bundled d
 | `/about` | About | `GET /api/site-pages/client/about` | About Us | `data/about.ts` |
 | `/contact` | Contact | `GET /api/site-pages/client/contact` | Contact | `data/contactPage.ts` |
 | `/join-our-crew` | Join our crew | `GET /api/site-pages/client/join-our-crew` | Join Our Crew | `data/joinPage.ts` |
-| `/thank-you/<form>` | Thank you (after a form is sent) | `GET /api/site-pages/client/thank-you` | Thank You | `data/thankYouPage.ts` |
+| `/thank-you` | Thank you (after a form is sent) | `GET /api/site-pages/client/thank-you` | Thank You | `data/thankYouPage.ts` |
 
 The navbar, footer and contact details (phone, WhatsApp, email, hours) on every page come from the homepage document (`getSiteChrome`).
 
@@ -32,7 +32,7 @@ Friendly aliases redirect permanently (308) to the real pages (`proxy.ts`): `/ab
 | Edits going live | After every save, jmt-admin calls this app's `POST /api/revalidate`, which checks `REVALIDATE_SECRET`. Every page refreshes, and the next visit gets the new content. |
 | Open tabs auto-refresh | `components/homepage/LiveRefresh.tsx` polls `/api/homepage/version`, which forwards to jmt-admin. |
 | Forms | Server Actions send each form to jmt-admin, which saves the lead, emails the admin and rate-limits each visitor (per IP, and per email/phone number). The "Request workers" form (homepage and service pages) goes through `app/actions/leads.ts` to `/api/lead/homepage`, the Contact enquiry form through `app/actions/contactLead.ts` to `/api/lead/contact`, and the Join our crew application through `app/actions/joinApplication.ts` to `/api/lead/join`. All of them appear in jmt-admin → Leads. Once a form is sent, the visitor is taken to its thank-you page (below). |
-| Thank-you page | `/thank-you/request` (Request workers), `/thank-you/enquiry` (Contact) and `/thank-you/application` (Join our crew): one URL per form, so ads and analytics can count each as a conversion. The form opens it with `router.push` after the Server Action succeeds (`lib/thankYou.ts`), and leaves a small note in `sessionStorage` (first name, crew size, place, start, roles / service / trade, never the phone or email) that the page shows back to the visitor. Opened directly, the page shows its generic version. It shows each form's own success title and message, the next steps from the Contact or Join our crew page, and Call / WhatsApp / "Save our number" (`/thank-you/jmt-contact.vcf`). It is `noindex` and not in the sitemap. |
+| Thank-you page | `/thank-you`, one URL for every form, with a version each for Request workers, Contact and Join our crew (the old `/thank-you/<form>` URLs redirect here). The form opens it with `router.push` after the Server Action succeeds (`lib/thankYou.ts`), and leaves a small note in `sessionStorage` (first name, crew size, place, start, roles / service / trade, never the phone or email) that the page shows back to the visitor. The note also picks the version; opened directly, the page shows the generic Request workers version. It shows each form's own success title and message, the next steps from the Contact or Join our crew page, and Call / WhatsApp / "Save our number" (`/thank-you/jmt-contact.vcf`). It is `noindex` and not in the sitemap. |
 | Lead source | The "Request workers" form sends the page path and title it was filled on, so jmt-admin's **Source** column shows the page. On a service page it also sends the roles ticked in "Roles we supply" (`components/service/RoleSelection.tsx`). |
 | Preview of unsaved edits | jmt-admin's **Preview** button opens `/api/preview?token=…&path=…` here. That turns on Next.js Draft Mode for that browser only and stores the token in the `jmt-preview` cookie. While it's on, `server/*` renders the draft (read from jmt-admin's `/api/preview/<token>` with `REVALIDATE_SECRET`) instead of the published content, and `components/preview/PreviewBar.tsx` shows a bar, polls `/api/preview/version` and re-renders as the editor types. "Exit preview" goes to `/api/preview?exit=1`. Every other visitor keeps getting the cached, published pages. See `lib/preview.ts`. |
 | SEO | `lib/seo.ts` gives every page an absolute canonical, Open Graph and Twitter tags, and JSON-LD (Organization and WebSite in the layout, a BreadcrumbList on the service, Contact and Join pages, and a Service on each service page). `app/sitemap.ts` lists every page, with `<lastmod>` from the CMS. `app/robots.ts` allows everything except `/api/`; it is rendered per request, so its sitemap link always uses the running server's `SITE_URL`. |
@@ -98,7 +98,7 @@ app/
   about/                  About page
   contact/                Contact page
   join-our-crew/          Join our crew page
-  thank-you/              thank-you page after each form ([form]) and the "Save our number" vCard
+  thank-you/              thank-you page after each form and the "Save our number" vCard
   not-found.tsx           404 page
   actions/                Server Actions for the forms → jmt-admin (leads, contactLead, joinApplication)
   api/revalidate/         cache refresh, called by jmt-admin after each save

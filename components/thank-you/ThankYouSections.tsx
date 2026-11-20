@@ -10,7 +10,7 @@ import type { Copy } from "@/types/about";
 import type { ThankYouForm } from "@/lib/thankYou";
 import { ThankYouSummary, ThankYouTitle } from "./ThankYouNote";
 
-// Thank-you page sections (app/thank-you/[form]). Same tokens as the rest of
+// Thank-you page sections (app/thank-you). Same tokens as the rest of
 // the site: peach hero wash like the Contact page, step track like "How
 // hiring works", contact cards like the Join page's apply panel, and the
 // About page's orange CTA card to close.

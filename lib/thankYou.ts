@@ -1,4 +1,4 @@
-// The thank-you page each form leads to (app/thank-you/[form]), and the small
+// The thank-you page each form leads to (app/thank-you), and the small
 // note a form leaves for it.
 //
 // The note holds only what the page shows back to the visitor: first name,
@@ -13,8 +13,8 @@ export type ThankYouForm = (typeof THANK_YOU_FORMS)[number];
 export const isThankYouForm = (value: string): value is ThankYouForm =>
   (THANK_YOU_FORMS as readonly string[]).includes(value);
 
-/** "/thank-you/request", … */
-export const thankYouPath = (form: ThankYouForm) => `/thank-you/${form}`;
+/** One URL for every form; the note below says which form was sent. */
+export const THANK_YOU_PATH = "/thank-you";
 
 export interface ThankYouNote {
   form: ThankYouForm;
@@ -51,6 +51,16 @@ export function readThankYouNoteRaw(): string | null {
     return typeof sessionStorage === "undefined" ? null : sessionStorage.getItem(KEY);
   } catch {
     return null;
+  }
+}
+
+/** Which form the saved note is for; "request" when there is none. */
+export function thankYouNoteForm(raw: string | null): ThankYouForm {
+  try {
+    const form = raw ? (JSON.parse(raw) as Partial<ThankYouNote>).form : undefined;
+    return typeof form === "string" && isThankYouForm(form) ? form : "request";
+  } catch {
+    return "request";
   }
 }
 

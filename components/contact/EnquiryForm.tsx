@@ -19,10 +19,10 @@ import {
 } from "@/utils/contactForm";
 import { Responsive } from "./Responsive";
 import { ENQUIRY_TEMPLATE, enquiryDraft, withWhatsAppText } from "@/lib/whatsapp";
-import { saveThankYouNote, thankYouPath } from "@/lib/thankYou";
+import { THANK_YOU_PATH, saveThankYouNote } from "@/lib/thankYou";
 
-/** Where a sent enquiry goes (app/thank-you/[form]). */
-const THANK_YOU = thankYouPath("enquiry");
+/** Where a sent enquiry goes (app/thank-you). */
+const THANK_YOU = THANK_YOU_PATH;
 
 // Figma "Enquiry form" — desktop 302:158 (two fields per row), phones 304:55
 // (one per row, crew size + start date side by side).

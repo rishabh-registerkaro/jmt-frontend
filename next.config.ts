@@ -72,6 +72,10 @@ const nextConfig: NextConfig = {
     serverActions: { bodySizeLimit: "5mb" },
   },
   poweredByHeader: false,
+  // The thank-you page used to have one URL per form; it is /thank-you now.
+  async redirects() {
+    return [{ source: "/thank-you/:form(request|enquiry|application)", destination: "/thank-you", permanent: true }];
+  },
   // Image optimizer is off: its resized AVIF/WebP output looked blurred.
   // Every image (public/ and the CMS media host) is served exactly as
   // uploaded, so no remotePatterns allow-list is needed.

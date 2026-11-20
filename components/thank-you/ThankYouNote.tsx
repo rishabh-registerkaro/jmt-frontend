@@ -1,9 +1,9 @@
 "use client";
 
 import { CalendarDays, Check, MapPin, Users, type LucideIcon } from "lucide-react";
-import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import type { ThankYouPageContent } from "@/data/thankYouPage";
-import { parseThankYouNote, readThankYouNoteRaw, type ThankYouForm } from "@/lib/thankYou";
+import { parseThankYouNote, readThankYouNoteRaw, thankYouNoteForm, type ThankYouForm } from "@/lib/thankYou";
 import { readableDate } from "@/lib/whatsapp";
 
 // The parts of the thank-you page that show what the visitor just sent
@@ -17,6 +17,12 @@ const subscribe = () => () => {};
 function useNote(form: ThankYouForm) {
   const raw = useSyncExternalStore(subscribe, readThankYouNoteRaw, () => null);
   return useMemo(() => parseThankYouNote(raw, form), [raw, form]);
+}
+
+/** Shows the page version for the form that was just sent ("request" without a note). */
+export function ThankYouVariant({ variants }: { variants: Record<ThankYouForm, ReactNode> }) {
+  const raw = useSyncExternalStore(subscribe, readThankYouNoteRaw, () => null);
+  return variants[thankYouNoteForm(raw)];
 }
 
 /** "Thank you, Rahul." + the orange line. Takes focus so screen readers start here. */
