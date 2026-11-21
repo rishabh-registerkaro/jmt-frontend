@@ -30,10 +30,10 @@ const TRUST_ICONS: Record<HeroTrustIcon, { desktop: IconType; size: number; mobi
 const cls = {
   // Mobile (<768, Figma "Homepage — Mobile 390"): peach gradient, 32px block
   // padding, 20px rhythm, photo as a rounded card inside the gutters.
-  hero: "relative isolate flex flex-col overflow-hidden bg-linear-to-b from-hero-wash-1 to-hero-wash-2 pb-8 md:bg-none md:bg-hero-wash-2 md:pb-0 xl:min-h-[643px] xl:justify-center xl:bg-navy",
+  hero: "relative isolate flex flex-col overflow-hidden bg-linear-to-b from-hero-wash-1 to-hero-wash-2 md:bg-none md:bg-hero-wash-2 md:pb-0 md:min-h-[560px] md:justify-center lg:min-h-[600px] xl:min-h-[643px] xl:justify-center xl:bg-navy",
   inner: "site-container relative z-2 pt-8 pb-5 md:pt-[40px] md:pb-[32px] xl:py-[60px]",
   content:
-    "flex max-w-[659px] flex-col gap-5 md:gap-[28px] xl:min-h-[523px] xl:justify-between xl:gap-[40px]",
+    "flex max-w-[659px] flex-col gap-5 md:gap-[28px] md:max-w-[48vw] lg:max-w-[42vw] xl:max-w-[659px] xl:min-h-[523px] xl:justify-between xl:gap-[40px]",
   intro: "flex flex-col gap-5 md:gap-[18px]",
   eyebrow:
     "m-0 flex items-center gap-2 text-[12px] leading-[16px] font-semibold tracking-[1.2px] text-brown uppercase md:gap-[10px] md:text-[13px] md:leading-[20.8px] md:tracking-[2.1px]",
@@ -43,21 +43,32 @@ const cls = {
   accent: "font-bold text-orange md:font-extrabold",
   subtitle:
     "m-0 max-w-[629px] text-[16px] leading-[25px] font-normal tracking-[0] text-[#5c280c] md:text-[clamp(16px,14.9436619718px+0.2816901408vw,19px)] md:leading-[1.6] md:text-brown-soft",
-  ctas: "flex flex-col items-stretch gap-[10px] md:flex-row md:flex-wrap md:items-center md:gap-x-[20px] md:gap-y-[12px]",
+  // From 480px (large phones, narrow windows) buttons sit side by side.
+  ctas: "flex flex-col items-stretch gap-[10px] min-[480px]:flex-row min-[480px]:flex-wrap min-[480px]:items-center min-[480px]:gap-x-[14px] md:flex-row md:flex-wrap md:items-center md:gap-x-[20px] md:gap-y-[12px]",
   // Mobile: full-width 49px buttons, 15.5px label, 1.2px outline.
   button:
-    "max-md:w-full max-md:[--btn-h:49px] max-md:py-[14px] max-md:text-[15.5px] max-md:leading-[21px]",
+    "max-[479px]:w-full max-md:[--btn-h:49px] max-md:py-[14px] max-md:text-[15.5px] max-md:leading-[21px]",
   whatsapp: [
     "inline-flex min-h-[20px] items-center justify-center gap-[8px] rounded-[6px] md:min-h-[44px] md:justify-start",
     "text-[15px] leading-[20px] font-semibold text-brown no-underline md:leading-[24px] md:font-medium",
     "focus-ring hover:underline hover:underline-offset-[3px]",
   ].join(" "),
-  trust: "flex flex-wrap items-center gap-x-[14px] gap-y-[10px] md:max-w-[557px] md:justify-between md:gap-x-[24px] md:gap-y-[4px]",
+  trust: "flex flex-wrap items-center gap-x-[14px] gap-y-[10px] md:max-w-[557px] md:justify-start md:gap-x-[24px] md:gap-y-[4px] xl:justify-between",
   trustItem:
     "flex min-h-[18px] items-center gap-[6px] text-[13.5px] leading-[18px] font-medium text-brown md:min-h-[44px] md:gap-[8px] md:text-[15px] md:leading-[24px]",
 
   // ── Background layers ──
-  media: "relative z-0 mx-5 h-[240px] overflow-hidden rounded-[18px] md:mx-0 md:h-[380px] md:rounded-none xl:absolute xl:inset-0 xl:h-auto",
+  // 768–1279px (shrunk window, DevTools docked): photo fills the right half
+  // (54% from 1024) at the hero's own height, its left edge faded into the
+  // peach (mediaFade); copy column kept to 48vw / 42vw. From 1280px: full bleed.
+  // <768px: photo is the hero's full-bleed bottom backdrop, tucked under the
+  // copy with a top fade from the peach, so it reads as part of the hero
+  // rather than a separate card.
+  media: "relative z-0 -mt-10 aspect-[4/3] w-full overflow-hidden min-[480px]:aspect-[16/9] md:absolute md:inset-y-0 md:right-0 md:left-[50%] md:mt-0 md:aspect-auto md:w-auto lg:left-[46%] xl:inset-0 xl:left-0",
+  mediaFade: [
+    "pointer-events-none absolute inset-x-0 top-0 z-1 h-[40%] bg-linear-to-b from-hero-wash-2 to-transparent",
+    "md:inset-x-auto md:inset-y-0 md:left-0 md:h-auto md:w-[40%] md:bg-linear-to-r xl:hidden",
+  ].join(" "),
   // Figma builds this fade from two blurred, rotated rectangles (Rectangles 9
   // and 10). Their CSS export doesn't render like Figma does, so this single
   // gradient is fitted to the rendered frame instead: solid peach to x≈650px,
@@ -133,6 +144,7 @@ export default function HeroSection({ content, contact }: HeroSectionProps) {
 
       <div className={`${cls.media} reveal-zoom`} style={delay(100)}>
         <Photo image={content.image} sizes="100vw" priority />
+        <span className={cls.mediaFade} aria-hidden="true" />
       </div>
       <div className={cls.wash} aria-hidden="true" />
       <Image
