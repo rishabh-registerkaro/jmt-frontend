@@ -14,6 +14,7 @@ import Contact from "@/components/homepage/Contact/Contact";
 import MobileBar from "@/components/homepage/MobileBar/MobileBar";
 import { HOME_META_DEFAULTS } from "@/app/lib/content/home-content";
 import { pageMetadata } from "@/lib/seo";
+import { PageSeo } from "@/components/seo/SeoTags";
 import { getHomepageData, getSiteChrome } from "@/server/homepage";
 
 // Matches HOMEPAGE_REVALIDATE_SECONDS in server/homepage.ts (must be a literal here).
@@ -57,6 +58,8 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* This page's own schema and scripts (Dashboard → SEO & Scripts → Pages). */}
+      <PageSeo path="/" />
       {!heroShown && <h1 className="sr-only">{data.meta.title ?? chrome.brand.name}</h1>}
       {data.order
         .filter((key) => data.enabled[key] && sections[key])

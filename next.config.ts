@@ -52,6 +52,10 @@ const SECURITY_HEADERS = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  // No script-src on purpose: Google Tag Manager and the custom scripts from
+  // jmt-admin (Dashboard → SEO & Scripts, components/seo/SeoTags.tsx) load
+  // third-party code. Adding one later must allow googletagmanager.com, the
+  // tags GTM loads, and those scripts' hosts, or tracking stops silently.
   // upgrade-insecure-requests: CMS media URLs saved as http:// load over https
   // (no mixed content; the media host serves both and redirects http → https).
   {
