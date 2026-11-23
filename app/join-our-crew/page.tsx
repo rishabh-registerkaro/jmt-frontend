@@ -8,6 +8,7 @@ import MobileBar from "@/components/homepage/MobileBar/MobileBar";
 import { UI_TEXT } from "@/lib/uiText";
 import { sitePagePath } from "@/lib/siteLinks";
 import { breadcrumbJsonLd, jsonLdHtml, pageMetadata } from "@/lib/seo";
+import { PageSeo } from "@/components/seo/SeoTags";
 import { getSiteChrome } from "@/server/homepage";
 import { getJoinPage } from "@/server/sitePages";
 import { WHATSAPP_DRAFTS, withWhatsAppText } from "@/lib/whatsapp";
@@ -50,6 +51,7 @@ export default async function JoinOurCrewPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(breadcrumb)} />
+      <PageSeo path={sitePagePath(PATH)} />
       <JoinHero
         content={content.hero}
         homeHref="/"

@@ -12,6 +12,8 @@ import { REVEAL_BOOT_SCRIPT } from "@/components/motion/revealBoot";
 import { UI_TEXT } from "@/lib/uiText";
 import { getHomepageVersion, getSiteChrome } from "@/server/homepage";
 import { jsonLdHtml, organizationJsonLd } from "@/lib/seo";
+import { getSeoConfig } from "@/server/seo";
+import { CustomScripts, Gtm, GtmNoscript, JsonLd, trackingEnabled } from "@/components/seo/SeoTags";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -41,20 +43,32 @@ const manrope = Manrope({
 export const revalidate = 600;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [chrome, version, { isEnabled: previewing }] = await Promise.all([
+  const [chrome, version, { isEnabled: previewing }, seo, tracking] = await Promise.all([
     getSiteChrome(),
     getHomepageVersion(),
     draftMode(),
+    getSeoConfig(),
+    trackingEnabled(),
   ]);
 
   return (
     // suppressHydrationWarning: the boot script adds reveal-ready to <html> before hydration.
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {/* Google Tag Manager for visitors without JavaScript (Dashboard → SEO & Scripts). */}
+        {tracking && <GtmNoscript gtmId={seo.gtmId} />}
         {/* Enables entrance/scroll animations before first paint (components/motion/revealBoot.ts). */}
         <script dangerouslySetInnerHTML={{ __html: REVEAL_BOOT_SCRIPT }} />
         {/* Organization + WebSite: brand, logo, phone and email shown in the navbar/footer. */}
         <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(organizationJsonLd(chrome))} />
+        {/* Site-wide extras from jmt-admin (server/seo.ts): schema on every page, then GTM and custom scripts. */}
+        <JsonLd data={seo.global.schemas} />
+        {tracking && (
+          <>
+            <Gtm gtmId={seo.gtmId} />
+            <CustomScripts scripts={seo.global.scripts} />
+          </>
+        )}
         <div
           className={[
             "site min-h-screen bg-white font-site font-normal text-ink antialiased [text-rendering:optimizeLegibility]",

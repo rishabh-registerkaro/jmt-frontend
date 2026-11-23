@@ -14,6 +14,7 @@ import { RoleSelectionProvider } from "@/components/service/RoleSelection";
 import Contact from "@/components/homepage/Contact/Contact";
 import MobileBar from "@/components/homepage/MobileBar/MobileBar";
 import { breadcrumbJsonLd, jsonLdHtml, pageMetadata, serviceJsonLd } from "@/lib/seo";
+import { PageSeo } from "@/components/seo/SeoTags";
 import { getHomepageData, getSiteChrome } from "@/server/homepage";
 import { getServicePage, getServiceSlugs } from "@/server/service";
 import { servicePath } from "@/lib/siteLinks";
@@ -97,6 +98,7 @@ export default async function ServicePage({ params }: PageProps) {
       preselected={show.roles ? content.roles.preselected : []}
     >
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml([breadcrumb, service])} />
+      <PageSeo path={servicePath(slug)} />
       <ServiceHero content={content.hero} contact={chrome.contact} homeHref={home} />
       <ServiceSubnav links={visibleSubnavLinks(content)} cta={content.subnav.cta} />
       {show.useCases && <UseCases id={ids.useCases} copy={content.useCases.copy} cards={content.useCases.cards} />}

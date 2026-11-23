@@ -12,6 +12,7 @@ import AboutJoin from "@/components/about/AboutJoin";
 import AboutCta from "@/components/about/AboutCta";
 import MobileBar from "@/components/homepage/MobileBar/MobileBar";
 import { pageMetadata } from "@/lib/seo";
+import { PageSeo } from "@/components/seo/SeoTags";
 import { contactPath, sitePagePath } from "@/lib/siteLinks";
 import { getSiteChrome } from "@/server/homepage";
 import { getAboutPage } from "@/server/sitePages";
@@ -51,6 +52,7 @@ export default async function AboutPage() {
 
   return (
     <>
+      <PageSeo path={sitePagePath("about")} />
       <AboutHero content={content.hero} founderHref={`#${TEAM_ID}`} servicesHref={homeSection("services")} />
       <AboutSitesStrip content={content.sites} />
       <AboutTrades content={content.trades} rolesHref={homeSection("trades")} />

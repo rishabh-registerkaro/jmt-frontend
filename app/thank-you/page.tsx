@@ -10,6 +10,7 @@ import {
 import { UI_TEXT } from "@/lib/uiText";
 import { pageMetadata } from "@/lib/seo";
 import { THANK_YOU_PATH, type ThankYouForm } from "@/lib/thankYou";
+import { PageSeo } from "@/components/seo/SeoTags";
 import { WHATSAPP_DRAFTS, withWhatsAppText } from "@/lib/whatsapp";
 import { getHomepageData, getSiteChrome } from "@/server/homepage";
 import { getContactPage, getJoinPage, getThankYouPage } from "@/server/sitePages";
@@ -113,12 +114,15 @@ async function ThankYouContent({ form }: { form: ThankYouForm }) {
 
 export default function ThankYouPage() {
   return (
-    <ThankYouVariant
-      variants={{
-        request: <ThankYouContent form="request" />,
-        enquiry: <ThankYouContent form="enquiry" />,
-        application: <ThankYouContent form="application" />,
-      }}
-    />
+    <>
+      <PageSeo path={THANK_YOU_PATH} />
+      <ThankYouVariant
+        variants={{
+          request: <ThankYouContent form="request" />,
+          enquiry: <ThankYouContent form="enquiry" />,
+          application: <ThankYouContent form="application" />,
+        }}
+      />
+    </>
   );
 }

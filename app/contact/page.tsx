@@ -6,6 +6,7 @@ import OfficeDetails from "@/components/contact/OfficeDetails";
 import WorkersLine from "@/components/contact/WorkersLine";
 import MobileBar from "@/components/homepage/MobileBar/MobileBar";
 import { breadcrumbJsonLd, jsonLdHtml, pageMetadata } from "@/lib/seo";
+import { PageSeo } from "@/components/seo/SeoTags";
 import { contactPath, sitePagePath } from "@/lib/siteLinks";
 import { getHomepageData, getSiteChrome } from "@/server/homepage";
 import { getContactPage } from "@/server/sitePages";
@@ -53,6 +54,7 @@ export default async function ContactPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(breadcrumb)} />
+      <PageSeo path={contactPath()} />
       <ContactHero page={page} contact={chrome.contact} photo={CARD_PHOTO} homeHref={homeHref} />
       <ContactOptions copy={page.options} office={page.office} contact={chrome.contact} />
       <NextSteps copy={page.steps} />
